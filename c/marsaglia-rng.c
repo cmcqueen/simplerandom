@@ -29,13 +29,13 @@ for(i=0;i<256;i=i+1) t[i]=KISS;
 int main(void){
 int i; UL k;
 settable(12345,65435,34221,12345,9983651,95746118);
-for(i=1;i<1000001;i++){k=LFIB4;} printf("%u\n", k-1064612766U);
-for(i=1;i<1000001;i++){k=SWB ;} printf("%u\n", k- 627749721U);
-for(i=1;i<1000001;i++){k=KISS ;} printf("%u\n", k-1372460312U);
-for(i=1;i<1000001;i++){k=CONG ;} printf("%u\n", k-1529210297U);
-for(i=1;i<1000001;i++){k=SHR3 ;} printf("%u\n", k-2642725982U);
-for(i=1;i<1000001;i++){k=MWC ;} printf("%u\n", k- 904977562U);
-for(i=1;i<1000001;i++){k=FIB ;} printf("%u\n", k-3519793928U);
+for(i=1;i<1000001;i++){k=LFIB4;} printf("%lu\n", k-1064612766U);
+for(i=1;i<1000001;i++){k=SWB ;} printf("%lu\n", k- 627749721U);
+for(i=1;i<1000001;i++){k=KISS ;} printf("%lu\n", k-1372460312U);
+for(i=1;i<1000001;i++){k=CONG ;} printf("%lu\n", k-1529210297U);
+for(i=1;i<1000001;i++){k=SHR3 ;} printf("%lu\n", k-2642725982U);
+for(i=1;i<1000001;i++){k=MWC ;} printf("%lu\n", k- 904977562U);
+for(i=1;i<1000001;i++){k=FIB ;} printf("%lu\n", k-3519793928U);
 }
 
 /*-----------------------------------------------------
