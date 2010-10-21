@@ -29,6 +29,8 @@ for(i=0;i<256;i=i+1) t[i]=KISS;
 int main(void){
 int i; UL k;
 settable(12345,65435,34221,12345,9983651,95746118);
+//for (i = 0; i < 256; i++) { printf("%lu\n", t[i]); }
+//for (i = 0; i < 256; i++) { printf("%lu\n", LFIB4); }
 for(i=1;i<1000001;i++){k=LFIB4;} printf("%lu\n", k-1064612766U);
 for(i=1;i<1000001;i++){k=SWB ;} printf("%lu\n", k- 627749721U);
 for(i=1;i<1000001;i++){k=KISS ;} printf("%lu\n", k-1372460312U);
