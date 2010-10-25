@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define znew (z=36969*(z&65535)+(z>>16))
 #define wnew (w=18000*(w&65535)+(w>>16))
@@ -8,28 +9,23 @@
 #define CONG (jcong=69069*jcong+1234567)
 #define FIB ((b=a+b),(a=b-a))
 #define KISS ((MWC^CONG)+SHR3)
-#define LFIB4 (c++,t[c]=t[c]+t[UC(c+58)]+t[UC(c+119)]+t[UC(c+178)])
-#define SWB (c++,bro=(x<y),t[c]=(x=t[UC(c+34)])-(y=t[UC(c+19)]+bro))
+#define LFIB4 (c++,t[c]=t[c]+t[(uint8_t)(c+58)]+t[(uint8_t)(c+119)]+t[(uint8_t)(c+178)])
+#define SWB (c++,bro=(x<y),t[c]=(x=t[(uint8_t)(c+34)])-(y=t[(uint8_t)(c+19)]+bro))
 #define UNI (KISS*2.328306e-10)
-#define VNI ((long) KISS)*4.656613e-10
-
-#define UC (unsigned char)      /*a cast operation */
-
-typedef unsigned long UL;
+#define VNI (((long) KISS)*4.656613e-10)
 
 /* Global static variables: */
-static UL z = 362436069, w = 521288629, jsr = 123456789, jcong = 380116160;
-static UL a = 224466889, b = 7584631, t[256];
+static uint32_t z = 362436069, w = 521288629, jsr = 123456789, jcong = 380116160;
+static uint32_t a = 224466889, b = 7584631, t[256];
 
-/* Use random seeds to reset z,w,jsr,jcong,a,b, and the table
-t[256]*/
-static UL x = 0, y = 0, bro;
-static unsigned char c = 0;
+/* Use random seeds to reset z,w,jsr,jcong,a,b, and the table t[256]*/
+static uint32_t x = 0, y = 0, bro;
+static uint8_t c = 0;
 
 /* Example procedure to set the table, using KISS: */
-void settable (UL i1, UL i2, UL i3, UL i4, UL i5, UL i6)
+void settable (uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6)
 {
-    int i;
+    unsigned int    i;
 
     z = i1;
     w = i2, jsr = i3;
@@ -38,61 +34,72 @@ void settable (UL i1, UL i2, UL i3, UL i4, UL i5, UL i6)
     b = i6;
 
     for (i = 0; i < 256; i = i + 1)
+    {
         t[i] = KISS;
+    }
 }
 
-/* This is a test main program. It should compile and print 7
-0's. */
+/* This is a test main program. It should compile and print 7 0's. */
 int main (void)
 {
-    int i;
-    UL k;
+    unsigned int    i;
+    uint32_t        k;
 
-    settable (12345, 65435, 34221, 12345, 9983651, 95746118);
+    settable(12345, 65435, 34221, 12345, 9983651, 95746118);
 
-//for (i = 0; i < 256; i++) { printf("%lu\n", t[i]); }
-//for (i = 0; i < 256; i++) { printf("%lu\n", LFIB4); }
-    for (i = 1; i < 1000001; i++)
+/*
+    for (i = 0; i < 256; i++)
+    {
+        printf("%lu\n", (unsigned long)(t[i]));
+    }
+*/
+/*
+    for (i = 0; i < 256; i++)
+    {
+        printf("%lu\n", (unsigned long)(LFIB4));
+    }
+*/
+    for (i = 0; i < 1000000; i++)
     {
         k = LFIB4;
     }
-    printf ("%lu\n", k - 1064612766U);
+    printf ("%lu\n", (unsigned long)(k - 1064612766U));
 
-    for (i = 1; i < 1000001; i++)
+    for (i = 0; i < 1000000; i++)
     {
         k = SWB;
     }
-    printf ("%lu\n", k - 627749721U);
+    printf ("%lu\n", (unsigned long)(k - 627749721U));
 
-    for (i = 1; i < 1000001; i++)
+    for (i = 0; i < 1000000; i++)
     {
         k = KISS;
     }
-    printf ("%lu\n", k - 1372460312U);
+    printf ("%lu\n", (unsigned long)(k - 1372460312U));
 
-    for (i = 1; i < 1000001; i++)
+    for (i = 0; i < 1000000; i++)
     {
         k = CONG;
     }
-    printf ("%lu\n", k - 1529210297U);
+    printf ("%lu\n", (unsigned long)(k - 1529210297U));
 
-    for (i = 1; i < 1000001; i++)
+    for (i = 0; i < 1000000; i++)
     {
         k = SHR3;
     }
-    printf ("%lu\n", k - 2642725982U);
+    printf ("%lu\n", (unsigned long)(k - 2642725982U));
 
-    for (i = 1; i < 1000001; i++)
+    for (i = 0; i < 1000000; i++)
     {
         k = MWC;
     }
-    printf ("%lu\n", k - 904977562U);
+    printf ("%lu\n", (unsigned long)(k - 904977562U));
 
-    for (i = 1; i < 1000001; i++)
+    for (i = 0; i < 1000000; i++)
     {
         k = FIB;
     }
-    printf ("%lu\n", k - 3519793928U);
+    printf ("%lu\n", (unsigned long)(k - 3519793928U));
 
     return 0;
 }
