@@ -1,0 +1,9 @@
+
+^\..*$
+^c/Debug/.*
+^c/Release/.*
+\.pyc$
+\.o$
+\.dll$
+\.so$
+\.exe$
