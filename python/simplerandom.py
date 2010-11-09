@@ -178,6 +178,55 @@ class RandomFib(object):
         return self
 
 
+def marsaglia_test():
+    random_kiss = RandomKISS(12345, 65435, 12345, 34221)
+    t = [ next(random_kiss) for i in range(256) ]
+#        for i in t: print i
+
+    lfib4 = RandomLFIB4(t)
+    if 1:
+        for i in range(1000000):
+            k = next(lfib4)
+#                if i < 256: print k
+        print k - 1064612766
+
+    swb = RandomSWB(lfib4.t)
+    swb.c = lfib4.c
+    if 1:
+        for i in range(1000000):
+            k = next(swb)
+        print k - 627749721
+
+    if 1:
+        for i in range(1000000):
+            k = next(random_kiss)
+        print k - 1372460312
+
+    cong = RandomCong(random_kiss.cong)
+    if 1:
+        for i in range(1000000):
+            k = next(cong)
+        print k - 1529210297
+
+    shr3 = RandomSHR3(random_kiss.jsr)
+    if 1:
+        for i in range(1000000):
+            k = next(shr3)
+        print k - 2642725982
+
+    mwc = RandomMWC(random_kiss.z, random_kiss.w)
+    if 1:
+        for i in range(1000000):
+            k = next(mwc)
+        print k - 904977562
+
+    fib = RandomFib(9983651,95746118)
+    if 1:
+        for i in range(1000000):
+            k = next(fib)
+        print k - 3519793928
+
+
 if __name__ == "__main__":
     if 0:
         mwc = RandomMWC(12345, 65435)
@@ -201,49 +250,4 @@ if __name__ == "__main__":
             print kiss_val
             print
     if 1:
-        random_kiss = RandomKISS(12345, 65435, 12345, 34221)
-        t = [ next(random_kiss) for i in range(256) ]
-#        for i in t: print i
-
-        lfib4 = RandomLFIB4(t)
-        if 1:
-            for i in range(1000000):
-                k = next(lfib4)
-#                if i < 256: print k
-            print k - 1064612766
-
-        swb = RandomSWB(lfib4.t)
-        swb.c = lfib4.c
-        if 1:
-            for i in range(1000000):
-                k = next(swb)
-            print k - 627749721
-
-        if 1:
-            for i in range(1000000):
-                k = next(random_kiss)
-            print k - 1372460312
-
-        cong = RandomCong(random_kiss.cong)
-        if 1:
-            for i in range(1000000):
-                k = next(cong)
-            print k - 1529210297
-
-        shr3 = RandomSHR3(random_kiss.jsr)
-        if 1:
-            for i in range(1000000):
-                k = next(shr3)
-            print k - 2642725982
-
-        mwc = RandomMWC(random_kiss.z, random_kiss.w)
-        if 1:
-            for i in range(1000000):
-                k = next(mwc)
-            print k - 904977562
-
-        fib = RandomFib(9983651,95746118)
-        if 1:
-            for i in range(1000000):
-                k = next(fib)
-            print k - 3519793928
+        marsaglia_test()
