@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #define znew (z=36969*(z&65535)+(z>>16))
 #define wnew (w=18000*(w&65535)+(w>>16))
@@ -50,56 +50,56 @@ int main (void)
 /*
     for (i = 0; i < 256; i++)
     {
-        printf("%lu\n", (unsigned long)(t[i]));
+        printf("%"PRIu32"\n", t[i]);
     }
 */
 /*
     for (i = 0; i < 256; i++)
     {
-        printf("%lu\n", (unsigned long)(LFIB4));
+        printf("%"PRIu32"\n", LFIB4);
     }
 */
     for (i = 0; i < 1000000; i++)
     {
         k = LFIB4;
     }
-    printf ("%lu\n", (unsigned long)(k - 1064612766U));
+    printf ("%"PRIu32"\n", k - 1064612766U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = SWB;
     }
-    printf ("%lu\n", (unsigned long)(k - 627749721U));
+    printf ("%"PRIu32"\n", k - 627749721U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = KISS;
     }
-    printf ("%lu\n", (unsigned long)(k - 1372460312U));
+    printf ("%"PRIu32"\n", k - 1372460312U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = CONG;
     }
-    printf ("%lu\n", (unsigned long)(k - 1529210297U));
+    printf ("%"PRIu32"\n", k - 1529210297U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = SHR3;
     }
-    printf ("%lu\n", (unsigned long)(k - 2642725982U));
+    printf ("%"PRIu32"\n", k - 2642725982U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = MWC;
     }
-    printf ("%lu\n", (unsigned long)(k - 904977562U));
+    printf ("%"PRIu32"\n", k - 904977562U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = FIB;
     }
-    printf ("%lu\n", (unsigned long)(k - 3519793928U));
+    printf ("%"PRIu32"\n", k - 3519793928U);
 
     return 0;
 }
