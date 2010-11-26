@@ -24,8 +24,13 @@ class RandomIteratorTemplate(object):
 class RandomCongIterator(object):
     '''Congruential random number generator'''
 
-    def __init__(self, seed):
-        self.cong = (seed & 0xFFFFFFFF)
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 12344
+        self.cong = int(seed) & 0xFFFFFFFF
+
+    def seed(self, seed = None):
+        self.__init__(seed)
 
     def next(self):
         self.cong = (69069 * self.cong + 1234567) & 0xFFFFFFFF
@@ -34,12 +39,23 @@ class RandomCongIterator(object):
     def __iter__(self):
         return self
 
+    def getstate(self):
+        return (self.cong, )
+
+    def setstate(self, state):
+        (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
+
 
 class RandomSHR3Iterator(object):
     '''3-shift-register random number generator'''
 
-    def __init__(self, seed):
-        self.shr3_j = (seed & 0xFFFFFFFF)
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 34223
+        self.shr3_j = int(seed) & 0xFFFFFFFF
+
+    def seed(self, seed = None):
+        self.__init__(seed)
 
     def next(self):
         shr3_j = self.shr3_j
@@ -52,13 +68,26 @@ class RandomSHR3Iterator(object):
     def __iter__(self):
         return self
 
+    def getstate(self):
+        return (self.shr3_j, )
+
+    def setstate(self, state):
+        (self.shr3_j, ) = (int(val) & 0xFFFFFFFF for val in state)
+
 
 class RandomMWCIterator(object):
     '''"Multiply-with-carry" random number generator'''
 
-    def __init__(self, seed_z, seed_w):
-        self.mwc_z = (seed_z & 0xFFFFFFFF)
-        self.mwc_w = (seed_w & 0xFFFFFFFF)
+    def __init__(self, seed_z = None, seed_w = None):
+        if seed_z==None:
+            seed_z = 12344
+        if seed_w==None:
+            seed_w = 65437
+        self.mwc_z = int(seed_z) & 0xFFFFFFFF
+        self.mwc_w = int(seed_w) & 0xFFFFFFFF
+
+    def seed(self, seed_z = None, seed_w = None):
+        self.__init__(seed_z, seed_w)
 
     def next(self):
         self.mwc_z = 36969 * (self.mwc_z & 0xFFFF) + (self.mwc_z >> 16)
@@ -70,6 +99,12 @@ class RandomMWCIterator(object):
     def __iter__(self):
         return self
 
+    def getstate(self):
+        return (self.mwc_z, self.mwc_w)
+
+    def setstate(self, state):
+        (self.mwc_z, self.mwc_w) = (int(val) & 0xFFFFFFFF for val in state)
+
 
 class RandomKISSIterator(RandomMWCIterator, RandomCongIterator, RandomSHR3Iterator):
     '''"Keep It Simple Stupid" random number generator
@@ -78,13 +113,16 @@ class RandomKISSIterator(RandomMWCIterator, RandomCongIterator, RandomSHR3Iterat
     generators. Period is about 2**123.
     '''
 
-    def __init__(self, seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3):
+    def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
 #        self.random_mwc = RandomMWC(seed_mwc_z, seed_mwc_w)
 #        self.random_cong = RandomCong(seed_cong)
 #        self.random_shr3 = RandomSHR3(seed_shr3)
         RandomMWCIterator.__init__(self, seed_mwc_z, seed_mwc_w)
         RandomCongIterator.__init__(self, seed_cong)
         RandomSHR3Iterator.__init__(self, seed_shr3)
+
+    def seed(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
 
     def next(self):
 #        mwc_val = next(self.random_mwc)
@@ -94,6 +132,12 @@ class RandomKISSIterator(RandomMWCIterator, RandomCongIterator, RandomSHR3Iterat
         cong_val = RandomCongIterator.next(self)
         shr3_val = RandomSHR3Iterator.next(self)
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
+
+    def getstate(self):
+        return (self.mwc_z, self.mwc_w, self.cong, self.shr3_j)
+
+    def setstate(self, state):
+        (self.mwc_z, self.mwc_w, self.cong, self.shr3_j) = (int(val) & 0xFFFFFFFF for val in state)
 
 
 class RandomLFIB4Iterator(object):
@@ -205,6 +249,32 @@ class StandardRandomTemplate(random.Random):
             if not recip_bpf:
                 recip_bpf = 1./(1 << bpf)
         return self.getrandbits(bpf) * recip_bpf
+
+    def getstate(self):
+        return self.f, self.bits, self.rng_iterator.getstate()
+
+    def setstate(self, state):
+        (f, bits, rng_state) = state
+        bits = int(bits)
+        bits %= self.RNG_BITS
+        f &= ((1 << bits) - 1)
+        self.f, self.bits, = f,  bits
+        self.rng_iterator.setstate(rng_state)
+
+
+class RandomCong(StandardRandomTemplate):
+    '''Congruential random number generator'''
+    RNG_CLASS = RandomCongIterator
+
+    def __init__(self, x = None):
+        self.rng_iterator = self.RNG_CLASS(1)
+        self.seed(x)
+
+    def seed(self, seed=None):
+        seeder = random.Random(seed)
+        c = seeder.randrange(0x100000000)
+        self.setstate((0, 0, c))
+
 
 def marsaglia_test():
     random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
