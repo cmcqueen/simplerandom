@@ -106,7 +106,7 @@ class RandomMWCIterator(object):
         (self.mwc_z, self.mwc_w) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomKISSIterator(RandomMWCIterator, RandomCongIterator, RandomSHR3Iterator):
+class RandomKISSIterator(object):
     '''"Keep It Simple Stupid" random number generator
     
     It combines the RandomMWC, RandomCong, RandomSHR3
@@ -114,30 +114,27 @@ class RandomKISSIterator(RandomMWCIterator, RandomCongIterator, RandomSHR3Iterat
     '''
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
-#        self.random_mwc = RandomMWC(seed_mwc_z, seed_mwc_w)
-#        self.random_cong = RandomCong(seed_cong)
-#        self.random_shr3 = RandomSHR3(seed_shr3)
-        RandomMWCIterator.__init__(self, seed_mwc_z, seed_mwc_w)
-        RandomCongIterator.__init__(self, seed_cong)
-        RandomSHR3Iterator.__init__(self, seed_shr3)
+        self.random_mwc = RandomMWCIterator(seed_mwc_z, seed_mwc_w)
+        self.random_cong = RandomCongIterator(seed_cong)
+        self.random_shr3 = RandomSHR3Iterator(seed_shr3)
 
     def seed(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
 
     def next(self):
-#        mwc_val = next(self.random_mwc)
-#        cong_val = next(self.random_cong)
-#        shr3_val = next(self.random_shr3)
-        mwc_val = RandomMWCIterator.next(self)
-        cong_val = RandomCongIterator.next(self)
-        shr3_val = RandomSHR3Iterator.next(self)
+        mwc_val = next(self.random_mwc)
+        cong_val = next(self.random_cong)
+        shr3_val = next(self.random_shr3)
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
 
     def getstate(self):
-        return (self.mwc_z, self.mwc_w, self.cong, self.shr3_j)
+        return (self.random_mwc.getstate(), self.random_cong.getstate(), self.random_shr3.getstate())
 
     def setstate(self, state):
-        (self.mwc_z, self.mwc_w, self.cong, self.shr3_j) = (int(val) & 0xFFFFFFFF for val in state)
+        (mwc_state, cong_state, shr3_state) = state
+        self.random_mwc.setstate(mwc_state)
+        self.random_cong.setstate(cong_state)
+        self.random_shr3.setstate(shr3_state)
 
 
 class RandomLFIB4Iterator(object):
@@ -203,7 +200,7 @@ class RandomSWBIterator(RandomLFIB4Iterator):
         return self
 
 
-class RandomFibIterator(object):
+class _RandomFibIterator(object):
     '''Classical Fibonacci sequence
 
     x(n)=x(n-1)+x(n-2),but taken modulo 2^32. Its period is 3 * (2**31) if one
@@ -300,25 +297,25 @@ def marsaglia_test():
             k = next(random_kiss)
         print k - 1372460312
 
-    cong = RandomCongIterator(random_kiss.cong)
+    cong = RandomCongIterator(random_kiss.random_cong.cong)
     if 1:
         for i in range(1000000):
             k = next(cong)
         print k - 1529210297
 
-    shr3 = RandomSHR3Iterator(random_kiss.shr3_j)
+    shr3 = RandomSHR3Iterator(random_kiss.random_shr3.shr3_j)
     if 1:
         for i in range(1000000):
             k = next(shr3)
         print k - 2642725982
 
-    mwc = RandomMWCIterator(random_kiss.mwc_z, random_kiss.mwc_w)
+    mwc = RandomMWCIterator(random_kiss.random_mwc.mwc_z, random_kiss.random_mwc.mwc_w)
     if 1:
         for i in range(1000000):
             k = next(mwc)
         print k - 904977562
 
-    fib = RandomFibIterator(9983651,95746118)
+    fib = _RandomFibIterator(9983651,95746118)
     if 1:
         for i in range(1000000):
             k = next(fib)
