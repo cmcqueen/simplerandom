@@ -142,13 +142,16 @@ class RandomLFIB4Iterator(object):
 
     def __init__(self, seed = None):
         if not seed:
-            random_kiss = RandomKISS(12345, 65435, 12345, 34221)
-            seed = [ next(random_kiss) for i in range(256) ]
+            random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
+            self.t = [ next(random_kiss) for i in range(256) ]
         else:
             if len(seed) != 256:
                 raise Exception("seed length must be 256")
-        self.t = list(seed)
+            self.t = [ int(val) & 0xFFFFFFFF for val in seed ]
         self.c = 0
+
+    def seed(self, seed = None):
+        self.__init__(seed)
 
     def next(self):
         t = self.t
@@ -168,6 +171,16 @@ class RandomLFIB4Iterator(object):
 
     def __iter__(self):
         return self
+
+    def getstate(self):
+        return tuple(self.t[self.c :] + self.t[: self.c])
+
+    def setstate(self, state):
+        if len(state) != 256:
+            raise Exception("state length must be 256")
+        self.t = list(int(val) & 0xFFFFFFFF for val in state)
+        self.c = 0
+
 
 class RandomSWBIterator(RandomLFIB4Iterator):
     '''"Subtract-With-Borrow" random number generator
@@ -196,8 +209,14 @@ class RandomSWBIterator(RandomLFIB4Iterator):
 
         return new_value
 
-    def __iter__(self):
-        return self
+    def getstate(self):
+        t_tuple = RandomLFIB4Iterator.getstate(self)
+        return (t_tuple, self.borrow)
+
+    def setstate(self, state):
+        (t_tuple, borrow) = state
+        RandomLFIB4Iterator.setstate(self, t_tuple)
+        self.borrow = 1 if borrow else 0
 
 
 class _RandomFibIterator(object):
