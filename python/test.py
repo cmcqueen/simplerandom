@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 
 from simplerandom import *
 from simplerandom import _RandomFibIterator
