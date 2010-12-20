@@ -93,9 +93,12 @@ class RandomMWCIterator(object):
     def next(self):
         self.mwc_z = 36969 * (self.mwc_z & 0xFFFF) + (self.mwc_z >> 16)
         self.mwc_w = 18000 * (self.mwc_w & 0xFFFF) + (self.mwc_w >> 16)
-        mwc = (((self.mwc_z & 0xFFFF) << 16) + self.mwc_w) & 0xFFFFFFFF
-        self.mwc = mwc
-        return mwc
+        return self._get_mwc()
+
+    def _get_mwc(self):
+        return (((self.mwc_z & 0xFFFF) << 16) + self.mwc_w) & 0xFFFFFFFF
+
+    mwc = property(_get_mwc)
 
     def __iter__(self):
         return self
@@ -115,7 +118,7 @@ class RandomKISSIterator(object):
     '''
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = RandomMWCIterator(seed_mwc_z, seed_mwc_w)
+        self.random_mwc = src.RandomMWCIterator(seed_mwc_z, seed_mwc_w)
         self.random_cong = src.RandomCongIterator(seed_cong)
         self.random_shr3 = src.RandomSHR3Iterator(seed_shr3)
 
@@ -136,6 +139,38 @@ class RandomKISSIterator(object):
         self.random_mwc.setstate(mwc_state)
         self.random_cong.setstate(cong_state)
         self.random_shr3.setstate(shr3_state)
+
+    @property
+    def mwc_z(self):
+        return self.random_mwc.mwc_z
+    @mwc_z.setter
+    def mwc_z(self, value):
+        self.random_mwc.mwc_z = value
+
+    @property
+    def mwc_w(self):
+        return self.random_mwc.mwc_w
+    @mwc_w.setter
+    def mwc_w(self, value):
+        self.random_mwc.mwc_w = value
+
+    @property
+    def mwc(self):
+        return self.random_mwc.mwc
+
+    @property
+    def shr3_j(self):
+        return self.random_shr3.shr3_j
+    @shr3_j.setter
+    def shr3_j(self, value):
+        self.random_shr3.shr3_j = value
+
+    @property
+    def cong(self):
+        return self.random_cong.cong
+    @cong.setter
+    def cong(self, value):
+        self.random_cong.cong = value
 
 
 class RandomLFIB4Iterator(object):

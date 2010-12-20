@@ -4,7 +4,7 @@ from simplerandom import _RandomFibIterator
 import simplerandomcython as src
 
 def marsaglia_test():
-    random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
+    random_kiss = src.RandomKISSIterator(12345, 65435, 12345, 34221)
     t = [ next(random_kiss) for i in range(256) ]
 #        for i in t: print i
 
@@ -27,25 +27,25 @@ def marsaglia_test():
             k = next(random_kiss)
         print k - 1372460312
 
-    cong = src.RandomCongIterator(random_kiss.random_cong.cong)
+    cong = src.RandomCongIterator(random_kiss.cong)
     if 1:
         for i in range(1000000):
             k = next(cong)
         print k - 1529210297
 
-    shr3 = src.RandomSHR3Iterator(random_kiss.random_shr3.shr3_j)
+    shr3 = src.RandomSHR3Iterator(random_kiss.shr3_j)
     if 1:
         for i in range(1000000):
             k = next(shr3)
         print k - 2642725982
 
-    mwc = RandomMWCIterator(random_kiss.random_mwc.mwc_z, random_kiss.random_mwc.mwc_w)
+    mwc = src.RandomMWCIterator(random_kiss.mwc_z, random_kiss.mwc_w)
     if 1:
         for i in range(1000000):
             k = next(mwc)
         print k - 904977562
 
-    fib = _RandomFibIterator(9983651,95746118)
+    fib = src._RandomFibIterator(9983651,95746118)
     if 1:
         for i in range(1000000):
             k = next(fib)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             k = next(shr3)
         print k
     if 0:
-        kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
+        kiss = src.RandomKISSIterator(12345, 65435, 12345, 34221)
         for i in range(256):
             kiss_val = next(kiss)
             print kiss.mwc
