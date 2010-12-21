@@ -1,6 +1,7 @@
 
 cdef extern from "stdint.h":
     ctypedef int uint32_t
+    ctypedef int uint8_t
 
 
 cdef class RandomCongIterator(object):
@@ -200,3 +201,66 @@ cdef class _RandomFibIterator(object):
     def __iter__(self):
         return self
 
+
+cdef class RandomLFIB4Iterator(object):
+    '''"Lagged Fibonacci 4-lag" random number generator'''
+
+    cdef uint32_t tt[256]
+    cdef public uint8_t c
+
+    def __init__(self, seed = None):
+        cdef int i
+        if not seed:
+            random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
+            for i in range(256):
+                self.tt[i] = next(random_kiss)
+        else:
+            if len(seed) != 256:
+                raise Exception("seed length must be 256")
+            seed_iter = iter(seed)
+            for i in range(256):
+                self.tt[i] = next(seed_iter)
+        self.c = 0
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def __next__(self):
+        cdef uint32_t new_value
+        self.c += 1
+
+        new_value = (self.tt[self.c] +
+                     self.tt[(self.c + 58) % 256] +
+                     self.tt[(self.c + 119) % 256] +
+                     self.tt[(self.c + 178) % 256])
+
+        self.tt[self.c] = new_value
+
+        return new_value
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+#        return tuple( self.tt[(i + self.c) % 256] for i in range(256) )
+        return tuple([ self.tt[(i + self.c) % 256] for i in range(256) ])
+
+    def setstate(self, state):
+        cdef int i
+        if len(state) != 256:
+            raise Exception("state length must be 256")
+#        self.tt = list(int(val) & 0xFFFFFFFF for val in state)
+#        self.tt = [ int(val) & 0xFFFFFFFF for val in state ]
+        for i in range(256):
+            self.tt[i] = state[i]
+        self.c = 0
+
+    property t:
+        def __get__(self):
+            cdef int i
+            return tuple([ self.tt[i] for i in range(256) ])
+
+        def __set__(self, value):
+            cdef int i
+            for i in range(256):
+                self.tt[i] = value[i]

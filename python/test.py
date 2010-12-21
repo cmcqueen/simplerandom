@@ -9,13 +9,14 @@ def marsaglia_test():
     t = [ next(random_kiss) for i in range(256) ]
 #        for i in t: print i
 
-    lfib4 = RandomLFIB4Iterator(t)
+    lfib4 = src.RandomLFIB4Iterator(t)
     if 1:
         for i in range(1000000):
             k = next(lfib4)
 #                if i < 256: print k
         print k - 1064612766
 
+#    swb = RandomSWBIterator(lfib4.getstate())
     swb = RandomSWBIterator(lfib4.t)
     swb.c = lfib4.c
     if 1:
