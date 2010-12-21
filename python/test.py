@@ -17,7 +17,7 @@ def marsaglia_test():
         print k - 1064612766
 
 #    swb = RandomSWBIterator(lfib4.getstate())
-    swb = RandomSWBIterator(lfib4.t)
+    swb = src.RandomSWBIterator(lfib4.t)
     swb.c = lfib4.c
     if 1:
         for i in range(1000000):

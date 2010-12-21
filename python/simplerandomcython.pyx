@@ -264,3 +264,43 @@ cdef class RandomLFIB4Iterator(object):
             cdef int i
             for i in range(256):
                 self.tt[i] = value[i]
+
+
+cdef class RandomSWBIterator(RandomLFIB4Iterator):
+    '''"Subtract-With-Borrow" random number generator
+    
+    This is a Fibonacci 2-lag generator with an extra "borrow" operation.
+    '''
+
+    cdef public uint8_t borrow
+
+    def __init__(self, seed = None):
+        RandomLFIB4Iterator.__init__(self, seed)
+        self.borrow = 0
+
+    def __next__(self):
+        cdef uint32_t x
+        cdef uint32_t y
+
+        self.c += 1
+
+        x = self.tt[(self.c + 34) % 256]
+        y = (self.tt[(self.c + 19) % 256] + self.borrow)
+        new_value = x - y
+
+        self.tt[self.c] = new_value
+
+        self.borrow = 1 if (x < y) else 0
+
+        return new_value
+
+    def getstate(self):
+        t_tuple = RandomLFIB4Iterator.getstate(self)
+        return (t_tuple, self.borrow)
+
+    def setstate(self, state):
+        (t_tuple, borrow) = state
+        RandomLFIB4Iterator.setstate(self, t_tuple)
+        self.borrow = 1 if borrow else 0
+
+
