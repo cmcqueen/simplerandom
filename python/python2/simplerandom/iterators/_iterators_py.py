@@ -1,9 +1,3 @@
-#!/usr/bin/env python2
-
-"""
-Reference: http://www.cse.yorku.ca/~oz/marsaglia-rng.html
-"""
-
 
 class _RandomIteratorTemplate(object):
     '''Template class for random number generator'''

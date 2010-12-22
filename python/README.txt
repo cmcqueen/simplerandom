@@ -7,25 +7,37 @@ Simple Random
 :Copyright: 2010 Craig McQueen
 
 
-Python functions for simple random number generators.
+Simple pseudo-random number generators, from George Marsaglia.
 
 -----
 Intro
 -----
 
 The ``simplerandom`` package is provided, which contains modules containing
-classes for various simple random number generators.
+classes for various simple pseudo-random number generators.
+
+The algorithms were obtained from a newsgroup post by George Marsaglia
+[#marsaglia]_. The algorithms were specified in C in the newsgroup post. For
+the purpose of prototyping software in a high-level language such as Python,
+before writing it in faster C, it is useful to have identical algorithms
+implemented in both Python and C.
+
+One module provides Python iterators, which generate simple unsigned 32-bit
+integers identical to their C counterparts.
+
+Another module provides random classes that are sub-classed from the class
+``Random`` in the ``random`` module of the standard Python library.
 
 
 References
 ``````````
 
-.. [#marsaglia] | `Random Numbers for C: End, at last?`__
+.. [#marsaglia] | `Random Numbers for C\: End, at last?`__
                 | George Marsaglia
                 | Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
 
 .. __:
-.. _Random Numbers for C: End, at last?:
+.. _Random Numbers for C\: End, at last?:
     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 
 
@@ -36,8 +48,8 @@ Modules Provided
 ==========================  ===========================================================================
 Module                      Description
 ==========================  ===========================================================================
-``simplerandom.iterators``  Simple RNG in the form of iterators, which generate 32-bit random numbers.
-``simplerandom.random``     Simple RNG in the form of classes that conform to Python ``random`` API.
+``simplerandom.iterators``  Iterator classes, which generate unsigned 32-bit integers.
+``simplerandom.random``     Classes that conform to standard Python ``random.Random`` API.
 ==========================  ===========================================================================
 
 
@@ -45,17 +57,47 @@ Module                      Description
 Usage
 -----
 
+Iterators
+`````````
+
+    >>> import simplerandom.iterators as sri
+    >>> rng = sri.RandomKISSIterator(123958, 34987243, 3495825239, 2398172431)
+    >>> next(rng)
+    21111917L
+    >>> next(rng)
+    1327965872L
+    >>> next(rng)
+    2128842716L
+
+Random class API
+````````````````
+
+    >>> import simplerandom.random as srr
+    >>> rng = srr.RandomKISS(258725234)
+    >>> rng.random()
+    0.30631872435766117
+    >>> rng.random()
+    0.43903576112750442
+    >>> rng.random()
+    0.69756297733927486
 
 
 -------------------------
 Supported Python Versions
 -------------------------
 
-Python >= 2.4 and 3.x are supported, and have both a C extension and a pure
-Python implementation.
+Currently this has been tested on Python 2.6 on Ubuntu 32-bit.
+It will most likely work on Python 2.7.
 
-Python versions < 2.4 might work, but have not been tested. Python 3.0 has
-also not been tested.
+The pure Python code is expected to work on 64-bit platforms.
+The Cython version of ``simplerandom.iterators`` should work on 64-bit
+platforms, but has not been tested.
+
+Some preliminary testing has been done on Python 3.x support. It seems to work
+after conversion using ``2to3``, but this hasn't been incorporated into the Python
+package yet.
+
+The plan is to support Python >= 2.5 and 3.x.
 
 
 ------------
@@ -77,7 +119,11 @@ implementation, using the following command::
 Unit Testing
 ------------
 
-Basic unit testing is in the ``test`` sub-module, e.g. ``simplerandom.iterators.test``. To run it on Python >=2.5::
+Basic unit testing of the iterators is in ``simplerandom.iterators.test``. It
+duplicates the tests of the C algorithms given in the original newsgroup post
+[#marsaglia]_. It should print seven lines, all containing 0.
+
+To run it on Python >=2.5::
 
     python -m simplerandom.iterators.test
 
@@ -90,11 +136,10 @@ Alternatively, in the ``test`` directory run::
 Documentation
 -------------
 
-Documentation is written with Sphinx. Source files are provided in the ``doc``
-directory. It can be built using Sphinx 0.6.5. It uses the ``pngmath`` Sphinx
-extension, which requires Latex and ``dvipng`` to be installed.
+No documentation is yet written, apart from this README.txt. The plan is to
+write documentation using Sphinx, and provide it online at:
 
-The documentation is available online at: http://packages.python.org/cobs/
+    http://packages.python.org/simplerandom/
 
 
 -------

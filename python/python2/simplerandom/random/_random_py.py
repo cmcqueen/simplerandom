@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
 
+# Standard Python library
 import random
 
 from simplerandom.iterators import *

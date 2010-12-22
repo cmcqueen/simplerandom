@@ -1,8 +1,10 @@
 
 ^\..*$
+^python/MANIFEST$
 ^c/Debug/.*
 ^c/Release/.*
 ^python/build/.*
+^python/dist/.*
 \.bak$
 ~$
 \.pyc$
@@ -10,3 +12,4 @@
 \.dll$
 \.so$
 \.exe$
+

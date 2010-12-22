@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 
 from simplerandom.iterators import *
 from simplerandom.iterators import _RandomFibIterator
@@ -53,7 +52,7 @@ def marsaglia_test():
         print k - 3519793928
 
 
-if __name__ == "__main__":
+def main():
     if 0:
         mwc = RandomMWCIterator(12345, 65435)
         for i in range(256):
@@ -82,4 +81,7 @@ if __name__ == "__main__":
             print
     if 1:
         marsaglia_test()
+
+if __name__ == "__main__":
+    main()
 
