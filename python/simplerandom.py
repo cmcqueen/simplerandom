@@ -5,7 +5,6 @@ Reference: http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 """
 
 import random
-import simplerandomcython as src
 
 
 class RandomIteratorTemplate(object):
@@ -118,9 +117,9 @@ class RandomKISSIterator(object):
     '''
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = src.RandomMWCIterator(seed_mwc_z, seed_mwc_w)
-        self.random_cong = src.RandomCongIterator(seed_cong)
-        self.random_shr3 = src.RandomSHR3Iterator(seed_shr3)
+        self.random_mwc = RandomMWCIterator(seed_mwc_z, seed_mwc_w)
+        self.random_cong = RandomCongIterator(seed_cong)
+        self.random_shr3 = RandomSHR3Iterator(seed_shr3)
 
     def seed(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
