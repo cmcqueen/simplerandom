@@ -35,7 +35,7 @@ else:
 
 setup(
     name='simplerandom',
-    version='0.6.0',
+    version='0.6.1',
     description='Simple random number generators',
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
