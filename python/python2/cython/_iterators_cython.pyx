@@ -1,5 +1,5 @@
 
-cdef extern from "stdint.h":
+cdef extern from "types.h":
     ctypedef int uint32_t
     ctypedef int uint8_t
 
