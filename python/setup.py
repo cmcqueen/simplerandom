@@ -12,26 +12,30 @@ except ImportError:
 else:
     use_cython = True
 
+cmdclass = { }
+ext_modules = [ ]
 
 if sys.version_info[0] == 2:
     base_dir = 'python2'
 elif sys.version_info[0] == 3:
-    base_dir = 'python3'
+    # Still build from python2 code, but use build_py_2to3 to translate.
+    base_dir = 'python2'
+    from distutils.command.build_py import build_py_2to3 as build_py
+    cmdclass.update({ 'build_py': build_py })
 
 if use_cython:
-    ext_modules = [
+    ext_modules += [
         Extension("simplerandom.iterators._iterators_cython", [ base_dir + "/cython/_iterators_cython.pyx" ]),
     ]
-    cmdclass = {'build_ext': build_ext}
+    cmdclass.update({ 'build_ext': build_ext })
 else:
-    ext_modules = [
+    ext_modules += [
         Extension("simplerandom.iterators._iterators_cython", [ base_dir + "/cython/_iterators_cython.c" ]),
     ]
-    cmdclass = { }
 
 setup(
     name='simplerandom',
-    version='0.5.0',
+    version='0.6.1',
     description='Simple random number generators',
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
@@ -53,6 +57,9 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.1',
         'Programming Language :: Cython',
         'Topic :: Scientific/Engineering :: Mathematics',
     ],
