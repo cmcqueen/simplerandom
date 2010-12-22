@@ -1,11 +1,7 @@
 #!/usr/bin/env python2
 
-if 1:
-    from simplerandomcython import *
-    from simplerandomcython import _RandomFibIterator
-else:
-    from simplerandom import *
-    from simplerandom import _RandomFibIterator
+from simplerandom.iterators import *
+from simplerandom.iterators import _RandomFibIterator
 
 def marsaglia_test():
     random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
@@ -86,3 +82,4 @@ if __name__ == "__main__":
             print
     if 1:
         marsaglia_test()
+
