@@ -256,7 +256,11 @@ class _RandomFibIterator(object):
     component for use in combination generators.
     '''
 
-    def __init__(self, seed_a, seed_b):
+    def __init__(self, seed_a = None, seed_b = None):
+        if seed_a==None:
+            seed_a = 1468761293
+        if seed_b==None:
+            seed_b = 3460192787
         self.a = (seed_a & 0xFFFFFFFF)
         self.b = (seed_b & 0xFFFFFFFF)
 
@@ -268,5 +272,11 @@ class _RandomFibIterator(object):
 
     def __iter__(self):
         return self
+
+    def getstate(self):
+        return (self.a, self.b)
+
+    def setstate(self, state):
+        (self.a, self.b) = (int(val) & 0xFFFFFFFF for val in state)
 
 

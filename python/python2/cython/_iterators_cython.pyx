@@ -185,7 +185,11 @@ cdef class _RandomFibIterator(object):
     cdef public uint32_t a
     cdef public uint32_t b
 
-    def __init__(self, seed_a, seed_b):
+    def __init__(self, seed_a = None, seed_b = None):
+        if seed_a==None:
+            seed_a = 1468761293
+        if seed_b==None:
+            seed_b = 3460192787
         self.a = int(seed_a)
         self.b = int(seed_b)
 
@@ -200,6 +204,13 @@ cdef class _RandomFibIterator(object):
 
     def __iter__(self):
         return self
+
+    def getstate(self):
+        return (self.a, self.b)
+
+    def setstate(self, state):
+        self.a = int(state[0])
+        self.b = int(state[1])
 
 
 cdef class RandomLFIB4Iterator(object):
