@@ -40,6 +40,14 @@ References
 .. _Random Numbers for C\: End, at last?:
     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 
+.. [#cook]      | `Simple Random Number Generation`__
+                | John D. Cook
+                | The Code Project, 27 Jul 2010
+
+.. __:
+.. _Simple Random Number Generation:
+    http://www.codeproject.com/KB/recipes/SimpleRNG.aspx
+
 
 ----------------
 Modules Provided
@@ -50,6 +58,33 @@ Module                      Description
 ==========================  ===========================================================================
 ``simplerandom.iterators``  Iterator classes, which generate unsigned 32-bit integers.
 ``simplerandom.random``     Classes that conform to standard Python ``random.Random`` API.
+==========================  ===========================================================================
+
+Generators Provided
+```````````````````
+
+In ``simplerandom.iterators``, the following generators are provided:
+
+==========================  ===========================================================================
+Generator                   Notes
+==========================  ===========================================================================
+``RandomCongIterator``      
+``RandomSHR3Iterator``      
+``RandomMWCIterator``       Slightly different algorithm from that in [#cook]_
+``RandomKISSIterator``      Combination of MWC, Cong and SHR3
+``RandomLFIB4Iterator``
+``RandomSWBIterator``
+==========================  ===========================================================================
+
+In ``simplerandom.random``, the following generators are provided:
+
+==========================  ===========================================================================
+Generator                   Notes
+==========================  ===========================================================================
+``RandomCong``      
+``RandomSHR3``      
+``RandomMWC``               Slightly different algorithm from that in [#cook]_
+``RandomKISS``              Combination of MWC, Cong and SHR3
 ==========================  ===========================================================================
 
 
@@ -130,16 +165,6 @@ To run it on Python >=2.5::
 Alternatively, in the ``test`` directory run::
 
     python test_iterators.py
-
-
--------------
-Documentation
--------------
-
-No documentation is yet written, apart from this README.txt. The plan is to
-write documentation using Sphinx, and provide it online at:
-
-    http://packages.python.org/simplerandom/
 
 
 -------
