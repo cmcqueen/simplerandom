@@ -60,31 +60,35 @@ Module                      Description
 ``simplerandom.random``     Classes that conform to standard Python ``random.Random`` API.
 ==========================  ===========================================================================
 
-Generators Provided
-```````````````````
 
-In ``simplerandom.iterators``, the following generators are provided:
+Random Number Generators Provided
+`````````````````````````````````
+
+In ``simplerandom.iterators``, the following pseudo-random number generators are provided:
 
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
 ``RandomCongIterator``      
 ``RandomSHR3Iterator``      
-``RandomMWCIterator``       Slightly different algorithm from that in [#cook]_
+``RandomMWCIterator``       From [#marsaglia]_. Slightly different algorithm from that in [#cook]_.
 ``RandomKISSIterator``      Combination of MWC, Cong and SHR3
 ``RandomLFIB4Iterator``
 ``RandomSWBIterator``
+``_RandomFibIterator``      Not useful on its own, but can be used in a combination with other generators.
 ==========================  ===========================================================================
 
-In ``simplerandom.random``, the following generators are provided:
+In ``simplerandom.random``, the following pseudo-random number generators are provided:
 
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
 ``RandomCong``      
 ``RandomSHR3``      
-``RandomMWC``               Slightly different algorithm from that in [#cook]_
+``RandomMWC``               From [#marsaglia]_. Slightly different algorithm from that in [#cook]_.
 ``RandomKISS``              Combination of MWC, Cong and SHR3
+``RandomLFIB4``
+``RandomSWB``
 ==========================  ===========================================================================
 
 
