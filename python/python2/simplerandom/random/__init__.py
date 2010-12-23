@@ -8,12 +8,13 @@ Reference: http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 """
 
 __all__ = [
+    "StandardRandomTemplate",
     "RandomCong",
     "RandomSHR3",
     "RandomMWC",
     "RandomKISS",
-#    "RandomLFIB4",
-#    "RandomSWB",
+    "RandomLFIB4",
+    "RandomSWB",
 ]
 
 

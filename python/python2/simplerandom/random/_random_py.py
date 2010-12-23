@@ -12,7 +12,7 @@ class StandardRandomTemplate(random.Random):
     RNG_RANGE = (1 << RNG_BITS)
 
     def __init__(self, x = None):
-        self.rng_iterator = self.RNG_CLASS(1)
+        self.rng_iterator = self.RNG_CLASS()
         self.seed(x)
 
     def seed(self, seed=None):
@@ -92,5 +92,27 @@ class RandomKISS(StandardRandomTemplate):
         self.rng_iterator.seed(seed_z, seed_w, seed_cong, seed_shr3)
         self.f = 0
         self.bits = 0
+
+
+class RandomLFIB4(StandardRandomTemplate):
+    '''"Lagged Fibonacci 4-lag" random number generator'''
+
+    RNG_CLASS = RandomLFIB4Iterator
+
+    def seed(self, seed=None):
+        seeder = random.Random(seed)
+        seed_t = [ seeder.randrange(self.RNG_RANGE) for _i in range(256) ]
+        self.rng_iterator.seed(seed_t)
+        self.f = 0
+        self.bits = 0
+
+
+class RandomSWB(RandomLFIB4):
+    '''"Subtract-With-Borrow" random number generator
+    
+    This is a Fibonacci 2-lag generator with an extra "borrow" operation.
+    '''
+
+    RNG_CLASS = RandomSWBIterator
 
 
