@@ -24,7 +24,7 @@ class StandardRandomTemplate(random.Random):
 
     def getrandbits(self, k):
         while self.bits < k:
-            self.f = (self.f << self.RNG_BITS) | next(self.rng_iterator)
+            self.f = (self.f << self.RNG_BITS) | self.rng_iterator.next()
             self.bits += self.RNG_BITS
         self.bits -= k
         x = self.f >> self.bits

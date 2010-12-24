@@ -4,13 +4,13 @@ from simplerandom.iterators import _RandomFibIterator
 
 def marsaglia_test():
     random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
-    t = [ next(random_kiss) for i in range(256) ]
+    t = [ random_kiss.next() for i in range(256) ]
 #        for i in t: print i
 
     lfib4 = RandomLFIB4Iterator(t)
     if 1:
         for i in range(1000000):
-            k = next(lfib4)
+            k = lfib4.next()
 #                if i < 256: print k
         print k - 1064612766
 
@@ -19,36 +19,36 @@ def marsaglia_test():
     swb.c = lfib4.c
     if 1:
         for i in range(1000000):
-            k = next(swb)
+            k = swb.next()
         print k - 627749721
 
     if 1:
         for i in range(1000000):
-            k = next(random_kiss)
+            k = random_kiss.next()
         print k - 1372460312
 
     cong = RandomCongIterator(random_kiss.cong)
     if 1:
         for i in range(1000000):
-            k = next(cong)
+            k = cong.next()
         print k - 1529210297
 
     shr3 = RandomSHR3Iterator(random_kiss.shr3_j)
     if 1:
         for i in range(1000000):
-            k = next(shr3)
+            k = shr3.next()
         print k - 2642725982
 
     mwc = RandomMWCIterator(random_kiss.mwc_z, random_kiss.mwc_w)
     if 1:
         for i in range(1000000):
-            k = next(mwc)
+            k = mwc.next()
         print k - 904977562
 
     fib = _RandomFibIterator(9983651,95746118)
     if 1:
         for i in range(1000000):
-            k = next(fib)
+            k = fib.next()
         print k - 3519793928
 
 
@@ -56,24 +56,24 @@ def main():
     if 0:
         mwc = RandomMWCIterator(12345, 65435)
         for i in range(256):
-            print next(mwc)
+            print mwc.next()
     if 0:
         cong = RandomCongIterator(12345)
         for i in range(256):
-            print next(cong)
+            print cong.next()
     if 0:
         shr3 = RandomSHR3Iterator(34221)
         for i in range(256):
-            print next(shr3)
+            print shr3.next()
     if 0:
         shr3 = RandomSHR3Iterator(34221)
         for i in range(2000000):
-            k = next(shr3)
+            k = shr3.next()
         print k
     if 0:
         kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
         for i in range(256):
-            kiss_val = next(kiss)
+            kiss_val = kiss.next()
             print kiss.mwc
             print kiss.cong
             print kiss.shr3_j
