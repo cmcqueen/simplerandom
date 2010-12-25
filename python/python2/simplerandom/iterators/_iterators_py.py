@@ -232,7 +232,10 @@ class RandomSWBIterator(RandomLFIB4Iterator):
 
         t[c] = new_value
 
-        self.borrow = 1 if (x < y) else 0
+        if (x < y):
+            self.borrow = 1
+        else:
+            self.borrow = 0
 
         return new_value
 
