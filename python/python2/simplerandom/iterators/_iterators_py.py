@@ -246,7 +246,10 @@ class RandomSWBIterator(RandomLFIB4Iterator):
     def setstate(self, state):
         (t_tuple, borrow) = state
         RandomLFIB4Iterator.setstate(self, t_tuple)
-        self.borrow = 1 if borrow else 0
+        if borrow:
+            self.borrow = 1
+        else:
+            self.borrow = 0
 
 
 class _RandomFibIterator(object):
