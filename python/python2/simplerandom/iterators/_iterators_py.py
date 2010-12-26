@@ -143,9 +143,9 @@ class RandomKISSIterator(object):
         self.random_mwc.mwc_w = value
     mwc_w = property(_get_mwc_w, _set_mwc_w)
 
-    @property
-    def mwc(self):
+    def _get_mwc(self):
         return self.random_mwc.mwc
+    mwc = property(_get_mwc)
 
     def _get_shr3_j(self):
         return self.random_shr3.shr3_j
