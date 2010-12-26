@@ -117,9 +117,9 @@ class RandomKISSIterator(object):
         self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
 
     def next(self):
-        mwc_val = next(self.random_mwc)
-        cong_val = next(self.random_cong)
-        shr3_val = next(self.random_shr3)
+        mwc_val = self.random_mwc.next()
+        cong_val = self.random_cong.next()
+        shr3_val = self.random_shr3.next()
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
 
     def getstate(self):
@@ -131,37 +131,33 @@ class RandomKISSIterator(object):
         self.random_cong.setstate(cong_state)
         self.random_shr3.setstate(shr3_state)
 
-    @property
-    def mwc_z(self):
+    def _get_mwc_z(self):
         return self.random_mwc.mwc_z
-    @mwc_z.setter
-    def mwc_z(self, value):
+    def _set_mwc_z(self, value):
         self.random_mwc.mwc_z = value
+    mwc_z = property(_get_mwc_z, _set_mwc_z)
 
-    @property
-    def mwc_w(self):
+    def _get_mwc_w(self):
         return self.random_mwc.mwc_w
-    @mwc_w.setter
-    def mwc_w(self, value):
+    def _set_mwc_w(self, value):
         self.random_mwc.mwc_w = value
+    mwc_w = property(_get_mwc_w, _set_mwc_w)
 
     @property
     def mwc(self):
         return self.random_mwc.mwc
 
-    @property
-    def shr3_j(self):
+    def _get_shr3_j(self):
         return self.random_shr3.shr3_j
-    @shr3_j.setter
-    def shr3_j(self, value):
+    def _set_shr3_j(self, value):
         self.random_shr3.shr3_j = value
+    shr3_j = property(_get_shr3_j, _set_shr3_j)
 
-    @property
-    def cong(self):
+    def _get_cong(self):
         return self.random_cong.cong
-    @cong.setter
-    def cong(self, value):
+    def _set_cong(self, value):
         self.random_cong.cong = value
+    cong = property(_get_cong, _set_cong)
 
 
 class RandomLFIB4Iterator(object):
@@ -170,7 +166,7 @@ class RandomLFIB4Iterator(object):
     def __init__(self, seed = None):
         if not seed:
             random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
-            self.t = [ next(random_kiss) for i in range(256) ]
+            self.t = [ random_kiss.next() for i in range(256) ]
         else:
             if len(seed) != 256:
                 raise Exception("seed length must be 256")
