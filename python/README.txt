@@ -125,18 +125,19 @@ Random class API
 Supported Python Versions
 -------------------------
 
-Currently this has had basic testing on Ubuntu 10.04 32-bit and Windows XP 32-bit.
+Currently this has had basic testing on Ubuntu 10.04 32-bit and
+Windows XP 32-bit. It passes the basic ``simplerandom.iterators.test`` unit
+tests, as well as basic manual testing of ``simplerandom.random``. A more
+thorough unit test suite is needed.
 
 In Ubuntu, it has been tested on Python 2.6 and 3.1 and passes.
 
-In Windows, it has been tested on Python 2.6, 2.7 and 3.1 and passes. It has also
-been tested on Python 2.5, and fails (due to use of ``next()`` function).
+In Windows, it has been tested on Python 2.4, 2.5, 2.6, 2.7 and 3.1.
+It passes under these versions.
 
-The pure Python code is expected to work on 64-bit platforms.
-The Cython version of ``simplerandom.iterators`` should work on 64-bit
+The pure Python code is expected to work on 64-bit platforms, but has not been
+tested. The Cython version of ``simplerandom.iterators`` should work on 64-bit
 platforms, but has not been tested.
-
-The plan is to support Python >= 2.5 and 3.x.
 
 
 ------------
@@ -169,6 +170,8 @@ To run it on Python >=2.5::
 Alternatively, in the ``test`` directory run::
 
     python test_iterators.py
+
+A more thorough unit test suite is needed.
 
 
 -------

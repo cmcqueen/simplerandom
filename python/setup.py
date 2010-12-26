@@ -35,7 +35,7 @@ else:
 
 setup(
     name='simplerandom',
-    version='0.7.0',
+    version='0.7.1',
     description='Simple random number generators',
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
@@ -56,6 +56,8 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.4',
+        'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
