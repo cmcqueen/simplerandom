@@ -1,0 +1,29 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head><body><pre>Date: Jan 15, 1999 11:41 AM
+Author: George Marsaglia
+Subject: Random numbers for C: Improvements.
+
+As I hoped, several suggestions have led to<br>improvements in the code for RNG's I proposed for<br>use in C. (See the thread "Random numbers for C: Some<br>suggestions" in previous postings.) The improved code<br>is listed below.<br><br>A question of copyright has also been raised.  Unlike<br>DIEHARD, there is no copyright on the code below. You<br>are free to use it in any way you want, but you may<br>wish to acknowledge the source, as a courtesy.<br><br>To avoid being cited by the style police, some have<br>suggested using typedef rather than #define in order<br>to replace unsigned long by UL.<br><br>Others have pointed out that one cannot be certain of<br>the way that a compiler will evaluate terms in a sum,<br>so using ++c in a term is dangerous.  They have<br>offered a version using the comma operator, which<br>ensures that the table index is incremented properly.<br>See LFIB4 and SWB below.<br><br>In my earlier work, done in Fortran, I had implemented<br>two 16-bit multiply-with-carry generators, say z and w,<br>as 32-bit integers, with the carry in the top 16 bits,<br>the output in the bottom 16.  They were combined by<br>(z&lt;&lt;16)+w.  (In Fortran, ishft(z,16)+w.) Such a<br>combination seemed to pass all tests. In the above-<br>mentioned post,  I used (z&lt;&lt;16)+(w&amp;65525), and that<br>does not pass all tests.  So (z&lt;&lt;16)+w seems<br>preferable; it is used below, providing a MWC that<br>seems to pass all tests.<br><br> The generators MWC, KISS, LFIB4 and SWB seem to pass all tests.<br>By themselves, CONG and SHR3 do not, but using<br>CONG+SHR3 provides one of the fastest combinations that satisfy<br>the DIEHARD battery of tests.<br><br>Of course, one cannot have absolute confidence in any<br>generator. The choices LFIB4 and SWB have immense<br>periods, are very fast, and pass all tests in DIEHARD,<br>but I am hesitant to rely on them alone---primarily<br>because they come from such simple mod 2^32 arithmetic:<br>four adds in LFIB4 or one subtract-with-borrow in SWB.<br><br>The code below provides  a variety of in-line generators that<br>seem promising by themselves, and even more so in combination.<br>With them,  one may feel fairly confident  that combinations<br>will produce results  consistent with the underlying probability theory<br>in your applications.<br><br><br>All combinations seem to support the supplemented quote<br>from my 1984 Keynote Address:<br><br>       A random number generator is like sex;<br>       When it's good, it's wonderful,<br>       And when it's bad, it's still pretty good.<br><br>       And when it's bad, try a twosome or threesome.<br><br>The C code follows; you may want to snip and save from<br>here--------------------------------------------------:<br><br>#define znew  (z=36969*(z&amp;65535)+(z&gt;&gt;16))<br>#define wnew  (w=18000*(w&amp;65535)+(w&gt;&gt;16))<br>#define MWC   ( (znew&lt;&lt;16)+wnew )<br>#define SHR3  (jsr=(jsr=(jsr=jsr^(jsr&lt;&lt;17))^(jsr&gt;&gt;13))^(jsr&lt;&lt;5))<br>#define CONG  (jcong=69069*jcong+1234567)<br>#define KISS  ((MWC^CONG)+SHR3)<br>#define LFIB4 (t[c]=t[c]+t[c+58]+t[c+119]+t[c+178],t[++c])<br>#define SWB   (t[c+237]=(x=t[c+15])-(y=t[c]+(x&lt;y)),t[++c])<br>#define UNI   (KISS*2.328306e-10)<br>#define VNI   ((long) KISS)*4.656613e-10<br>typedef unsigned long UL;<br><br>/*  Global static variables: */<br> static UL z=362436069, w=521288629, jsr=123456789, jcong=380116160;<br> static UL t[256];<br> static UL x=0,y=0; static unsigned char c=0;<br>/* Random seeds must be used to reset z,w,jsr,jcong and<br>the table t[256].  Here is an example procedure, using KISS: */<br><br> void settable(UL i1,UL i2,UL i3,UL i4)<br> { int i; z=i1;w=i2,jsr=i3; jcong=i4;<br> for(i=0;i&lt;256;i++)  t[i]=KISS;        }<br><br>/* Any one of KISS, MWC, LFIB4, SWB, SHR3, or CONG  can be used in<br>   an expression to provide a random 32-bit integer, while UNI<br>   provides a real in (0,1) and VNI a real in (-1,1).   */<br><br><br><br><br>
+</pre>
+</body></html>

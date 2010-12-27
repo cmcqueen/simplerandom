@@ -1,0 +1,7 @@
+http://mathforum.org/kb/thread.jspa?threadID=499149&tstart=17730 Random numbers in C: Some suggestions. Posted: Jan 12, 1999 9:37 AM
+http://mathforum.org/kb/thread.jspa?threadID=499163&tstart=17685 Random numbers for C: Improvements. Posted: Jan 15, 1999 11:41 AM
+http://mathforum.org/kb/thread.jspa?threadID=499210&tstart=17655 Random numbers for C: The END? Posted: Jan 20, 1999 10:55 AM
+http://mathforum.org/kb/thread.jspa?threadID=499215&tstart=17685 Random numbers for C: End, at last? Posted: Jan 20, 1999 10:08 PM
+
+http://www.cse.yorku.ca/~oz/marsaglia-rng.html
+
