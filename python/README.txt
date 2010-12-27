@@ -140,6 +140,29 @@ tested. The Cython version of ``simplerandom.iterators`` should work on 64-bit
 platforms, but has not been tested.
 
 
+-------------
+Use of Cython
+-------------
+
+`Cython`_ is used to make a fast implementation of ``simplerandom.iterators``.
+Cython creates a ``.c`` file that can be compiled into a Python binary
+extension module.
+
+The ``simplerandom`` source distribution package includes a ``.c`` file that
+was created with Cython, so it is not necessary to have Cython installed to
+install ``simplerandom``. The Cython ``.pyx`` file is also included, if you
+want to modify the Cython source code, in which case you do need to have
+Cython installed.
+
+If Cython is installed, the ``setup.py`` file will build the code using
+the Cython ``.pyx`` file (updating the ``.c`` file as necessary). If Cython
+is not installed, the ``setup.py`` file will build the code from the included
+``.c`` file.
+
+.. _Cython:
+    http://cython.org/
+
+
 ------------
 Installation
 ------------
