@@ -1,87 +1,67 @@
+"""
+Simple random
 
-from simplerandom.iterators import *
-from simplerandom.iterators import _RandomFibIterator
+Unit Tests
+"""
 
-def marsaglia_test():
-    random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
-    t = [ random_kiss.next() for i in range(256) ]
-#        for i in t: print i
+import unittest
 
-    lfib4 = RandomLFIB4Iterator(t)
-    if 1:
+import simplerandom.iterators as sri
+#import simplerandom.iterators._iterators_py as sri
+
+
+class MarsagliaTests(unittest.TestCase):
+    def runTest(self):
+        # Set up KISS RNG to initialise seeds for LFIB4 and SWB RNGs.
+        random_kiss = sri.RandomKISSIterator(12345, 65435, 12345, 34221)
+        t = [ random_kiss.next() for i in range(256) ]
+
+        # Test LFIB4
+        lfib4 = sri.RandomLFIB4Iterator(t)
         for i in range(1000000):
             k = lfib4.next()
-#                if i < 256: print k
-        print k - 1064612766
+        self.assertEqual(k, 1064612766, "LFIB4 test returned %d instead of expected value" % k)
 
-#    swb = RandomSWBIterator(lfib4.getstate())
-    swb = RandomSWBIterator(lfib4.t)
-    swb.c = lfib4.c
-    if 1:
+        # Test SWB
+        swb = sri.RandomSWBIterator(lfib4.t)
+        swb.c = lfib4.c
         for i in range(1000000):
             k = swb.next()
-        print k - 627749721
+        self.assertEqual(k, 627749721, "SWB test returned %d instead of expected value" % k)
 
-    if 1:
+        # Test KISS. We already set this up at the start.
         for i in range(1000000):
             k = random_kiss.next()
-        print k - 1372460312
+        self.assertEqual(k, 1372460312, "KISS test returned %d instead of expected value" % k)
 
-    cong = RandomCongIterator(random_kiss.cong)
-    if 1:
+        # Test Cong
+        cong = sri.RandomCongIterator(random_kiss.cong)
         for i in range(1000000):
             k = cong.next()
-        print k - 1529210297
+        self.assertEqual(k, 1529210297, "Cong test returned %d instead of expected value" % k)
 
-    shr3 = RandomSHR3Iterator(random_kiss.shr3_j)
-    if 1:
+        # Test SHR3
+        shr3 = sri.RandomSHR3Iterator(random_kiss.shr3_j)
         for i in range(1000000):
             k = shr3.next()
-        print k - 2642725982
+        self.assertEqual(k, 2642725982, "SHR3 test returned %d instead of expected value" % k)
 
-    mwc = RandomMWCIterator(random_kiss.mwc_z, random_kiss.mwc_w)
-    if 1:
+        # Test MWC
+        mwc = sri.RandomMWCIterator(random_kiss.mwc_z, random_kiss.mwc_w)
         for i in range(1000000):
             k = mwc.next()
-        print k - 904977562
+        self.assertEqual(k, 904977562, "MWC test returned %d instead of expected value" % k)
 
-    fib = _RandomFibIterator(9983651,95746118)
-    if 1:
+        # Test Fib
+        fib = sri._RandomFibIterator(9983651,95746118)
         for i in range(1000000):
             k = fib.next()
-        print k - 3519793928
+        self.assertEqual(k, 3519793928, "Fib test returned %d instead of expected value" % k)
 
 
-def main():
-    if 0:
-        mwc = RandomMWCIterator(12345, 65435)
-        for i in range(256):
-            print mwc.next()
-    if 0:
-        cong = RandomCongIterator(12345)
-        for i in range(256):
-            print cong.next()
-    if 0:
-        shr3 = RandomSHR3Iterator(34221)
-        for i in range(256):
-            print shr3.next()
-    if 0:
-        shr3 = RandomSHR3Iterator(34221)
-        for i in range(2000000):
-            k = shr3.next()
-        print k
-    if 0:
-        kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
-        for i in range(256):
-            kiss_val = kiss.next()
-            print kiss.mwc
-            print kiss.cong
-            print kiss.shr3_j
-            print kiss_val
-            print
-    if 1:
-        marsaglia_test()
+def runtests():
+    unittest.main()
 
-if __name__ == "__main__":
-    main()
 
+if __name__ == '__main__':
+    runtests()
