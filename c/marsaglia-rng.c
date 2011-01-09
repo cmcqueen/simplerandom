@@ -110,6 +110,12 @@ int main (void)
     }
     printf ("%"PRIu32"\n", k - 3519793928U);
 
+    for (i = 0; i < 1000000; i++)
+    {
+        k = KISS2();
+    }
+    printf ("%"PRIu32"\n", k - 1010846401U);
+
     return 0;
 }
 
