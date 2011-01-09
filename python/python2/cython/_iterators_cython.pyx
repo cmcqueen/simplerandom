@@ -1,5 +1,6 @@
 
 cdef extern from "types.h":
+    ctypedef int uint64_t
     ctypedef int uint32_t
     ctypedef int uint8_t
 
@@ -31,6 +32,37 @@ cdef class RandomCongIterator(object):
         self.cong = int(state[0])
 
 
+cdef class RandomCong2Iterator(object):
+    '''Congruential random number generator
+    
+    Very similar to RandomCongIterator, but with different added constant
+    and different default seed.
+    '''
+
+    cdef public uint32_t cong
+
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 123456789
+        self.cong = int(seed)
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def __next__(self):
+        self.cong = 69069 * self.cong + 12345
+        return self.cong
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.cong, )
+
+    def setstate(self, state):
+        self.cong = int(state[0])
+
+
 cdef class RandomSHR3Iterator(object):
     '''3-shift-register random number generator'''
 
@@ -49,6 +81,42 @@ cdef class RandomSHR3Iterator(object):
         shr3_j = self.shr3_j
         shr3_j ^= shr3_j << 17
         shr3_j ^= shr3_j >> 13
+        shr3_j ^= shr3_j << 5
+        self.shr3_j = shr3_j
+        return shr3_j
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.shr3_j, )
+
+    def setstate(self, state):
+        self.shr3_j = int(state[0])
+
+
+cdef class RandomSHR3_2Iterator(object):
+    '''3-shift-register random number generator
+    
+    This differs from the SHR3 generator in the default seed value, and
+    the values of the three shift operations.
+    '''
+
+    cdef public uint32_t shr3_j
+
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 362436000
+        self.shr3_j = int(seed)
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def __next__(self):
+        cdef uint32_t shr3_j
+        shr3_j = self.shr3_j
+        shr3_j ^= shr3_j << 13
+        shr3_j ^= shr3_j >> 17
         shr3_j ^= shr3_j << 5
         self.shr3_j = shr3_j
         return shr3_j
@@ -102,6 +170,45 @@ cdef class RandomMWCIterator(object):
     def setstate(self, state):
         self.mwc_z = int(state[0])
         self.mwc_w = int(state[1])
+
+
+cdef class RandomMWC64Iterator(object):
+    '''"Multiply-with-carry" random number generator
+
+    This uses a single MWC generator with 64 bits to generate a 32-bit value.
+    The seed should be a 64-bit value.
+    '''
+
+    cdef public uint64_t mwc_z
+
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 32875058889374645
+        self.mwc_z = int(seed)
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def __next__(self):
+        cdef uint32_t mwc
+        self.mwc_z = 698769069u * (self.mwc_z & 0xFFFFFFFF) + (self.mwc_z >> 32)
+        mwc = self.mwc_z & 0xFFFFFFFF
+        return mwc
+
+    property mwc:
+        def __get__(self):
+            cdef uint32_t mwc
+            mwc = self.mwc_z & 0xFFFFFFFF
+            return mwc
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.mwc_z, )
+
+    def setstate(self, state):
+        self.mwc_z = int(state[0])
 
 
 cdef class RandomKISSIterator(object):
@@ -168,6 +275,77 @@ cdef class RandomKISSIterator(object):
         (mwc_state, cong_state, shr3_state) = state
         self.mwc_z = int(mwc_state[0])
         self.mwc_w = int(mwc_state[1])
+        self.cong = int(cong_state[0])
+        self.shr3_j = int(shr3_state[0])
+
+
+cdef class RandomKISS2Iterator(object):
+    '''"Keep It Simple Stupid" random number generator
+    
+    It combines the RandomMWC64, RandomCong2, RandomSHR3_2
+    generators. Period is about 2**123.
+
+    This is a slightly updated KISS generator design, from a newsgroup
+    post in 2003:
+
+    http://groups.google.com/group/comp.soft-sys.math.mathematica/msg/95a94c3b2aa5f077
+
+    The Cong and SHR3 component generators are changed slightly. The
+    MWC component uses a single 64-bit calculation, instead of two
+    32-bit calculations that are combined.
+    '''
+
+    cdef public uint32_t cong
+    cdef public uint32_t shr3_j
+    cdef public uint64_t mwc_z
+
+    def __init__(self, seed_mwc = None, seed_cong = None, seed_shr3 = None):
+        # Initialise MWC RNG
+        if seed_mwc==None:
+            seed_mwc = 32875058889374645
+        self.mwc_z = int(seed_mwc)
+        # Initialise Cong RNG
+        if seed_cong==None:
+            seed_cong = 123456789
+        self.cong = int(seed_cong)
+        # Initialise SHR3 RNG
+        if seed_shr3==None:
+            seed_shr3 = 362436000
+        self.shr3_j = int(seed_shr3)
+
+    def seed(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
+
+    def __next__(self):
+        cdef uint32_t mwc
+        cdef uint32_t shr3_j
+
+        self.mwc_z = 698769069u * (self.mwc_z & 0xFFFFFFFF) + (self.mwc_z >> 32)
+        mwc = self.mwc_z & 0xFFFFFFFF
+
+        self.cong = 69069 * self.cong + 12345
+
+        # Update SHR3 RNG
+        shr3_j = self.shr3_j
+        shr3_j ^= shr3_j << 13
+        shr3_j ^= shr3_j >> 17
+        shr3_j ^= shr3_j << 5
+        self.shr3_j = shr3_j
+
+        return mwc + self.cong + shr3_j
+
+    property mwc:
+        def __get__(self):
+            cdef uint32_t mwc
+            mwc = self.mwc_z & 0xFFFFFFFF
+            return mwc
+
+    def getstate(self):
+        return ((self.mwc_z,), (self.cong,), (self.shr3_j,))
+
+    def setstate(self, state):
+        (mwc_state, cong_state, shr3_state) = state
+        self.mwc_z = int(mwc_state[0])
         self.cong = int(cong_state[0])
         self.shr3_j = int(shr3_state[0])
 
