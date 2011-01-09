@@ -38,6 +38,35 @@ class RandomCongIterator(object):
         (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
+class RandomCong2Iterator(object):
+    '''Congruential random number generator
+    
+    Very similar to RandomCongIterator, but with different added constant
+    and different default seed.
+    '''
+
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 123456789
+        self.cong = int(seed) & 0xFFFFFFFF
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def next(self):
+        self.cong = (69069 * self.cong + 12345) & 0xFFFFFFFF
+        return self.cong
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.cong, )
+
+    def setstate(self, state):
+        (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
+
+
 class RandomSHR3Iterator(object):
     '''3-shift-register random number generator'''
 
@@ -67,8 +96,45 @@ class RandomSHR3Iterator(object):
         (self.shr3_j, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
+class RandomSHR3_2Iterator(object):
+    '''3-shift-register random number generator
+    
+    This differs from the SHR3 generator in the default seed value, and
+    the values of the three shift operations.
+    '''
+
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 362436000
+        self.shr3_j = int(seed) & 0xFFFFFFFF
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def next(self):
+        shr3_j = self.shr3_j
+        shr3_j ^= (shr3_j & 0x7FFFF) << 13
+        shr3_j ^= shr3_j >> 17
+        shr3_j ^= (shr3_j & 0x7FFFFFF) << 5
+        self.shr3_j = shr3_j
+        return shr3_j
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.shr3_j, )
+
+    def setstate(self, state):
+        (self.shr3_j, ) = (int(val) & 0xFFFFFFFF for val in state)
+
+
 class RandomMWCIterator(object):
-    '''"Multiply-with-carry" random number generator'''
+    '''"Multiply-with-carry" random number generator
+
+    This uses two MWC generators to generate high and low 16-bit parts,
+    which are then combined to make a 32-bit value.
+    '''
 
     def __init__(self, seed_z = None, seed_w = None):
         if seed_z==None:
@@ -101,6 +167,40 @@ class RandomMWCIterator(object):
         (self.mwc_z, self.mwc_w) = (int(val) & 0xFFFFFFFF for val in state)
 
 
+class RandomMWC64Iterator(object):
+    '''"Multiply-with-carry" random number generator
+
+    This uses a single MWC generator with 64 bits to generate a 32-bit value.
+    The seed should be a 64-bit value.
+    '''
+
+    def __init__(self, seed = None):
+        if seed==None:
+            seed = 32875058889374645
+        self.mwc_z = int(seed) & 0xFFFFFFFFFFFFFFFF
+
+    def seed(self, seed = None):
+        self.__init__(seed)
+
+    def next(self):
+        self.mwc_z = 698769069 * (self.mwc_z & 0xFFFFFFFF) + (self.mwc_z >> 32)
+        return self._get_mwc()
+
+    def _get_mwc(self):
+        return self.mwc_z & 0xFFFFFFFF
+
+    mwc = property(_get_mwc)
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.mwc_z, )
+
+    def setstate(self, state):
+        (self.mwc_z, ) = (int(val) & 0xFFFFFFFFFFFFFFFF for val in state)
+
+
 class RandomKISSIterator(object):
     '''"Keep It Simple Stupid" random number generator
     
@@ -121,6 +221,74 @@ class RandomKISSIterator(object):
         cong_val = self.random_cong.next()
         shr3_val = self.random_shr3.next()
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
+
+    def getstate(self):
+        return (self.random_mwc.getstate(), self.random_cong.getstate(), self.random_shr3.getstate())
+
+    def setstate(self, state):
+        (mwc_state, cong_state, shr3_state) = state
+        self.random_mwc.setstate(mwc_state)
+        self.random_cong.setstate(cong_state)
+        self.random_shr3.setstate(shr3_state)
+
+    def _get_mwc_z(self):
+        return self.random_mwc.mwc_z
+    def _set_mwc_z(self, value):
+        self.random_mwc.mwc_z = value
+    mwc_z = property(_get_mwc_z, _set_mwc_z)
+
+    def _get_mwc_w(self):
+        return self.random_mwc.mwc_w
+    def _set_mwc_w(self, value):
+        self.random_mwc.mwc_w = value
+    mwc_w = property(_get_mwc_w, _set_mwc_w)
+
+    def _get_mwc(self):
+        return self.random_mwc.mwc
+    mwc = property(_get_mwc)
+
+    def _get_shr3_j(self):
+        return self.random_shr3.shr3_j
+    def _set_shr3_j(self, value):
+        self.random_shr3.shr3_j = value
+    shr3_j = property(_get_shr3_j, _set_shr3_j)
+
+    def _get_cong(self):
+        return self.random_cong.cong
+    def _set_cong(self, value):
+        self.random_cong.cong = value
+    cong = property(_get_cong, _set_cong)
+
+
+class RandomKISS2Iterator(object):
+    '''"Keep It Simple Stupid" random number generator
+    
+    It combines the RandomMWC64, RandomCong2, RandomSHR3_2
+    generators. Period is about 2**123.
+
+    This is a slightly updated KISS generator design, from a newsgroup
+    post in 2003:
+
+    http://groups.google.com/group/comp.soft-sys.math.mathematica/msg/95a94c3b2aa5f077
+
+    The Cong and SHR3 component generators are changed slightly. The
+    MWC component uses a single 64-bit calculation, instead of two
+    32-bit calculations that are combined.
+    '''
+
+    def __init__(self, seed_mwc = None, seed_cong = None, seed_shr3 = None):
+        self.random_mwc = RandomMWC64Iterator(seed_mwc)
+        self.random_cong = RandomCong2Iterator(seed_cong)
+        self.random_shr3 = RandomSHR3_2Iterator(seed_shr3)
+
+    def seed(self, seed_mwc = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc, seed_cong, seed_shr3)
+
+    def next(self):
+        mwc_val = self.random_mwc.next()
+        cong_val = self.random_cong.next()
+        shr3_val = self.random_shr3.next()
+        return (mwc_val + cong_val + shr3_val) & 0xFFFFFFFF
 
     def getstate(self):
         return (self.random_mwc.getstate(), self.random_cong.getstate(), self.random_shr3.getstate())

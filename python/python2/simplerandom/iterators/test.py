@@ -59,6 +59,14 @@ class MarsagliaTests(unittest.TestCase):
         self.assertEqual(k, 3519793928, "Fib test returned %d instead of expected value" % k)
 
 
+class KISS2Test(unittest.TestCase):
+    def runTest(self):
+        kiss2 = sri.RandomKISS2Iterator()
+        for i in range(1000000):
+            k = kiss2.next()
+        self.assertEqual(k, 1010846401, "KISS2 test returned %d instead of expected value" % k)
+
+
 def runtests():
     unittest.main()
 
