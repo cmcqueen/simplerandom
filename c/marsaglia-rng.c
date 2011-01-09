@@ -39,6 +39,15 @@ void settable (uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, 
     }
 }
 
+unsigned long KISS2(){
+  static unsigned long x=123456789,y=362436000,z=521288629,c=7654321;
+  unsigned long long t, a=698769069LL;
+  x=69069*x+12345;
+  y^=(y<<13); y^=(y>>17); y^=(y<<5);
+  t=a*z+c; c=(t>>32);
+  return x+y+(z=t);
+                    }
+
 /* This is a test main program. It should compile and print 7 0's. */
 int main (void)
 {
