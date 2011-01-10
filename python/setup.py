@@ -65,4 +65,5 @@ setup(
         'Programming Language :: Cython',
         'Topic :: Scientific/Engineering :: Mathematics',
     ],
+    keywords='simple random pseudorandom RNG PRNG',
 )
