@@ -57,7 +57,7 @@ class RandomCongIterator(object):
 
 class RandomCong2Iterator(object):
     '''Congruential random number generator
-    
+
     Very similar to RandomCongIterator, but with different
     added constant and different default seed.
     '''
@@ -91,12 +91,14 @@ class RandomSHR3Iterator(object):
     2**32-1. It uses y[n]=y[n-1](I+L^17)(I+R^13)(I+L^5),
     with the y's viewed as binary vectors, L the 32x32
     binary matrix that shifts a vector left 1, and R its
-    transpose. SHR3 seems to pass all except those
-    related to the binary rank test, since 32 successive
-    values, as binary vectors, must be linearly
-    independent, while 32 successive truly random 32-bit
-    integers, viewed as binary vectors, will be linearly
-    independent only about 29% of the time.
+    transpose.
+
+    SHR3 seems to pass all except those related to the
+    binary rank test, since 32 successive values, as
+    binary vectors, must be linearly independent, while
+    32 successive truly random 32-bit integers, viewed
+    as binary vectors, will be linearly independent only
+    about 29% of the time.
     '''
 
     def __init__(self, seed = None):
@@ -515,7 +517,7 @@ class RandomSWBIterator(RandomLFIB4Iterator):
 class _RandomFibIterator(object):
     '''Classical Fibonacci sequence
 
-    x(n)=x(n-1)+x(n-2),but taken modulo 2**32. Its
+    x[n]=x[n-1]+x[n-2],but taken modulo 2**32. Its
     period is 3 * (2**31) if one of its two seeds is
     odd and not 1 mod 8.
     
