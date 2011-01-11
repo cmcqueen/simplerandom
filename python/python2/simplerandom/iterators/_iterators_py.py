@@ -433,6 +433,16 @@ class _RandomFibIterator(object):
             seed_b = 3460192787
         self.a = int(seed_a) & 0xFFFFFFFF
         self.b = int(seed_b) & 0xFFFFFFFF
+        if self._adjust_seed(self.a) != self.a:
+            self.b = self._adjust_seed(self.b)
+
+    def _adjust_seed(seed):
+        if not seed % 2:
+            seed += 1
+        if seed % 8 == 1:
+            seed += 2
+        return seed
+    _adjust_seed = staticmethod(_adjust_seed)
 
     def seed(self, seed_a = None, seed_b = None):
         self.__init__(seed_a, seed_b)
