@@ -431,8 +431,8 @@ class _RandomFibIterator(object):
             seed_a = 1468761293
         if seed_b==None:
             seed_b = 3460192787
-        self.a = (seed_a & 0xFFFFFFFF)
-        self.b = (seed_b & 0xFFFFFFFF)
+        self.a = int(seed_a) & 0xFFFFFFFF
+        self.b = int(seed_b) & 0xFFFFFFFF
 
     def next(self):
         new_a = self.b
