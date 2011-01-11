@@ -378,18 +378,24 @@ class RandomLFIB4Iterator(object):
 
     LFIB4 is an extension of what Marsaglia has previously
     defined as a lagged Fibonacci generator:
-    x[n]=x[n-r] op x[n-s], with the x's in a finite
-    set over which there is a binary operation op, such
-    as +,- on integers mod 2**32, * on odd such integers,
-    exclusive-or(xor) on binary vectors. Except for
-    those using multiplication, lagged Fibonacci
-    generators fail various tests of randomness, unless
-    the lags are very long. (See SWB).
+
+        x[n]=x[n-r] op x[n-s]
+
+    with the x's in a finite set over which there is a
+    binary operation op, such as +,- on integers mod 2**32,
+    * on odd such integers, exclusive-or(xor) on binary
+    vectors. Except for those using multiplication, lagged
+    Fibonacci generators fail various tests of randomness,
+    unless the lags are very long. (See SWB).
+
     To see if more than two lags would serve to overcome
     the problems of 2-lag generators using +,- or xor,
     Marsaglia developed the 4-lag generator LFIB4 using
-    addition: x[n]=x[n-256]+x[n-179]+x[n-119]+x[n-55]
-    mod 2**32. Its period is 2**31*(2**256-1), about 2**287,
+    addition:
+
+        x[n]=x[n-256]+x[n-179]+x[n-119]+x[n-55] mod 2**32
+
+    Its period is 2**31*(2**256-1), about 2**287,
     and it seems to pass all tests---in particular,
     those of the kind for which 2-lag generators using
     +,-,xor seem to fail.
