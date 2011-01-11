@@ -434,6 +434,9 @@ class _RandomFibIterator(object):
         self.a = int(seed_a) & 0xFFFFFFFF
         self.b = int(seed_b) & 0xFFFFFFFF
 
+    def seed(self, seed_a = None, seed_b = None):
+        self.__init__(seed_a, seed_b)
+
     def next(self):
         new_a = self.b
         new_b = (self.a + self.b) & 0xFFFFFFFF

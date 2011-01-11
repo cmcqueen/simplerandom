@@ -371,6 +371,9 @@ cdef class _RandomFibIterator(object):
         self.a = int(seed_a)
         self.b = int(seed_b)
 
+    def seed(self, seed_a = None, seed_b = None):
+        self.__init__(seed_a, seed_b)
+
     def __next__(self):
         cdef uint32_t new_a
         cdef uint32_t new_b
