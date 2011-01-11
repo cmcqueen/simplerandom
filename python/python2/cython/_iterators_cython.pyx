@@ -69,7 +69,7 @@ cdef class RandomSHR3Iterator(object):
     cdef public uint32_t shr3_j
 
     def __init__(self, seed = None):
-        if seed==None:
+        if seed==None or seed==0:
             seed = 34223
         self.shr3_j = int(seed)
 
@@ -105,7 +105,7 @@ cdef class RandomSHR3_2Iterator(object):
     cdef public uint32_t shr3_j
 
     def __init__(self, seed = None):
-        if seed==None:
+        if seed==None or seed==0:
             seed = 362436000
         self.shr3_j = int(seed)
 

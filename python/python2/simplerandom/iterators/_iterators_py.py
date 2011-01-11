@@ -71,7 +71,7 @@ class RandomSHR3Iterator(object):
     '''3-shift-register random number generator'''
 
     def __init__(self, seed = None):
-        if seed==None:
+        if seed==None or seed==0:
             seed = 34223
         self.shr3_j = int(seed) & 0xFFFFFFFF
 
@@ -104,7 +104,7 @@ class RandomSHR3_2Iterator(object):
     '''
 
     def __init__(self, seed = None):
-        if seed==None:
+        if seed==None or seed==0:
             seed = 362436000
         self.shr3_j = int(seed) & 0xFFFFFFFF
 
