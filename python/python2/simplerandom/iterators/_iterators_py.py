@@ -14,7 +14,24 @@ class _RandomIteratorTemplate(object):
 
 
 class RandomCongIterator(object):
-    '''Congruential random number generator'''
+    '''Congruential random number generator
+
+    This is a congruential generator with the widely used
+    69069 multiplier: x[n]=69069x[n-1]+1234567. It has
+    period 2**32.
+    
+    The leading half of its 32 bits seem to pass tests,
+    but bits in the last half are too regular. It fails
+    tests for which those bits play a significant role.
+    Cong+Fib will also have too much regularity in
+    trailing bits, as each does. But keep in mind that
+    it is a rare application for which the trailing
+    bits play a significant role. Cong is one of the
+    most widely used generators of the last 30 years,
+    as it was the system generator for VAX and was
+    incorporated in several popular software packages,
+    all seemingly without complaint.
+    '''
 
     def __init__(self, seed = None):
         if seed==None:
@@ -41,8 +58,8 @@ class RandomCongIterator(object):
 class RandomCong2Iterator(object):
     '''Congruential random number generator
     
-    Very similar to RandomCongIterator, but with different added constant
-    and different default seed.
+    Very similar to RandomCongIterator, but with different
+    added constant and different default seed.
     '''
 
     def __init__(self, seed = None):
@@ -68,7 +85,19 @@ class RandomCong2Iterator(object):
 
 
 class RandomSHR3Iterator(object):
-    '''3-shift-register random number generator'''
+    '''3-shift-register random number generator
+
+    SHR3 is a 3-shift-register generator with period
+    2**32-1. It uses y[n]=y[n-1](I+L^17)(I+R^13)(I+L^5),
+    with the y's viewed as binary vectors, L the 32x32
+    binary matrix that shifts a vector left 1, and R its
+    transpose. SHR3 seems to pass all except those
+    related to the binary rank test, since 32 successive
+    values, as binary vectors, must be linearly
+    independent, while 32 successive truly random 32-bit
+    integers, viewed as binary vectors, will be linearly
+    independent only about 29% of the time.
+    '''
 
     def __init__(self, seed = None):
         if seed==None or seed==0:
@@ -99,8 +128,8 @@ class RandomSHR3Iterator(object):
 class RandomSHR3_2Iterator(object):
     '''3-shift-register random number generator
     
-    This differs from the SHR3 generator in the default seed value, and
-    the values of the three shift operations.
+    This differs from the SHR3 generator in the default seed
+    value, and the values of the three shift operations.
     '''
 
     def __init__(self, seed = None):
@@ -132,8 +161,19 @@ class RandomSHR3_2Iterator(object):
 class RandomMWCIterator(object):
     '''"Multiply-with-carry" random number generator
 
-    This uses two MWC generators to generate high and low 16-bit parts,
-    which are then combined to make a 32-bit value.
+    This uses two MWC generators to generate high and
+    low 16-bit parts, which are then combined to make a
+    32-bit value.
+
+    The MWC generator concatenates two 16-bit multiply-
+    with-carry generators:
+
+        x[n]=36969x[n-1]+carry,
+        y[n]=18000y[n-1]+carry mod 2**16,
+
+    It has a period about 2**60 and seems to pass all
+    tests of randomness. A favorite stand-alone generator,
+    and faster than KISS, which contains it.
     '''
 
     def __init__(self, seed_z = None, seed_w = None):
@@ -170,8 +210,9 @@ class RandomMWCIterator(object):
 class RandomMWC64Iterator(object):
     '''"Multiply-with-carry" random number generator
 
-    This uses a single MWC generator with 64 bits to generate a 32-bit value.
-    The seed should be a 64-bit value.
+    This uses a single MWC generator with 64 bits to
+    generate a 32-bit value. The seed should be a 64-bit
+    value.
     '''
 
     def __init__(self, seed = None):
@@ -205,7 +246,8 @@ class RandomKISSIterator(object):
     '''"Keep It Simple Stupid" random number generator
     
     It combines the RandomMWC, RandomCong, RandomSHR3
-    generators. Period is about 2**123.
+    generators. Period is about 2**123. It is one of
+    Marsaglia's favourite generators.
     '''
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
@@ -266,14 +308,15 @@ class RandomKISS2Iterator(object):
     It combines the RandomMWC64, RandomCong2, RandomSHR3_2
     generators. Period is about 2**123.
 
-    This is a slightly updated KISS generator design, from a newsgroup
-    post in 2003:
+    This is a slightly updated KISS generator design, from
+    a newsgroup post in 2003:
 
     http://groups.google.com/group/comp.soft-sys.math.mathematica/msg/95a94c3b2aa5f077
 
-    The Cong and SHR3 component generators are changed slightly. The
-    MWC component uses a single 64-bit calculation, instead of two
-    32-bit calculations that are combined.
+    The Cong and SHR3 component generators are changed
+    slightly. The MWC component uses a single 64-bit
+    calculation, instead of two 32-bit calculations that
+    are combined.
     '''
 
     def __init__(self, seed_mwc = None, seed_cong = None, seed_shr3 = None):
@@ -329,7 +372,30 @@ class RandomKISS2Iterator(object):
 
 
 class RandomLFIB4Iterator(object):
-    '''"Lagged Fibonacci 4-lag" random number generator'''
+    '''"Lagged Fibonacci 4-lag" random number generator
+
+    LFIB4 is an extension of what Marsaglia has previously
+    defined as a lagged Fibonacci generator:
+    x[n]=x[n-r] op x[n-s], with the x's in a finite
+    set over which there is a binary operation op, such
+    as +,- on integers mod 2**32, * on odd such integers,
+    exclusive-or(xor) on binary vectors. Except for
+    those using multiplication, lagged Fibonacci
+    generators fail various tests of randomness, unless
+    the lags are very long. (See SWB).
+    To see if more than two lags would serve to overcome
+    the problems of 2-lag generators using +,- or xor,
+    Marsaglia developed the 4-lag generator LFIB4 using
+    addition: x[n]=x[n-256]+x[n-179]+x[n-119]+x[n-55]
+    mod 2**32. Its period is 2**31*(2**256-1), about 2**287,
+    and it seems to pass all tests---in particular,
+    those of the kind for which 2-lag generators using
+    +,-,xor seem to fail.
+
+    For even more confidence in its suitability, LFIB4
+    can be combined with KISS, with a resulting period
+    of about 2**410.
+    '''
 
     def __init__(self, seed = None):
         if not seed:
@@ -376,7 +442,37 @@ class RandomLFIB4Iterator(object):
 class RandomSWBIterator(RandomLFIB4Iterator):
     '''"Subtract-With-Borrow" random number generator
     
-    This is a Fibonacci 2-lag generator with an extra "borrow" operation.
+    SWB is a subtract-with-borrow generator that Marsaglia
+    developed to give a simple method for producing
+    extremely long periods:
+    x[n]=x[n-222]-x[n-237]- borrow mod 2**32.
+    The 'borrow' is 0, or set to 1 if computing x[n-1]
+    caused overflow in 32-bit integer arithmetic. This
+    generator has a very long period, 2**7098(2**480-1),
+    about 2**7578.
+
+    It seems to pass all tests of randomness, except
+    for the Birthday Spacings test, which it fails
+    badly, as do all lagged Fibonacci generators using
+    +,- or xor. Marsaglia suggests combining SWB with
+    KISS, MWC, SHR3, or Cong. KISS+SWB has period
+    >2**7700 and is highly recommended.
+
+    Subtract-with-borrow has the same local behaviour
+    as lagged Fibonacci using +,-,xor---the borrow
+    merely provides a much longer period.
+
+    SWB fails the birthday spacings test, as do all
+    lagged Fibonacci and other generators that merely
+    combine two previous values by means of =,- or xor.
+    Those failures are for a particular case: m=512
+    birthdays in a year of n=2**24 days. There are
+    choices of m and n for which lags >1000 will also
+    fail the test. A reasonable precaution is to always
+    combine a 2-lag Fibonacci or SWB generator with
+    another kind of generator, unless the generator uses
+    *, for which a very satisfactory sequence of odd
+    32-bit integers results.
     '''
 
     def __init__(self, seed = None):
@@ -419,11 +515,13 @@ class RandomSWBIterator(RandomLFIB4Iterator):
 class _RandomFibIterator(object):
     '''Classical Fibonacci sequence
 
-    x(n)=x(n-1)+x(n-2),but taken modulo 2^32. Its period is 3 * (2**31) if one
-    of its two seeds is odd and not 1 mod 8.
+    x(n)=x(n-1)+x(n-2),but taken modulo 2**32. Its
+    period is 3 * (2**31) if one of its two seeds is
+    odd and not 1 mod 8.
     
-    It has little worth as a RNG by itself, but provides a simple and fast
-    component for use in combination generators.
+    It has little worth as a RNG by itself, since it
+    fails several tests. But it provides a simple and
+    fast component for use in combination generators.
     '''
 
     def __init__(self, seed_a = None, seed_b = None):
