@@ -236,7 +236,7 @@ cdef class RandomKISSIterator(object):
             seed_cong = 12344
         self.cong = int(seed_cong)
         # Initialise SHR3 RNG
-        if seed_shr3==None:
+        if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 34223
         self.shr3_j = int(seed_shr3)
 
@@ -309,7 +309,7 @@ cdef class RandomKISS2Iterator(object):
             seed_cong = 123456789
         self.cong = int(seed_cong)
         # Initialise SHR3 RNG
-        if seed_shr3==None:
+        if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 362436000
         self.shr3_j = int(seed_shr3)
 
