@@ -67,6 +67,14 @@ class KISS2Test(unittest.TestCase):
         self.assertEqual(k, 1010846401, "KISS2 test returned %d instead of expected value" % k)
 
 
+class MWC64Test(unittest.TestCase):
+    def test_seed_with_MSbit_set(self):
+        # This causes an error in the Cython module, when built with Cython 0.14.
+        mwc64 = sri.RandomMWC64Iterator(2**63)
+        k = mwc64.next()
+        self.assertEqual(k, 2147483648)
+
+
 def runtests():
     unittest.main()
 
