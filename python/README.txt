@@ -70,9 +70,13 @@ In ``simplerandom.iterators``, the following pseudo-random number generators are
 Generator                   Notes
 ==========================  ===========================================================================
 ``RandomCongIterator``      
+``RandomCong2Iterator``     Very similar to Cong, but different added constant and default seed.
 ``RandomSHR3Iterator``      
+``RandomSHR3_2Iterator``    Similar to SHR3, but different shift values and default seed.
 ``RandomMWCIterator``       From [#marsaglia]_. Slightly different algorithm from that in [#cook]_.
+``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation.
 ``RandomKISSIterator``      Combination of MWC, Cong and SHR3
+``RandomKISS2Iterator``     Combination of MWC64, Cong2 and SHR3_2
 ``RandomLFIB4Iterator``
 ``RandomSWBIterator``
 ``_RandomFibIterator``      Not useful on its own, but can be used in a combination with other generators.
@@ -135,6 +139,9 @@ In Ubuntu, it has been tested on Python 2.6 and 3.1 and passes.
 In Windows, it has been tested on Python 2.4, 2.5, 2.6, 2.7 and 3.1.
 It passes under these versions.
 
+With Cython 0.14, one unit test shows an error with a certain seed value of
+the MWC64 iterator.
+
 The pure Python code is expected to work on 64-bit platforms, but has not been
 tested. The Cython version of ``simplerandom.iterators`` should work on 64-bit
 platforms, but has not been tested.
@@ -184,7 +191,7 @@ Unit Testing
 
 Basic unit testing of the iterators is in ``simplerandom.iterators.test``. It
 duplicates the tests of the C algorithms given in the original newsgroup post
-[#marsaglia]_. It should print seven lines, all containing 0.
+[#marsaglia]_, as well as other unit tests.
 
 To run it on Python >=2.5::
 
