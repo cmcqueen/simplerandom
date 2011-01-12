@@ -25,12 +25,12 @@ elif sys.version_info[0] == 3:
 
 if use_cython:
     ext_modules += [
-        Extension("simplerandom.iterators._iterators_cython", [ base_dir + "/cython/_iterators_cython.pyx" ]),
+        Extension("simplerandom.iterators._iterators_cython", [ "cython/_iterators_cython.pyx" ]),
     ]
     cmdclass.update({ 'build_ext': build_ext })
 else:
     ext_modules += [
-        Extension("simplerandom.iterators._iterators_cython", [ base_dir + "/cython/_iterators_cython.c" ]),
+        Extension("simplerandom.iterators._iterators_cython", [ "cython/_iterators_cython.c" ]),
     ]
 
 setup(
