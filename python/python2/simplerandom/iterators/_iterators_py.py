@@ -213,35 +213,40 @@ class RandomMWC64Iterator(object):
     '''"Multiply-with-carry" random number generator
 
     This uses a single MWC generator with 64 bits to
-    generate a 32-bit value. The seed should be a 64-bit
-    value.
+    generate a 32-bit value. The seeds should be 32-bit
+    values.
     '''
 
-    def __init__(self, seed = None):
-        if seed==None:
-            seed = 32875058889374645
-        self.mwc_z = int(seed) & 0xFFFFFFFFFFFFFFFF
+    def __init__(self, seed_c = None, seed_z = None):
+        if seed_c==None:
+            seed_c = 7654321
+        if seed_z==None:
+            seed_z = 521288629
+        self.mwc_c = int(seed_c) & 0xFFFFFFFF
+        self.mwc_z = int(seed_z) & 0xFFFFFFFF
 
-    def seed(self, seed = None):
-        self.__init__(seed)
+    def seed(self, seed_c = None, seed_z = None):
+        self.__init__(seed_c, seed_z)
 
     def next(self):
-        self.mwc_z = 698769069 * (self.mwc_z & 0xFFFFFFFF) + (self.mwc_z >> 32)
-        return self._get_mwc()
+        temp64 = 698769069 * self.mwc_z + self.mwc_c
+        self.mwc_z = temp64 & 0xFFFFFFFF
+        self.mwc_c = (temp64 >> 32) & 0xFFFFFFFF
+        return self.mwc_z
 
-    def _get_mwc(self):
-        return self.mwc_z & 0xFFFFFFFF
+    def mwc(self):
+        return self.mwc_z
 
-    mwc = property(_get_mwc)
+    mwc = property(mwc)
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.mwc_z, )
+        return (self.mwc_c, self.mwc_z)
 
     def setstate(self, state):
-        (self.mwc_z, ) = (int(val) & 0xFFFFFFFFFFFFFFFF for val in state)
+        (self.mwc_c, self.mwc_z) = (int(val) & 0xFFFFFFFF for val in state)
 
 
 class RandomKISSIterator(object):

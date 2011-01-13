@@ -10,8 +10,9 @@ import simplerandom.iterators as sri
 #import simplerandom.iterators._iterators_py as sri
 
 
-class MarsagliaTests(unittest.TestCase):
+class Marsaglia1999Tests(unittest.TestCase):
     def runTest(self):
+        """Tests as in Marsaglia 1999 post"""
         # Set up KISS RNG to initialise seeds for LFIB4 and SWB RNGs.
         random_kiss = sri.RandomKISSIterator(12345, 65435, 12345, 34221)
         t = [ random_kiss.next() for i in range(256) ]
@@ -69,8 +70,8 @@ class KISS2Test(unittest.TestCase):
 
 class MWC64Test(unittest.TestCase):
     def test_seed_with_MSbit_set(self):
-        # This causes an error in the Cython module, when built with Cython 0.14.
-        mwc64 = sri.RandomMWC64Iterator(2**63)
+        """Test MWC64 with MS-bit of mwc_c seed set."""
+        mwc64 = sri.RandomMWC64Iterator(2**31, 0)
         k = mwc64.next()
         self.assertEqual(k, 2147483648)
 
