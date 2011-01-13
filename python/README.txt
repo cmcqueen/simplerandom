@@ -16,11 +16,11 @@ Intro
 The ``simplerandom`` package is provided, which contains modules containing
 classes for various simple pseudo-random number generators.
 
-The algorithms were obtained from a newsgroup post by George Marsaglia
-[#marsaglia]_. The algorithms were specified in C in the newsgroup post. For
-the purpose of prototyping software in a high-level language such as Python,
-before writing it in faster C, it is useful to have identical algorithms
-implemented in both Python and C.
+The algorithms were obtained from two newsgroup posts by George Marsaglia
+[#marsaglia1999]_ [#marsaglia2003]_. The algorithms were specified in C in the
+newsgroup posts. For the purpose of prototyping software in a high-level
+language such as Python, before writing it in faster C, it is useful to have
+identical algorithms implemented in both Python and C.
 
 One module provides Python iterators, which generate simple unsigned 32-bit
 integers identical to their C counterparts.
@@ -32,13 +32,21 @@ Another module provides random classes that are sub-classed from the class
 References
 ``````````
 
-.. [#marsaglia] | `Random Numbers for C\: End, at last?`__
-                | George Marsaglia
-                | Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
+.. [#marsaglia1999] | `Random Numbers for C\: End, at last?`__
+                    | George Marsaglia
+                    | Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
 
 .. __:
 .. _Random Numbers for C\: End, at last?:
     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
+
+.. [#marsaglia2003] | `RNGs`__
+                    | George Marsaglia
+                    | Newsgroup post, sci.math, 26 Feb 2003
+
+.. __:
+.. _RNGs:
+    http://groups.google.com/group/sci.math/msg/9959175f66dd138f
 
 .. [#cook]      | `Simple Random Number Generation`__
                 | John D. Cook
@@ -69,17 +77,17 @@ In ``simplerandom.iterators``, the following pseudo-random number generators are
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``RandomCongIterator``      
-``RandomCong2Iterator``     Very similar to Cong, but different added constant and default seed.
+``RandomCongIterator``      This and below from From [#marsaglia1999]_.
 ``RandomSHR3Iterator``      
-``RandomSHR3_2Iterator``    Similar to SHR3, but different shift values and default seed.
-``RandomMWCIterator``       From [#marsaglia]_. Slightly different algorithm from that in [#cook]_.
-``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation.
+``RandomMWCIterator``       Slightly different algorithm from that in [#cook]_.
 ``RandomKISSIterator``      Combination of MWC, Cong and SHR3
-``RandomKISS2Iterator``     Combination of MWC64, Cong2 and SHR3_2
 ``RandomLFIB4Iterator``
 ``RandomSWBIterator``
 ``_RandomFibIterator``      Not useful on its own, but can be used in a combination with other generators.
+``RandomCong2Iterator``     This and below from From [#marsaglia2003]_. Very similar to Cong, but different added constant and default seed.
+``RandomSHR3_2Iterator``    Similar to SHR3, but different shift values and default seed.
+``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation.
+``RandomKISS2Iterator``     Combination of MWC64, Cong2 and SHR3_2
 ==========================  ===========================================================================
 
 In ``simplerandom.random``, the following pseudo-random number generators are provided:
@@ -87,9 +95,9 @@ In ``simplerandom.random``, the following pseudo-random number generators are pr
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``RandomCong``      
+``RandomCong``              This and below from From [#marsaglia1999]_.
 ``RandomSHR3``      
-``RandomMWC``               From [#marsaglia]_. Slightly different algorithm from that in [#cook]_.
+``RandomMWC``               Slightly different algorithm from that in [#cook]_.
 ``RandomKISS``              Combination of MWC, Cong and SHR3
 ``RandomLFIB4``
 ``RandomSWB``
@@ -188,7 +196,7 @@ Unit Testing
 
 Basic unit testing of the iterators is in ``simplerandom.iterators.test``. It
 duplicates the tests of the C algorithms given in the original newsgroup post
-[#marsaglia]_, as well as other unit tests.
+[#marsaglia1999]_, as well as other unit tests.
 
 To run it on Python >=2.5::
 
