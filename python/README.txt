@@ -136,11 +136,8 @@ thorough unit test suite is needed.
 
 In Ubuntu, it has been tested on Python 2.6 and 3.1 and passes.
 
-In Windows, it has been tested on Python 2.4, 2.5, 2.6, 2.7 and 3.1.
+In Windows, it has been tested on Python 2.4, 2.5, 2.6, 2.7, 3.1 and 3.2.
 It passes under these versions.
-
-With Cython 0.14, one unit test shows an error with a certain seed value of
-the MWC64 iterator.
 
 The pure Python code is expected to work on 64-bit platforms, but has not been
 tested. The Cython version of ``simplerandom.iterators`` should work on 64-bit
