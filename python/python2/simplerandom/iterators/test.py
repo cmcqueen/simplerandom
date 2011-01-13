@@ -70,7 +70,10 @@ class KISS2Test(unittest.TestCase):
 
 class MWC64Test(unittest.TestCase):
     def test_seed_with_MSbit_set(self):
-        """Test MWC64 with MS-bit of mwc_c seed set."""
+        """Test MWC64 with MS-bit of mwc_c seed set.
+        
+        This failed an earlier version of the Cython code.
+        """
         mwc64 = sri.RandomMWC64Iterator(2**31, 0)
         k = mwc64.next()
         self.assertEqual(k, 2147483648)
