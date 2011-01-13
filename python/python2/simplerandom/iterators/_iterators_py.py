@@ -318,7 +318,7 @@ class RandomKISS2Iterator(object):
     This is a slightly updated KISS generator design, from
     a newsgroup post in 2003:
 
-    http://groups.google.com/group/comp.soft-sys.math.mathematica/msg/95a94c3b2aa5f077
+    http://groups.google.com/group/sci.math/msg/9959175f66dd138f
 
     The Cong and SHR3 component generators are changed
     slightly. The MWC component uses a single 64-bit
@@ -326,13 +326,13 @@ class RandomKISS2Iterator(object):
     are combined.
     '''
 
-    def __init__(self, seed_mwc = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = RandomMWC64Iterator(seed_mwc)
+    def __init__(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
+        self.random_mwc = RandomMWC64Iterator(seed_mwc_c, seed_mwc_z)
         self.random_cong = RandomCong2Iterator(seed_cong)
         self.random_shr3 = RandomSHR3_2Iterator(seed_shr3)
 
-    def seed(self, seed_mwc = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc, seed_cong, seed_shr3)
+    def seed(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_c, seed_mwc_z, seed_cong, seed_shr3)
 
     def next(self):
         mwc_val = self.random_mwc.next()
