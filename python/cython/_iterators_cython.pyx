@@ -36,7 +36,7 @@ cdef class RandomCongIterator(object):
         self.__init__(seed)
 
     def __next__(self):
-        self.cong = 69069 * self.cong + 1234567
+        self.cong = 69069u * self.cong + 1234567u
         return self.cong
 
     def __iter__(self):
