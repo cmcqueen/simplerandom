@@ -1,8 +1,8 @@
 
 cdef extern from "types.h":
-    ctypedef int uint64_t
-    ctypedef int uint32_t
-    ctypedef int uint8_t
+    ctypedef unsigned long uint64_t
+    ctypedef unsigned int uint32_t
+    ctypedef unsigned char uint8_t
 
 
 cdef class RandomCongIterator(object):
@@ -67,7 +67,7 @@ cdef class RandomCong2Iterator(object):
         self.__init__(seed)
 
     def __next__(self):
-        self.cong = 69069 * self.cong + 12345
+        self.cong = 69069u * self.cong + 12345u
         return self.cong
 
     def __iter__(self):
@@ -110,9 +110,9 @@ cdef class RandomSHR3Iterator(object):
     def __next__(self):
         cdef uint32_t shr3_j
         shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 17
-        shr3_j ^= shr3_j >> 13
-        shr3_j ^= shr3_j << 5
+        shr3_j ^= shr3_j << 17u
+        shr3_j ^= shr3_j >> 13u
+        shr3_j ^= shr3_j << 5u
         self.shr3_j = shr3_j
         return shr3_j
 
@@ -146,9 +146,9 @@ cdef class RandomSHR3_2Iterator(object):
     def __next__(self):
         cdef uint32_t shr3_j
         shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 13
-        shr3_j ^= shr3_j >> 17
-        shr3_j ^= shr3_j << 5
+        shr3_j ^= shr3_j << 13u
+        shr3_j ^= shr3_j >> 17u
+        shr3_j ^= shr3_j << 5u
         self.shr3_j = shr3_j
         return shr3_j
 
@@ -196,15 +196,15 @@ cdef class RandomMWCIterator(object):
 
     def __next__(self):
         cdef uint32_t mwc
-        self.mwc_z = 36969u * (self.mwc_z & 0xFFFF) + (self.mwc_z >> 16)
-        self.mwc_w = 18000u * (self.mwc_w & 0xFFFF) + (self.mwc_w >> 16)
-        mwc = (self.mwc_z << 16) + self.mwc_w
+        self.mwc_z = 36969u * (self.mwc_z & 0xFFFFu) + (self.mwc_z >> 16u)
+        self.mwc_w = 18000u * (self.mwc_w & 0xFFFFu) + (self.mwc_w >> 16u)
+        mwc = (self.mwc_z << 16u) + self.mwc_w
         return mwc
 
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = (self.mwc_z << 16) + self.mwc_w
+            mwc = (self.mwc_z << 16u) + self.mwc_w
             return mwc
 
     def __iter__(self):
@@ -238,14 +238,14 @@ cdef class RandomMWC64Iterator(object):
 
     def __next__(self):
         cdef uint32_t mwc
-        self.mwc_z = 698769069u * (self.mwc_z & 0xFFFFFFFF) + (self.mwc_z >> 32)
-        mwc = self.mwc_z & 0xFFFFFFFF
+        self.mwc_z = 698769069u * (self.mwc_z & 0xFFFFFFFFu) + (self.mwc_z >> 32u)
+        mwc = self.mwc_z & 0xFFFFFFFFu
         return mwc
 
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = self.mwc_z & 0xFFFFFFFF
+            mwc = self.mwc_z & 0xFFFFFFFFu
             return mwc
 
     def __iter__(self):
@@ -295,17 +295,17 @@ cdef class RandomKISSIterator(object):
         cdef uint32_t mwc
         cdef uint32_t shr3_j
 
-        self.mwc_z = 36969u * (self.mwc_z & 0xFFFF) + (self.mwc_z >> 16)
-        self.mwc_w = 18000u * (self.mwc_w & 0xFFFF) + (self.mwc_w >> 16)
-        mwc = (self.mwc_z << 16) + self.mwc_w
+        self.mwc_z = 36969u * (self.mwc_z & 0xFFFFu) + (self.mwc_z >> 16u)
+        self.mwc_w = 18000u * (self.mwc_w & 0xFFFFu) + (self.mwc_w >> 16u)
+        mwc = (self.mwc_z << 16u) + self.mwc_w
 
-        self.cong = 69069 * self.cong + 1234567
+        self.cong = 69069u * self.cong + 1234567u
 
         # Update SHR3 RNG
         shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 17
-        shr3_j ^= shr3_j >> 13
-        shr3_j ^= shr3_j << 5
+        shr3_j ^= shr3_j << 17u
+        shr3_j ^= shr3_j >> 13u
+        shr3_j ^= shr3_j << 5u
         self.shr3_j = shr3_j
 
         return (mwc ^ self.cong) + shr3_j
@@ -313,7 +313,7 @@ cdef class RandomKISSIterator(object):
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = (self.mwc_z << 16) + self.mwc_w
+            mwc = (self.mwc_z << 16u) + self.mwc_w
             return mwc
 
     def getstate(self):
@@ -369,16 +369,16 @@ cdef class RandomKISS2Iterator(object):
         cdef uint32_t mwc
         cdef uint32_t shr3_j
 
-        self.mwc_z = 698769069u * (self.mwc_z & 0xFFFFFFFF) + (self.mwc_z >> 32)
-        mwc = self.mwc_z & 0xFFFFFFFF
+        self.mwc_z = 698769069u * (self.mwc_z & 0xFFFFFFFFu) + (self.mwc_z >> 32u)
+        mwc = self.mwc_z & 0xFFFFFFFFu
 
-        self.cong = 69069 * self.cong + 12345
+        self.cong = 69069u * self.cong + 12345u
 
         # Update SHR3 RNG
         shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 13
-        shr3_j ^= shr3_j >> 17
-        shr3_j ^= shr3_j << 5
+        shr3_j ^= shr3_j << 13u
+        shr3_j ^= shr3_j >> 17u
+        shr3_j ^= shr3_j << 5u
         self.shr3_j = shr3_j
 
         return mwc + self.cong + shr3_j
@@ -386,7 +386,7 @@ cdef class RandomKISS2Iterator(object):
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = self.mwc_z & 0xFFFFFFFF
+            mwc = self.mwc_z & 0xFFFFFFFFu
             return mwc
 
     def getstate(self):
@@ -400,10 +400,10 @@ cdef class RandomKISS2Iterator(object):
 
 
 def _fib_adjust_seed(seed):
-    if not seed % 2:
-        seed += 1
-    if seed % 8 == 1:
-        seed += 2
+    if not seed % 2u:
+        seed += 1u
+    if seed % 8u == 1u:
+        seed += 2u
     return seed
 
 cdef class _RandomFibIterator(object):
@@ -513,9 +513,9 @@ cdef class RandomLFIB4Iterator(object):
         self.c += 1
 
         new_value = (self.tt[self.c] +
-                     self.tt[(self.c + 58) % 256] +
-                     self.tt[(self.c + 119) % 256] +
-                     self.tt[(self.c + 178) % 256])
+                     self.tt[(self.c + 58u) % 256u] +
+                     self.tt[(self.c + 119u) % 256u] +
+                     self.tt[(self.c + 178u) % 256u])
 
         self.tt[self.c] = new_value
 
@@ -525,27 +525,27 @@ cdef class RandomLFIB4Iterator(object):
         return self
 
     def getstate(self):
-#        return tuple( self.tt[(i + self.c) % 256] for i in range(256) )
-        return tuple([ self.tt[(i + self.c) % 256] for i in range(256) ])
+#        return tuple( self.tt[(i + self.c) % 256u] for i in range(256u) )
+        return tuple([ self.tt[(i + self.c) % 256u] for i in range(256u) ])
 
     def setstate(self, state):
         cdef int i
         if len(state) != 256:
             raise Exception("state length must be 256")
-#        self.tt = list(int(val) & 0xFFFFFFFF for val in state)
-#        self.tt = [ int(val) & 0xFFFFFFFF for val in state ]
-        for i in range(256):
+#        self.tt = list(int(val) & 0xFFFFFFFFu for val in state)
+#        self.tt = [ int(val) & 0xFFFFFFFFu for val in state ]
+        for i in range(256u):
             self.tt[i] = state[i]
         self.c = 0
 
     property t:
         def __get__(self):
             cdef int i
-            return tuple([ self.tt[i] for i in range(256) ])
+            return tuple([ self.tt[i] for i in range(256u) ])
 
         def __set__(self, value):
             cdef int i
-            for i in range(256):
+            for i in range(256u):
                 self.tt[i] = value[i]
 
 
@@ -597,13 +597,13 @@ cdef class RandomSWBIterator(RandomLFIB4Iterator):
 
         self.c += 1
 
-        x = self.tt[(self.c + 34) % 256]
-        y = (self.tt[(self.c + 19) % 256] + self.borrow)
+        x = self.tt[(self.c + 34u) % 256u]
+        y = (self.tt[(self.c + 19u) % 256u] + self.borrow)
         new_value = x - y
 
         self.tt[self.c] = new_value
 
-        self.borrow = 1 if (x < y) else 0
+        self.borrow = 1u if (x < y) else 0
 
         return new_value
 
@@ -614,6 +614,6 @@ cdef class RandomSWBIterator(RandomLFIB4Iterator):
     def setstate(self, state):
         (t_tuple, borrow) = state
         RandomLFIB4Iterator.setstate(self, t_tuple)
-        self.borrow = 1 if borrow else 0
+        self.borrow = 1u if borrow else 0
 
 
