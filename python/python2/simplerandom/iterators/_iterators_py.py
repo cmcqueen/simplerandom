@@ -179,9 +179,9 @@ class RandomMWCIterator(object):
     '''
 
     def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None:
+        if seed_z==None or seed_z==0:
             seed_z = 12344
-        if seed_w==None:
+        if seed_w==None or seed_w==0:
             seed_w = 65437
         self.mwc_z = int(seed_z) & 0xFFFFFFFF
         self.mwc_w = int(seed_w) & 0xFFFFFFFF
@@ -218,9 +218,9 @@ class RandomMWC64Iterator(object):
     '''
 
     def __init__(self, seed_c = None, seed_z = None):
-        if seed_c==None:
+        if seed_c==None or seed_c==0:
             seed_c = 7654321
-        if seed_z==None:
+        if seed_z==None or seed_z==0:
             seed_z = 521288629
         self.mwc_c = int(seed_c) & 0xFFFFFFFF
         self.mwc_z = int(seed_z) & 0xFFFFFFFF

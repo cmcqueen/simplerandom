@@ -184,9 +184,9 @@ cdef class RandomMWCIterator(object):
     cdef public uint32_t mwc_w
 
     def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None:
+        if seed_z==None or seed_z==0:
             seed_z = 12344
-        if seed_w==None:
+        if seed_w==None or seed_w==0:
             seed_w = 65437
         self.mwc_z = int(seed_z)
         self.mwc_w = int(seed_w)
@@ -230,9 +230,9 @@ cdef class RandomMWC64Iterator(object):
     cdef public uint32_t mwc_z
 
     def __init__(self, seed_c = None, seed_z = None):
-        if seed_c==None:
+        if seed_c==None or seed_c==0:
             seed_c = 7654321
-        if seed_z==None:
+        if seed_z==None or seed_z==0:
             seed_z = 521288629
         self.mwc_c = int(seed_c)
         self.mwc_z = int(seed_z)
@@ -278,9 +278,9 @@ cdef class RandomKISSIterator(object):
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_mwc_z==None:
+        if seed_mwc_z==None or seed_mwc_z==0:
             seed_mwc_z = 12344
-        if seed_mwc_w==None:
+        if seed_mwc_w==None or seed_mwc_w==0:
             seed_mwc_w = 65437
         self.mwc_z = int(seed_mwc_z)
         self.mwc_w = int(seed_mwc_w)
@@ -356,9 +356,9 @@ cdef class RandomKISS2Iterator(object):
 
     def __init__(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_mwc_c==None:
+        if seed_mwc_c==None or seed_mwc_c==0:
             seed_mwc_c = 7654321
-        if seed_mwc_z==None:
+        if seed_mwc_z==None or seed_mwc_z==0:
             seed_mwc_z = 521288629
         self.mwc_c = int(seed_mwc_c)
         self.mwc_z = int(seed_mwc_z)
