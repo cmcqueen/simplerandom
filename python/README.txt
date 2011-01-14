@@ -162,14 +162,14 @@ extension module.
 
 The ``simplerandom`` source distribution package includes a ``.c`` file that
 was created with Cython, so it is not necessary to have Cython installed to
-install ``simplerandom``. The Cython ``.pyx`` file is also included, if you
-want to modify the Cython source code, in which case you do need to have
-Cython installed.
+install ``simplerandom``.
 
-If Cython is installed, the ``setup.py`` file will build the code using
-the Cython ``.pyx`` file (updating the ``.c`` file as necessary). If Cython
-is not installed, the ``setup.py`` file will build the code from the included
-``.c`` file.
+The Cython ``.pyx`` file is also included, if you want to modify the Cython
+source code, in which case you do need to have Cython installed. But by
+default, ``setup.py`` builds the extension from the ``.c`` file (to ensure
+that the build doesn't fail due to particular Cython version issues). If you
+wish to build using Cython from the included ``.pyx`` file, you must set
+``USE_CYTHON=True`` in ``setup.py``.
 
 .. _Cython:
     http://cython.org/
