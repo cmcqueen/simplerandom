@@ -10,6 +10,7 @@ class StandardRandomTemplate(random.Random):
     RECIP_BPF = random.RECIP_BPF
     RNG_BITS = 32
     RNG_RANGE = (1 << RNG_BITS)
+    RNG_SEEDS = 1
 
     def __init__(self, x = None):
         self.rng_iterator = self.RNG_CLASS()
@@ -17,8 +18,9 @@ class StandardRandomTemplate(random.Random):
 
     def seed(self, seed=None):
         seeder = random.Random(seed)
-        c = seeder.randrange(self.RNG_RANGE)
-        self.rng_iterator.seed(c)
+        # Make some random seed values
+        seeds = [ seeder.randrange(self.RNG_RANGE) for _i in range(self.RNG_SEEDS) ]
+        self.rng_iterator.seed(*seeds)
         self.f = 0
         self.bits = 0
 
@@ -65,14 +67,7 @@ class RandomSHR3(StandardRandomTemplate):
 class RandomMWC(StandardRandomTemplate):
     '''"Multiply-with-carry" random number generator'''
     RNG_CLASS = RandomMWCIterator
-
-    def seed(self, seed=None):
-        seeder = random.Random(seed)
-        seed_z = seeder.randrange(self.RNG_RANGE)
-        seed_w = seeder.randrange(self.RNG_RANGE)
-        self.rng_iterator.seed(seed_z, seed_w)
-        self.f = 0
-        self.bits = 0
+    RNG_SEEDS = 2
 
 
 class RandomKISS(StandardRandomTemplate):
@@ -82,16 +77,7 @@ class RandomKISS(StandardRandomTemplate):
     generators. Period is about 2**123.
     '''
     RNG_CLASS = RandomKISSIterator
-
-    def seed(self, seed=None):
-        seeder = random.Random(seed)
-        seed_z = seeder.randrange(self.RNG_RANGE)
-        seed_w = seeder.randrange(self.RNG_RANGE)
-        seed_cong = seeder.randrange(self.RNG_RANGE)
-        seed_shr3 = seeder.randrange(self.RNG_RANGE)
-        self.rng_iterator.seed(seed_z, seed_w, seed_cong, seed_shr3)
-        self.f = 0
-        self.bits = 0
+    RNG_SEEDS = 4
 
 
 class RandomLFIB4(StandardRandomTemplate):
