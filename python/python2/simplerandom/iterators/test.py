@@ -11,8 +11,17 @@ import simplerandom.iterators as sri
 
 
 class Marsaglia1999Tests(unittest.TestCase):
-    def runTest(self):
-        """Tests as in Marsaglia 1999 post"""
+    """Tests as in Marsaglia 1999 post
+    
+    The Marsaglia 1999 post didn't explicitly set seed values for each RNG,
+    but relied on the seed values that were side-effects of previous RNG
+    executions. But we want to run each test as a stand-alone unit. So we
+    have obtained the seed values from the C execution, and set them
+    explicitly in each test here. The exception is LFIB4 followed by SWB--
+    it would be painful to set the SWB seed table explicitly.
+    """
+
+    def test_lfib4_swb(self):
         # Set up KISS RNG to initialise seeds for LFIB4 and SWB RNGs.
         random_kiss = sri.RandomKISSIterator(12345, 65435, 12345, 34221)
         t = [ random_kiss.next() for i in range(256) ]
@@ -30,30 +39,31 @@ class Marsaglia1999Tests(unittest.TestCase):
             k = swb.next()
         self.assertEqual(k, 627749721, "SWB test returned %d instead of expected value" % k)
 
-        # Test KISS. We already set this up at the start.
+    def test_kiss(self):
+        random_kiss = sri.RandomKISSIterator(2247183469, 99545079, 1017008441, 3259917390)
         for i in range(1000000):
             k = random_kiss.next()
         self.assertEqual(k, 1372460312, "KISS test returned %d instead of expected value" % k)
 
-        # Test Cong
-        cong = sri.RandomCongIterator(random_kiss.cong)
+    def test_cong(self):
+        cong = sri.RandomCongIterator(2524969849)
         for i in range(1000000):
             k = cong.next()
         self.assertEqual(k, 1529210297, "Cong test returned %d instead of expected value" % k)
 
-        # Test SHR3
-        shr3 = sri.RandomSHR3Iterator(random_kiss.shr3_j)
+    def test_shr3(self):
+        shr3 = sri.RandomSHR3Iterator(4176875757)
         for i in range(1000000):
             k = shr3.next()
         self.assertEqual(k, 2642725982, "SHR3 test returned %d instead of expected value" % k)
 
-        # Test MWC
-        mwc = sri.RandomMWCIterator(random_kiss.mwc_z, random_kiss.mwc_w)
+    def test_mwc(self):
+        mwc = sri.RandomMWCIterator(2374144069, 1046675282)
         for i in range(1000000):
             k = mwc.next()
         self.assertEqual(k, 904977562, "MWC test returned %d instead of expected value" % k)
 
-        # Test Fib
+    def test_fib(self):
         fib = sri._RandomFibIterator(9983651,95746118)
         for i in range(1000000):
             k = fib.next()
