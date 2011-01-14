@@ -71,7 +71,7 @@ class Marsaglia1999Tests(unittest.TestCase):
 
 
 class KISS2Test(unittest.TestCase):
-    def runTest(self):
+    def test_kiss2(self):
         kiss2 = sri.RandomKISS2Iterator()
         for i in range(1000000):
             k = kiss2.next()
