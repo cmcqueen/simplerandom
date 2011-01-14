@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
+# Set this to True to enable building extensions using Cython.
+# Otherwise, it will build extensions from the C file (that
+# was previously created using Cython).
+USE_CYTHON = True
+
+
 import sys
 
 from distutils.core import setup
 from distutils.extension import Extension
 
-try:
+if USE_CYTHON:
     from Cython.Distutils import build_ext
-except ImportError:
-    use_cython = False
-else:
-    use_cython = True
 
 cmdclass = { }
 ext_modules = [ ]
@@ -23,7 +25,7 @@ elif sys.version_info[0] == 3:
     from distutils.command.build_py import build_py_2to3 as build_py
     cmdclass.update({ 'build_py': build_py })
 
-if use_cython:
+if USE_CYTHON:
     ext_modules += [
         Extension("simplerandom.iterators._iterators_cython", [ "cython/_iterators_cython.pyx" ]),
     ]
