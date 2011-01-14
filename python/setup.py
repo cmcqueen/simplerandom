@@ -5,6 +5,8 @@
 # was previously created using Cython).
 USE_CYTHON = True
 
+VERSION_STRING = '0.8.1'
+
 
 import sys
 
@@ -37,7 +39,7 @@ else:
 
 setup(
     name='simplerandom',
-    version='0.8.1',
+    version=VERSION_STRING,
     description='Simple random number generators',
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
