@@ -39,6 +39,40 @@ void settable (uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, 
     }
 }
 
+uint32_t MWC64(void)
+{
+  static uint32_t z = 521288629;
+  static uint32_t c = 7654321;
+  uint64_t t;
+  uint64_t a = UINT64_C(698769069);
+
+  t = a * z + c;
+  c = t >> 32;
+  z = t;
+
+  return z;
+}
+
+uint32_t SHR3_2(void)
+{
+  static uint32_t y = 362436000;
+
+  y ^= (y<<13);
+  y ^= (y>>17);
+  y ^= (y<<5);
+
+  return y;
+}
+
+uint32_t CONG2(void)
+{
+  static uint32_t x = 123456789;
+
+  x = 69069u * x + 12345u;
+
+  return x;
+}
+
 uint32_t KISS2(void)
 {
   static uint32_t x = 123456789;
@@ -61,7 +95,7 @@ uint32_t KISS2(void)
   return x+y+z;
 }
 
-/* This is a test main program. It should compile and print 7 0's. */
+/* This is a test main program. It should compile and print 11 0's. */
 int main (void)
 {
     unsigned int    i;
@@ -122,6 +156,24 @@ int main (void)
         k = FIB;
     }
     printf ("%"PRIu32"\n", k - 3519793928U);
+
+    for (i = 0; i < 1000000; i++)
+    {
+        k = MWC64();
+    }
+    printf ("%"PRIu32"\n", k - 3377343606U);
+
+    for (i = 0; i < 1000000; i++)
+    {
+        k = SHR3_2();
+    }
+    printf ("%"PRIu32"\n", k - 1517776246U);
+
+    for (i = 0; i < 1000000; i++)
+    {
+        k = CONG2();
+    }
+    printf ("%"PRIu32"\n", k - 410693845U);
 
     for (i = 0; i < 1000000; i++)
     {
