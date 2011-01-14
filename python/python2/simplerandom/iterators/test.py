@@ -107,14 +107,22 @@ class CongTest(unittest.TestCase):
 
 class Cong2Test(CongTest):
     RNG_CLASS = sri.RandomCong2Iterator
+    MILLION_RESULT = 410693845
+
+    def test_million(self):
+        rng = self.RNG_CLASS()
+        for i in range(1000000):
+            k = rng.next()
+        self.assertEqual(k, self.MILLION_RESULT)
 
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.RandomSHR3Iterator
 
 
-class SHR3_2Test(CongTest):
+class SHR3_2Test(Cong2Test):
     RNG_CLASS = sri.RandomSHR3_2Iterator
+    MILLION_RESULT = 1517776246
 
 
 class MWCTest(CongTest):
@@ -122,9 +130,10 @@ class MWCTest(CongTest):
     RNG_SEEDS = 2
 
 
-class MWC64Test(CongTest):
+class MWC64Test(Cong2Test):
     RNG_CLASS = sri.RandomMWC64Iterator
     RNG_SEEDS = 2
+    MILLION_RESULT = 3377343606
 
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.
@@ -141,15 +150,10 @@ class KISSTest(CongTest):
     RNG_SEEDS = 4
 
 
-class KISS2Test(CongTest):
+class KISS2Test(Cong2Test):
     RNG_CLASS = sri.RandomKISS2Iterator
     RNG_SEEDS = 4
-
-    def test_kiss2_million(self):
-        kiss2 = sri.RandomKISS2Iterator()
-        for i in range(1000000):
-            k = kiss2.next()
-        self.assertEqual(k, 1010846401)
+    MILLION_RESULT = 1010846401
 
 
 class FibTest(CongTest):
