@@ -1,6 +1,24 @@
+/*
+ * simplerandom.c
+ *
+ * Simple Pseudo-random Number Generators
+ */
+
+
+/*****************************************************************************
+ * Includes
+ ****************************************************************************/
 
 #include "simplerandom.h"
 
+
+/*****************************************************************************
+ * Functions
+ ****************************************************************************/
+
+/*********
+ * Cong
+ ********/
 
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
@@ -18,6 +36,10 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
 
     return *p_cong;
 }
+
+/*********
+ * MWC
+ ********/
 
 void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
