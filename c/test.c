@@ -13,6 +13,8 @@ int main (void)
     SimpleRandomKISS_t  kiss;
     SimpleRandomFib_t   fib;
     SimpleRandomMWC64_t mwc64;
+    SimpleRandomCong2_t cong2;
+    SimpleRandomSHR3_2_t shr3_2;
     uint32_t            i;
     uint32_t            k;
 
@@ -58,6 +60,20 @@ int main (void)
         k = simplerandom_mwc64_next(&mwc64);
     }
     printf("%"PRIu32"\n", k - UINT32_C(3377343606));
+
+    simplerandom_cong2_seed(&cong2, UINT32_C(123456789));
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_cong2_next(&cong2);
+    }
+    printf("%"PRIu32"\n", k - UINT32_C(410693845));
+
+    simplerandom_shr3_2_seed(&shr3_2, UINT32_C(362436000));
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_shr3_2_next(&shr3_2);
+    }
+    printf("%"PRIu32"\n", k - UINT32_C(1517776246));
 
 }
 

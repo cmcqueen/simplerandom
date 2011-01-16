@@ -55,11 +55,16 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
 
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
 {
-    *p_shr3 ^= (*p_shr3 << 17);
-    *p_shr3 ^= (*p_shr3 >> 13);
-    *p_shr3 ^= (*p_shr3 << 5);
+    uint32_t    shr3;
 
-    return *p_shr3;
+
+    shr3 = *p_shr3;
+    shr3 ^= (shr3 << 17);
+    shr3 ^= (shr3 >> 13);
+    shr3 ^= (shr3 << 5);
+    *p_shr3 = shr3;
+
+    return shr3;
 }
 
 /*********
@@ -209,5 +214,49 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
     *p_mwc64 = mwc64;
 
     return (uint32_t)mwc64;
+}
+
+/*********
+ * Cong2
+ ********/
+
+void simplerandom_cong2_seed(SimpleRandomCong2_t * p_cong2, uint32_t seed)
+{
+    *p_cong2 = seed;
+}
+
+uint32_t simplerandom_cong2_next(SimpleRandomCong2_t * p_cong2)
+{
+    *p_cong2 = UINT32_C(69069) * *p_cong2 + 12345u;
+
+    return *p_cong2;
+}
+
+/*********
+ * SHR3_2
+ ********/
+
+void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3_2, uint32_t seed)
+{
+    if (seed == 0)
+    {
+        seed = UINT32_C(362436000);
+    }
+
+    *p_shr3_2 = seed;
+}
+
+uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2)
+{
+    uint32_t    shr3_2;
+
+
+    shr3_2 = *p_shr3_2;
+    shr3_2 ^= (shr3_2 << 13);
+    shr3_2 ^= (shr3_2 >> 17);
+    shr3_2 ^= (shr3_2 << 5);
+    *p_shr3_2 = shr3_2;
+
+    return shr3_2;
 }
 

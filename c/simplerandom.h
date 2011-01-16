@@ -85,6 +85,14 @@ uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib);
 void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64);
 
+/* Cong2 */
+void simplerandom_cong2_seed(SimpleRandomCong_t * p_cong2, uint32_t seed);
+uint32_t simplerandom_cong2_next(SimpleRandomCong_t * p_cong2);
+
+/* SHR3_2 */
+void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3_2, uint32_t seed);
+uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2);
+
 
 #endif /* !defined(_SIMPLERANDOM_H) */
 
