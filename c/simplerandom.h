@@ -45,8 +45,8 @@ typedef struct
 
 typedef struct
 {
-    uint32_t mwc_upper;
-    uint32_t mwc_lower;
+    uint32_t mwc64_upper;
+    uint32_t mwc64_lower;
 } SimpleRandomMWC64_t;
 
 typedef uint32_t SimpleRandomSHR3_2_t;
@@ -55,7 +55,8 @@ typedef uint32_t SimpleRandomCong2_t;
 
 typedef struct
 {
-    uint64_t mwc64;
+    uint32_t mwc64_upper;
+    uint32_t mwc64_lower;
     uint32_t cong2;
     uint32_t shr3_2;
 } SimpleRandomKISS2_t;
@@ -96,6 +97,10 @@ uint32_t simplerandom_cong2_next(SimpleRandomCong_t * p_cong2);
 /* SHR3_2 */
 void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3_2, uint32_t seed);
 uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2);
+
+/* KISS2 */
+void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc64_upper, uint32_t seed_mwc64_lower, uint32_t seed_cong2, uint32_t seed_shr3_2);
+uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 
 
 #endif /* !defined(_SIMPLERANDOM_H) */

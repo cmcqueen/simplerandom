@@ -201,8 +201,8 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper,
         seed_lower = UINT32_C(521288629);
     }
 
-    p_mwc64->mwc_upper = seed_upper;
-    p_mwc64->mwc_lower = seed_lower;
+    p_mwc64->mwc64_upper = seed_upper;
+    p_mwc64->mwc64_lower = seed_lower;
 }
 
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
@@ -210,9 +210,9 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
     uint64_t    mwc64;
 
 
-    mwc64 = UINT64_C(698769069) * p_mwc64->mwc_lower + p_mwc64->mwc_upper;
-    p_mwc64->mwc_upper = (mwc64 >> 32u);
-    p_mwc64->mwc_lower = (uint32_t)mwc64;
+    mwc64 = UINT64_C(698769069) * p_mwc64->mwc64_lower + p_mwc64->mwc64_upper;
+    p_mwc64->mwc64_upper = (mwc64 >> 32u);
+    p_mwc64->mwc64_lower = (uint32_t)mwc64;
 
     return (uint32_t)mwc64;
 }
@@ -259,5 +259,48 @@ uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2)
     *p_shr3_2 = shr3_2;
 
     return shr3_2;
+}
+
+/*********
+ * KISS2
+ ********/
+
+void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc64_upper, uint32_t seed_mwc64_lower, uint32_t seed_cong2, uint32_t seed_shr3_2)
+{
+    if ((seed_mwc64_upper == 0) && (seed_mwc64_lower == 0))
+    {
+        seed_mwc64_upper = UINT32_C(7654321);
+        seed_mwc64_lower = UINT32_C(521288629);
+    }
+    if (seed_shr3_2 == 0)
+    {
+        seed_shr3_2 = UINT32_C(362436000);
+    }
+
+    p_kiss2->mwc64_upper = seed_mwc64_upper;
+    p_kiss2->mwc64_lower = seed_mwc64_lower;
+    p_kiss2->cong2 = seed_cong2;
+    p_kiss2->shr3_2 = seed_shr3_2;
+}
+
+uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
+{
+    uint64_t    mwc64;
+    uint32_t    shr3_2;
+
+
+    mwc64 = UINT64_C(698769069) * p_kiss2->mwc64_lower + p_kiss2->mwc64_upper;
+    p_kiss2->mwc64_upper = (mwc64 >> 32u);
+    p_kiss2->mwc64_lower = (uint32_t)mwc64;
+
+    p_kiss2->cong2 = UINT32_C(69069) * p_kiss2->cong2 + 12345u;
+
+    shr3_2 = p_kiss2->shr3_2;
+    shr3_2 ^= (shr3_2 << 13);
+    shr3_2 ^= (shr3_2 >> 17);
+    shr3_2 ^= (shr3_2 << 5);
+    p_kiss2->shr3_2 = shr3_2;
+
+    return ((uint32_t)mwc64 + p_kiss2->cong2 + shr3_2);
 }
 
