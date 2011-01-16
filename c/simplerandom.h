@@ -21,6 +21,8 @@
 
 typedef uint32_t SimpleRandomCong_t;
 
+typedef uint32_t SimpleRandomSHR3_t;
+
 typedef struct
 {
     uint32_t mwc_upper;
@@ -33,12 +35,16 @@ typedef struct
  ****************************************************************************/
 
 /* Cong */
-void simplerandom_cong_seed(SimpleRandomCong_t * p_cong_t, uint32_t seed);
-uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong_t);
+void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
+uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
+
+/* SHR3 */
+void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed);
+uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
 
 /* MWC */
-void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc_t, uint32_t seed_upper, uint32_t seed_lower);
-uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc_t);
+void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
+uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc);
 
 
 #endif /* !defined(_SIMPLERANDOM_H) */

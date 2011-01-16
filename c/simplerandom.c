@@ -38,6 +38,29 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
 }
 
 /*********
+ * SHR3
+ ********/
+
+void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
+{
+    if (seed == 0)
+    {
+        seed = UINT32_C(123456789);
+    }
+
+    *p_shr3 = seed;
+}
+
+uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
+{
+    *p_shr3 ^= (*p_shr3 << 17);
+    *p_shr3 ^= (*p_shr3 >> 13);
+    *p_shr3 ^= (*p_shr3 << 5);
+
+    return *p_shr3;
+}
+
+/*********
  * MWC
  ********/
 
