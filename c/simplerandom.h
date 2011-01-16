@@ -43,7 +43,11 @@ typedef struct
     uint32_t fib_b;
 } SimpleRandomFib_t;
 
-typedef uint64_t SimpleRandomMWC64_t;
+typedef struct
+{
+    uint32_t mwc_upper;
+    uint32_t mwc_lower;
+} SimpleRandomMWC64_t;
 
 typedef uint32_t SimpleRandomSHR3_2_t;
 
