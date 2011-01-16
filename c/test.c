@@ -7,16 +7,16 @@
 
 int main (void)
 {
-    SimpleRandomCong_t  cong;
-    SimpleRandomSHR3_t  shr3;
-    SimpleRandomMWC_t   mwc;
-    SimpleRandomKISS_t  kiss;
-    SimpleRandomFib_t   fib;
-    SimpleRandomMWC64_t mwc64;
-    SimpleRandomCong2_t cong2;
-    SimpleRandomSHR3_2_t shr3_2;
-    uint32_t            i;
-    uint32_t            k;
+    SimpleRandomCong_t      cong;
+    SimpleRandomSHR3_t      shr3;
+    SimpleRandomMWC_t       mwc;
+    SimpleRandomKISS_t      kiss;
+    SimpleRandomFib_t       fib;
+    SimpleRandomMWC64_t     mwc64;
+    SimpleRandomCong2_t     cong2;
+    SimpleRandomSHR3_2_t    shr3_2;
+    uint32_t                i;
+    uint32_t                k;
 
 
     simplerandom_cong_seed(&cong, UINT32_C(2524969849));
