@@ -22,11 +22,6 @@
 
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
-    if (seed == 0)
-    {
-        seed = UINT32_C(380116160);
-    }
-
     *p_cong = seed;
 }
 
@@ -85,5 +80,51 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc)
     p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
     
     return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
+}
+
+/*********
+ * KISS
+ ********/
+
+void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
+{
+    if (seed_mwc_upper == 0)
+    {
+        seed_mwc_upper = UINT32_C(362436069);
+    }
+    if (seed_mwc_lower == 0)
+    {
+        seed_mwc_lower = UINT32_C(521288629);
+    }
+    if (seed_shr3 == 0)
+    {
+        seed_shr3 = UINT32_C(123456789);
+    }
+
+    p_kiss->mwc_upper = seed_mwc_upper;
+    p_kiss->mwc_lower = seed_mwc_lower;
+    p_kiss->cong = seed_cong;
+    p_kiss->shr3 = seed_shr3;
+}
+
+uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
+{
+    uint32_t    shr3;
+    uint32_t    mwc;
+
+
+    p_kiss->mwc_upper = 36969u * (p_kiss->mwc_upper & 0xFFFFu) + (p_kiss->mwc_upper >> 16u);
+    p_kiss->mwc_lower = 18000u * (p_kiss->mwc_lower & 0xFFFFu) + (p_kiss->mwc_lower >> 16u);
+    mwc = (p_kiss->mwc_upper << 16u) + p_kiss->mwc_lower;
+
+    p_kiss->cong = UINT32_C(69069) * p_kiss->cong + UINT32_C(1234567);
+
+    shr3 = p_kiss->shr3;
+    shr3 ^= (shr3 << 17);
+    shr3 ^= (shr3 >> 13);
+    shr3 ^= (shr3 << 5);
+    p_kiss->shr3 = shr3;
+
+    return ((mwc ^ p_kiss->cong) + shr3);
 }
 
