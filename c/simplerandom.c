@@ -184,3 +184,30 @@ uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib)
     return old_b;
 }
 
+/*********
+ * MWC64
+ ********/
+
+void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower)
+{
+    if ((seed_upper == 0) && (seed_lower == 0))
+    {
+        seed_upper = UINT32_C(7654321);
+        seed_lower = UINT32_C(521288629);
+    }
+
+    *p_mwc64 = ((uint64_t)seed_upper) << 32u | seed_lower;
+}
+
+uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
+{
+    uint64_t    mwc64;
+
+
+    mwc64 = *p_mwc64;
+    mwc64 = UINT64_C(698769069) * (uint32_t)mwc64 + (mwc64 >> 32u);
+    *p_mwc64 = mwc64;
+
+    return (uint32_t)mwc64;
+}
+
