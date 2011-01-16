@@ -190,34 +190,6 @@ uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib)
 }
 
 /*********
- * MWC64
- ********/
-
-void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower)
-{
-    if ((seed_upper == 0) && (seed_lower == 0))
-    {
-        seed_upper = UINT32_C(7654321);
-        seed_lower = UINT32_C(521288629);
-    }
-
-    p_mwc64->mwc64_upper = seed_upper;
-    p_mwc64->mwc64_lower = seed_lower;
-}
-
-uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
-{
-    uint64_t    mwc64;
-
-
-    mwc64 = UINT64_C(698769069) * p_mwc64->mwc64_lower + p_mwc64->mwc64_upper;
-    p_mwc64->mwc64_upper = (mwc64 >> 32u);
-    p_mwc64->mwc64_lower = (uint32_t)mwc64;
-
-    return (uint32_t)mwc64;
-}
-
-/*********
  * Cong2
  ********/
 
@@ -259,6 +231,36 @@ uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2)
     *p_shr3_2 = shr3_2;
 
     return shr3_2;
+}
+
+#ifdef UINT64_C
+
+/*********
+ * MWC64
+ ********/
+
+void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower)
+{
+    if ((seed_upper == 0) && (seed_lower == 0))
+    {
+        seed_upper = UINT32_C(7654321);
+        seed_lower = UINT32_C(521288629);
+    }
+
+    p_mwc64->mwc64_upper = seed_upper;
+    p_mwc64->mwc64_lower = seed_lower;
+}
+
+uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
+{
+    uint64_t    mwc64;
+
+
+    mwc64 = UINT64_C(698769069) * p_mwc64->mwc64_lower + p_mwc64->mwc64_upper;
+    p_mwc64->mwc64_upper = (mwc64 >> 32u);
+    p_mwc64->mwc64_lower = (uint32_t)mwc64;
+
+    return (uint32_t)mwc64;
 }
 
 /*********
@@ -303,4 +305,6 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
 
     return ((uint32_t)mwc64 + p_kiss2->cong2 + shr3_2);
 }
+
+#endif /* defined(UINT64_C) */
 
