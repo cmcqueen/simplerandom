@@ -37,6 +37,12 @@ typedef struct
     uint32_t mwc_lower;
 } SimpleRandomKISS_t;
 
+typedef struct
+{
+    uint32_t fib_a;
+    uint32_t fib_b;
+} SimpleRandomFib_t;
+
 
 /*****************************************************************************
  * Function prototypes
@@ -57,6 +63,10 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc);
 /* KISS */
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
+
+/* Fib */
+void simplerandom_fib_seed(SimpleRandomFib_t * p_fib, uint32_t seed_a, uint32_t seed_b);
+uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib);
 
 
 #endif /* !defined(_SIMPLERANDOM_H) */

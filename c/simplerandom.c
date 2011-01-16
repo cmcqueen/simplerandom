@@ -13,6 +13,13 @@
 
 
 /*****************************************************************************
+ * Local function prototypes
+ ****************************************************************************/
+
+static uint32_t fib_adjust_seed(uint32_t seed);
+
+
+/*****************************************************************************
  * Functions
  ****************************************************************************/
 
@@ -126,5 +133,54 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     p_kiss->shr3 = shr3;
 
     return ((mwc ^ p_kiss->cong) + shr3);
+}
+
+/*********
+ * Fib
+ ********/
+
+static uint32_t fib_adjust_seed(uint32_t seed)
+{
+    if ((seed % 2) == 0)
+    {
+        seed++;
+    }
+    if ((seed % 8) == 1)
+    {
+        seed += 2;
+    }
+
+    return seed;
+}
+
+void simplerandom_fib_seed(SimpleRandomFib_t * p_fib, uint32_t seed_a, uint32_t seed_b)
+{
+    if (seed_a == 0)
+    {
+        seed_a = UINT32_C(1468761293);
+    }
+    if (seed_b == 0)
+    {
+        seed_b = UINT32_C(3460192787);
+    }
+    if (fib_adjust_seed(seed_a) != seed_a)
+    {
+        seed_b = fib_adjust_seed(seed_b);
+    }
+
+    p_fib->fib_a = seed_a;
+    p_fib->fib_b = seed_b;
+}
+
+uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib)
+{
+    uint32_t    old_b;
+    
+
+    old_b = p_fib->fib_b;
+    p_fib->fib_b = p_fib->fib_a + old_b;
+    p_fib->fib_a = old_b;
+
+    return old_b;
 }
 
