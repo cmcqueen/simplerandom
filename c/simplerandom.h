@@ -81,6 +81,7 @@ typedef struct
 {
     uint32_t    t[256u];
     uint8_t     c;
+    uint8_t     borrow;
 } SimpleRandomSWB_t;
 
 typedef uint32_t SimpleRandomSHR3_2_t;

@@ -1,17 +1,20 @@
 
 #include <inttypes.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "simplerandom.h"
 
 
-int main (void)
+int main(void)
 {
     SimpleRandomCong_t      cong;
     SimpleRandomSHR3_t      shr3;
     SimpleRandomMWC_t       mwc;
     SimpleRandomKISS_t      kiss;
     SimpleRandomFib_t       fib;
+    SimpleRandomLFIB4_t     lfib4;
+    SimpleRandomSWB_t       swb;
     SimpleRandomMWC64_t     mwc64;
     SimpleRandomCong2_t     cong2;
     SimpleRandomSHR3_2_t    shr3_2;
@@ -59,6 +62,33 @@ int main (void)
         k = simplerandom_fib_next(&fib);
     }
     printf("%"PRIu32"\n", k - UINT32_C(3519793928));
+
+    /* LFIB4 */
+    simplerandom_kiss_seed(&kiss, UINT32_C(12345), UINT32_C(65435), UINT32_C(12345), UINT32_C(34221));
+    for (i = 0; i < 256; i++)
+    {
+        lfib4.t[i] = simplerandom_kiss_next(&kiss);
+    }
+    simplerandom_lfib4_seed(&lfib4);
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_lfib4_next(&lfib4);
+    }
+    printf("%"PRIu32"\n", k - UINT32_C(1064612766));
+
+    /* SWB */
+    /* The 1999 Marsaglia test code started SWB using
+     * LFIB4's state. So we will duplicate that even
+     * though it's a bit ugly and not recommended.
+     */
+    memcpy(swb.t, lfib4.t, sizeof(swb.t));
+    simplerandom_swb_seed(&swb);
+    swb.c = lfib4.c;
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_swb_next(&swb);
+    }
+    printf("%"PRIu32"\n", k - UINT32_C(627749721));
 
     /* Cong2 */
     simplerandom_cong2_seed(&cong2, UINT32_C(123456789));

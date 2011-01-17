@@ -141,6 +141,79 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
 }
 
 /*********
+ * LFIB4
+ ********/
+
+/* LFIB4 seed
+ *
+ * It is not practical to pass the 256 seed values to this
+ * function as parameters. Before calling this function,
+ * initialise p_lfib4->t[] with 256 good-quality
+ * [pseudo]random values.
+ */
+void simplerandom_lfib4_seed(SimpleRandomLFIB4_t * p_lfib4)
+{
+    p_lfib4->c = 0;
+}
+
+uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4)
+{
+    uint32_t    new_val;
+    uint8_t     c;
+
+    c = ++(p_lfib4->c);
+    new_val =  (p_lfib4->t[c] +
+                p_lfib4->t[(uint8_t)(c + 58)] +
+                p_lfib4->t[(uint8_t)(c + 119)] +
+                p_lfib4->t[(uint8_t)(c + 178)]);
+    p_lfib4->t[c] = new_val;
+
+    return new_val;
+}
+
+/*********
+ * SWB
+ ********/
+
+/* SWB seed
+ *
+ * It is not practical to pass the 256 seed values to this
+ * function as parameters. Before calling this function,
+ * initialise p_lfib4->t[] with 256 good-quality
+ * [pseudo]random values.
+ */
+void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb)
+{
+    p_swb->c = 0;
+    p_swb->borrow = 0;
+}
+
+uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb)
+{
+    uint32_t    x;
+    uint32_t    y;
+    uint32_t    new_val;
+    uint8_t     c;
+
+    c = ++(p_swb->c);
+
+    x = p_swb->t[(uint8_t)(c + 34)];
+    y = p_swb->t[(uint8_t)(c + 19)] + p_swb->borrow;
+    new_val = x - y;
+    p_swb->t[c] = new_val;
+    if (x < y)
+    {
+        p_swb->borrow = 1;
+    }
+    else
+    {
+        p_swb->borrow = 0;
+    }
+
+    return new_val;
+}
+
+/*********
  * Fib
  ********/
 
