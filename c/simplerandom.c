@@ -156,6 +156,19 @@ void simplerandom_lfib4_seed(SimpleRandomLFIB4_t * p_lfib4)
     p_lfib4->c = 0;
 }
 
+void simplerandom_lfib4_seed_from_kiss(SimpleRandomLFIB4_t * p_lfib4, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
+{
+    SimpleRandomKISS_t  kiss;
+    unsigned int        i;
+
+    simplerandom_kiss_seed(&kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
+    for (i = 0; i < 256; i++)
+    {
+        p_lfib4->t[i] = simplerandom_kiss_next(&kiss);
+    }
+    p_lfib4->c = 0;
+}
+
 uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4)
 {
     uint32_t    new_val;
@@ -184,6 +197,20 @@ uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4)
  */
 void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb)
 {
+    p_swb->c = 0;
+    p_swb->borrow = 0;
+}
+
+void simplerandom_swb_seed_from_kiss(SimpleRandomSWB_t * p_swb, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
+{
+    SimpleRandomKISS_t  kiss;
+    unsigned int        i;
+
+    simplerandom_kiss_seed(&kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
+    for (i = 0; i < 256; i++)
+    {
+        p_swb->t[i] = simplerandom_kiss_next(&kiss);
+    }
     p_swb->c = 0;
     p_swb->borrow = 0;
 }

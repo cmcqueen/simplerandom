@@ -7,7 +7,7 @@
  * George Marsaglia.
  *
  * The first was in 1999:
- *     Random Numbers for C\: End, at last?
+ *     Random Numbers for C: End, at last?
  *     George Marsaglia
  *     Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
  *     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
@@ -222,6 +222,7 @@ uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib);
  * of about 2^410.
  */
 void simplerandom_lfib4_seed(SimpleRandomLFIB4_t * p_lfib4);
+void simplerandom_lfib4_seed_from_kiss(SimpleRandomLFIB4_t * p_lfib4, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4);
 
 /* SWB -- "Subtract-With-Borrow" random number generator
@@ -259,6 +260,7 @@ uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4);
  * 32-bit integers results.
  */
 void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb);
+void simplerandom_swb_seed_from_kiss(SimpleRandomSWB_t * p_swb, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb);
 
 /* Cong2 -- Congruential random number generator

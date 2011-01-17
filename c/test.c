@@ -64,12 +64,17 @@ int main(void)
     printf("%"PRIu32"\n", k - UINT32_C(3519793928));
 
     /* LFIB4 */
+    /* Below are 2 different seed methods, which should be equivalent */
+#if 0
     simplerandom_kiss_seed(&kiss, UINT32_C(12345), UINT32_C(65435), UINT32_C(12345), UINT32_C(34221));
     for (i = 0; i < 256; i++)
     {
         lfib4.t[i] = simplerandom_kiss_next(&kiss);
     }
     simplerandom_lfib4_seed(&lfib4);
+#else
+    simplerandom_lfib4_seed_from_kiss(&lfib4, UINT32_C(12345), UINT32_C(65435), UINT32_C(12345), UINT32_C(34221));
+#endif
     for (i = 0; i < 1000000; i++)
     {
         k = simplerandom_lfib4_next(&lfib4);
@@ -77,9 +82,10 @@ int main(void)
     printf("%"PRIu32"\n", k - UINT32_C(1064612766));
 
     /* SWB */
-    /* The 1999 Marsaglia test code started SWB using
-     * LFIB4's state. So we will duplicate that even
-     * though it's a bit ugly and not recommended.
+    /* The 1999 Marsaglia test code ran SWB using LFIB4's
+     * state after the LFIB4 test. So we will duplicate
+     * that even though it's a bit ugly and not
+     * recommended.
      */
     memcpy(swb.t, lfib4.t, sizeof(swb.t));
     simplerandom_swb_seed(&swb);
