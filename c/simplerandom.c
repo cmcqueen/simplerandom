@@ -71,13 +71,20 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
  * MWC
  ********/
 
+/* There are some bad seed values. See:
+ *     http://eprint.iacr.org/2011/007.pdf
+ *
+ * Of course 0 is bad for either part.
+ * For upper part, seed value 0x9068FFFF is bad.
+ * For lower part, seed value 0x464FFFFF is bad.
+ */
 void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
-    if (seed_upper == 0)
+    if ((seed_upper == 0) || (seed_upper == UINT32_C(0x9068FFFF)))
     {
         seed_upper = UINT32_C(362436069);
     }
-    if (seed_lower == 0)
+    if ((seed_lower == 0) || (seed_upper == UINT32_C(0x464FFFFF)))
     {
         seed_lower = UINT32_C(521288629);
     }
@@ -100,11 +107,11 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc)
 
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
-    if (seed_mwc_upper == 0)
+    if ((seed_mwc_upper == 0) || (seed_mwc_upper == UINT32_C(0x9068FFFF)))
     {
         seed_mwc_upper = UINT32_C(362436069);
     }
-    if (seed_mwc_lower == 0)
+    if ((seed_mwc_lower == 0) || (seed_mwc_lower == UINT32_C(0x464FFFFF)))
     {
         seed_mwc_lower = UINT32_C(521288629);
     }

@@ -178,15 +178,20 @@ cdef class RandomMWCIterator(object):
     It has a period about 2**60 and seems to pass all
     tests of randomness. A favorite stand-alone generator,
     and faster than KISS, which contains it.
+
+    There are some bad seed values. See:
+        http://eprint.iacr.org/2011/007.pdf
     '''
 
     cdef public uint32_t mwc_z
     cdef public uint32_t mwc_w
 
     def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None or seed_z==0:
+        if seed_z==None or seed_z==0 or seed_z==0x9068FFFF:
+            # Default seed, and avoid bad seeds
             seed_z = 12344
-        if seed_w==None or seed_w==0:
+        if seed_w==None or seed_w==0 or seed_w==0x464FFFFF:
+            # Default seed, and avoid bad seeds
             seed_w = 65437
         self.mwc_z = int(seed_z)
         self.mwc_w = int(seed_w)
@@ -269,6 +274,9 @@ cdef class RandomKISSIterator(object):
     It combines the RandomMWC, RandomCong, RandomSHR3
     generators. Period is about 2**123. It is one of
     Marsaglia's favourite generators.
+
+    There are some bad seed values. See:
+        http://eprint.iacr.org/2011/007.pdf
     '''
 
     cdef public uint32_t cong
@@ -278,9 +286,11 @@ cdef class RandomKISSIterator(object):
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_mwc_z==None or seed_mwc_z==0:
+        if seed_mwc_z==None or seed_mwc_z==0 or seed_mwc_z==0x9068FFFF:
+            # Default seed, and avoid bad seeds
             seed_mwc_z = 12344
-        if seed_mwc_w==None or seed_mwc_w==0:
+        if seed_mwc_w==None or seed_mwc_w==0 or seed_mwc_w==0x464FFFFF:
+            # Default seed, and avoid bad seeds
             seed_mwc_w = 65437
         self.mwc_z = int(seed_mwc_z)
         self.mwc_w = int(seed_mwc_w)

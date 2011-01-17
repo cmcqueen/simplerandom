@@ -176,12 +176,17 @@ class RandomMWCIterator(object):
     It has a period about 2**60 and seems to pass all
     tests of randomness. A favorite stand-alone generator,
     and faster than KISS, which contains it.
+
+    There are some bad seed values. See:
+        http://eprint.iacr.org/2011/007.pdf
     '''
 
     def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None or seed_z==0:
+        if seed_z==None or seed_z==0 or seed_z==0x9068ffff:
+            # Default seed, and avoid bad seeds
             seed_z = 12344
-        if seed_w==None or seed_w==0:
+        if seed_w==None or seed_w==0 or seed_w==0x464FFFFF:
+            # Default seed, and avoid bad seeds
             seed_w = 65437
         self.mwc_z = int(seed_z) & 0xFFFFFFFF
         self.mwc_w = int(seed_w) & 0xFFFFFFFF
