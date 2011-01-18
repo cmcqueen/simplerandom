@@ -47,8 +47,9 @@ void FindCycles::find_cycles()
     {
         _find_cycle_with_seed(j);
     }
+    cout << "\n";
 
-#if 1
+#if 0
     for (cycles_iter = _cycles.begin(); cycles_iter != _cycles.end(); cycles_iter++)
     {
         cout << "Cycle min " << (*cycles_iter).first << ", length " << (*cycles_iter).second;
@@ -83,7 +84,7 @@ uint64_t FindCycles::_find_cycle_with_seed(uint32_t start_value)
         {
             return_length = ((uint64_t)length) + 1;
 
-            cout << "Found cycle min " << min_value << ", length " << return_length;
+            cout << "Cycle min " << min_value << ", length " << return_length;
             cout << "\n";
             _cycles[min_value] = return_length;
 
@@ -147,8 +148,18 @@ uint32_t shr3_2(uint32_t val)
     return val;
 }
 
+uint32_t mwc_upper(uint32_t val)
+{
+    return 36969*(val&65535)+(val>>16);
+}
+
+uint32_t mwc_lower(uint32_t val)
+{
+    return 18000*(val&65535)+(val>>16);
+}
+
 int main()
 {
-    FindCycles fc(shr3_2, 1uLL << 32);
+    FindCycles fc(mwc_lower, 1uLL << 32);
     fc.find_cycles();
 }
