@@ -10,7 +10,7 @@ from collections import defaultdict
 class GotCycle(Exception):
     pass
 
-def find_cycles(func, func_range):
+def find_cycles(func, uint64_t func_range):
     cdef uint64_t j
 
     RNG_BITS = 32u
@@ -24,7 +24,7 @@ def find_cycles(func, func_range):
     # key is a func value; dict values are cycles identified by lowest value
     values = set()
 
-    def find_cycle_with_seed(func, start_value):
+    def find_cycle_with_seed(func, start_value, cycles, lengths, values):
         cdef uint32_t i
         cdef uint32_t length
         cdef uint32_t value
@@ -54,7 +54,7 @@ def find_cycles(func, func_range):
 
 #    find_cycles_recurse(klass, num_seeds, [])
     for j in xrange(func_range):
-        find_cycle_with_seed(func, j)
+        find_cycle_with_seed(func, j, cycles, lengths, values)
 
     for min_val in sorted(cycles):
         print "Cycle min %d, length %d" % (min_val, cycles[min_val])
@@ -73,7 +73,12 @@ def shr3(uint32_t val):
     val ^= (val & 0x7FFFFFFu) << 5u
     return val
 
+def shr3_2(uint32_t val):
+    val ^= (val & 0x7FFFFu) << 13u
+    val ^= val >> 17u
+    val ^= (val & 0x7FFFFFFu) << 5u
+    return val
+
 def main():
-    #find_cycles(mwc_upper, 2**16)
-    find_cycles(shr3, 2**31 - 1)
+    find_cycles(shr3_2, 2**32)
 
