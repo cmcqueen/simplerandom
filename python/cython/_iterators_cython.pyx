@@ -187,10 +187,10 @@ cdef class RandomMWCIterator(object):
     cdef public uint32_t mwc_w
 
     def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None or seed_z==0 or seed_z==0x9068FFFF:
+        if seed_z==None or (seed_z % 0x9068FFFF)==0:
             # Default seed, and avoid bad seeds
             seed_z = 12344
-        if seed_w==None or seed_w==0 or seed_w==0x464FFFFF:
+        if seed_w==None or (seed_w % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
             seed_w = 65437
         self.mwc_z = int(seed_z)
@@ -286,10 +286,10 @@ cdef class RandomKISSIterator(object):
 
     def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_mwc_z==None or seed_mwc_z==0 or seed_mwc_z==0x9068FFFF:
+        if seed_mwc_z==None or (seed_mwc_z % 0x9068FFFF)==0:
             # Default seed, and avoid bad seeds
             seed_mwc_z = 12344
-        if seed_mwc_w==None or seed_mwc_w==0 or seed_mwc_w==0x464FFFFF:
+        if seed_mwc_w==None or (seed_mwc_w % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
             seed_mwc_w = 65437
         self.mwc_z = int(seed_mwc_z)

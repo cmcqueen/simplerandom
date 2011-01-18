@@ -182,10 +182,10 @@ class RandomMWCIterator(object):
     '''
 
     def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None or seed_z==0 or seed_z==0x9068ffff:
+        if seed_z==None or (seed_z % 0x9068ffff)==0:
             # Default seed, and avoid bad seeds
             seed_z = 12344
-        if seed_w==None or seed_w==0 or seed_w==0x464FFFFF:
+        if seed_w==None or (seed_w % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
             seed_w = 65437
         self.mwc_z = int(seed_z) & 0xFFFFFFFF
@@ -223,12 +223,25 @@ class RandomMWC64Iterator(object):
     '''
 
     def __init__(self, seed_c = None, seed_z = None):
-        if seed_c==None or seed_c==0:
+        if seed_c==None:
             seed_c = 7654321
-        if seed_z==None or seed_z==0:
+        else:
+            seed_c = int(seed_c) & 0xFFFFFFFF
+
+        if seed_z==None:
             seed_z = 521288629
-        self.mwc_c = int(seed_c) & 0xFFFFFFFF
-        self.mwc_z = int(seed_z) & 0xFFFFFFFF
+        else:
+            seed_z = int(seed_z) & 0xFFFFFFFF
+
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
+        seed64 = seed_c << 32 + seed_z
+        if seed64 % 0x29A65EACFFFFFFFF == 0:
+            seed_c = 7654321
+            seed_z = 521288629
+
+        self.mwc_c = seed_c
+        self.mwc_z = seed_z
 
     def seed(self, seed_c = None, seed_z = None):
         self.__init__(seed_c, seed_z)

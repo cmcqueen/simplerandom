@@ -75,8 +75,12 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
  *     http://eprint.iacr.org/2011/007.pdf
  *
  * Of course 0 is bad for either part.
- * For upper part, seed value 0x9068FFFF is bad.
- * For lower part, seed value 0x464FFFFF is bad.
+ *
+ * For upper part, seed value 0x9068FFFF is bad. That
+ * is, 36969 * 0x10000 - 1.
+ *
+ * For lower part, seed value 0x464FFFFF, or any multiple,
+ * is bad. That is, 18000 * 0x10000 - 1.
  */
 void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
@@ -84,7 +88,9 @@ void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint3
     {
         seed_upper = UINT32_C(362436069);
     }
-    if ((seed_lower == 0) || (seed_upper == UINT32_C(0x464FFFFF)))
+    if ((seed_lower == 0) || (seed_lower == UINT32_C(0x464FFFFF) * 1u) ||
+                             (seed_lower == UINT32_C(0x464FFFFF) * 2u) ||
+                             (seed_lower == UINT32_C(0x464FFFFF) * 3u))
     {
         seed_lower = UINT32_C(521288629);
     }
@@ -111,7 +117,9 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
     {
         seed_mwc_upper = UINT32_C(362436069);
     }
-    if ((seed_mwc_lower == 0) || (seed_mwc_lower == UINT32_C(0x464FFFFF)))
+    if ((seed_mwc_lower == 0) || (seed_mwc_lower == UINT32_C(0x464FFFFF) * 1u) ||
+                                 (seed_mwc_lower == UINT32_C(0x464FFFFF) * 2u) ||
+                                 (seed_mwc_lower == UINT32_C(0x464FFFFF) * 3u))
     {
         seed_mwc_lower = UINT32_C(521288629);
     }
@@ -346,9 +354,18 @@ uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2)
  * MWC64
  ********/
 
+/* There are some bad seed values. See notes for MWC.
+ *
+ * For MWC64, a seed that is any multiple of
+ * 0x29A65EACFFFFFFFF is bad.
+ * That is, 698769069 * 0x100000000 - 1.
+ */
 void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower)
 {
-    if ((seed_upper == 0) && (seed_lower == 0))
+    uint64_t    seed64;
+
+    seed64 = ((uint64_t)seed_upper << 32u) + seed_lower;
+    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
     {
         seed_upper = UINT32_C(7654321);
         seed_lower = UINT32_C(521288629);
