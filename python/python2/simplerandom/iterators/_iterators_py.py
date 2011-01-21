@@ -235,7 +235,7 @@ class RandomMWC64Iterator(object):
 
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed64 = seed_c << 32 + seed_z
+        seed64 = (seed_c << 32) + seed_z
         if seed64 % 0x29A65EACFFFFFFFF == 0:
             seed_c = 7654321
             seed_z = 521288629
