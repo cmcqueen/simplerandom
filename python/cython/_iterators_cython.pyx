@@ -306,10 +306,12 @@ cdef class RandomKISSIterator(object):
             seed_mwc_w = 65437
         self.mwc_z = int(seed_mwc_z)
         self.mwc_w = int(seed_mwc_w)
+
         # Initialise Cong RNG
         if seed_cong==None:
             seed_cong = 12344
         self.cong = int(seed_cong)
+
         # Initialise SHR3 RNG
         if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 34223
@@ -322,10 +324,12 @@ cdef class RandomKISSIterator(object):
         cdef uint32_t mwc
         cdef uint32_t shr3_j
 
+        # Update MWC RNG
         self.mwc_z = 36969u * (self.mwc_z & 0xFFFFu) + (self.mwc_z >> 16u)
         self.mwc_w = 18000u * (self.mwc_w & 0xFFFFu) + (self.mwc_w >> 16u)
         mwc = (self.mwc_z << 16u) + self.mwc_w
 
+        # Update Cong RNG
         self.cong = 69069u * self.cong + 1234567u
 
         # Update SHR3 RNG
@@ -377,18 +381,32 @@ cdef class RandomKISS2Iterator(object):
     cdef public uint32_t mwc_z
 
     def __init__(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
-        # Initialise MWC RNG
-        if seed_mwc_c==None or seed_mwc_c==0:
+        # Initialise MWC64 RNG
+        if seed_mwc_c==None:
             seed_mwc_c = 7654321
-        if seed_mwc_z==None or seed_mwc_z==0:
+        else:
+            seed_mwc_c = int(seed_mwc_c) & 0xFFFFFFFF
+        if seed_mwc_z==None:
             seed_mwc_z = 521288629
-        self.mwc_c = int(seed_mwc_c)
-        self.mwc_z = int(seed_mwc_z)
-        # Initialise Cong RNG
+        else:
+            seed_mwc_z = int(seed_mwc_z) & 0xFFFFFFFF
+
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
+        seed_mwc_64 = (seed_mwc_c << 32u) + seed_mwc_z
+        if seed_mwc_64 % 0x29A65EACFFFFFFFFu == 0:
+            seed_mwc_c = 7654321
+            seed_mwc_z = 521288629
+
+        self.mwc_c = seed_mwc_c
+        self.mwc_z = seed_mwc_z
+
+        # Initialise Cong2 RNG
         if seed_cong==None:
             seed_cong = 123456789
         self.cong = int(seed_cong)
-        # Initialise SHR3 RNG
+
+        # Initialise SHR3_2 RNG
         if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 362436000
         self.shr3_j = int(seed_shr3)
@@ -400,13 +418,15 @@ cdef class RandomKISS2Iterator(object):
         cdef uint64_t temp64
         cdef uint32_t shr3_j
 
+        # Update MWC64 RNG
         temp64 = <uint64_t>698769069u * self.mwc_z + self.mwc_c
         self.mwc_z = temp64 & 0xFFFFFFFFu
         self.mwc_c = temp64 >> 32u
 
+        # Update Cong2 RNG
         self.cong = 69069u * self.cong + 12345u
 
-        # Update SHR3 RNG
+        # Update SHR3_2 RNG
         shr3_j = self.shr3_j
         shr3_j ^= shr3_j << 13u
         shr3_j ^= shr3_j >> 17u
