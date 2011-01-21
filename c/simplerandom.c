@@ -113,6 +113,7 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc)
 
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
+    /* Initialise MWC RNG */
     if ((seed_mwc_upper == 0) || (seed_mwc_upper == UINT32_C(0x9068FFFF)))
     {
         seed_mwc_upper = UINT32_C(362436069);
@@ -123,14 +124,17 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
     {
         seed_mwc_lower = UINT32_C(521288629);
     }
+    p_kiss->mwc_upper = seed_mwc_upper;
+    p_kiss->mwc_lower = seed_mwc_lower;
+
+    /* Initialise Cong RNG */
+    p_kiss->cong = seed_cong;
+
+    /* Initialise SHR3 RNG */
     if (seed_shr3 == 0)
     {
         seed_shr3 = UINT32_C(123456789);
     }
-
-    p_kiss->mwc_upper = seed_mwc_upper;
-    p_kiss->mwc_lower = seed_mwc_lower;
-    p_kiss->cong = seed_cong;
     p_kiss->shr3 = seed_shr3;
 }
 
@@ -140,12 +144,15 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     uint32_t    mwc;
 
 
+    /* Calculate next MWC RNG */
     p_kiss->mwc_upper = 36969u * (p_kiss->mwc_upper & 0xFFFFu) + (p_kiss->mwc_upper >> 16u);
     p_kiss->mwc_lower = 18000u * (p_kiss->mwc_lower & 0xFFFFu) + (p_kiss->mwc_lower >> 16u);
     mwc = (p_kiss->mwc_upper << 16u) + p_kiss->mwc_lower;
 
+    /* Calculate next Cong RNG */
     p_kiss->cong = UINT32_C(69069) * p_kiss->cong + UINT32_C(1234567);
 
+    /* Calculate next SHR3 RNG */
     shr3 = p_kiss->shr3;
     shr3 ^= (shr3 << 17);
     shr3 ^= (shr3 >> 13);
@@ -393,19 +400,26 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
 
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc64_upper, uint32_t seed_mwc64_lower, uint32_t seed_cong2, uint32_t seed_shr3_2)
 {
-    if ((seed_mwc64_upper == 0) && (seed_mwc64_lower == 0))
+    uint64_t    seed_mwc64;
+
+    /* Initialise MWC64 RNG */
+    seed_mwc64 = ((uint64_t)seed_mwc64_upper << 32u) + seed_mwc64_lower;
+    if ((seed_mwc64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
     {
         seed_mwc64_upper = UINT32_C(7654321);
         seed_mwc64_lower = UINT32_C(521288629);
     }
+    p_kiss2->mwc64_upper = seed_mwc64_upper;
+    p_kiss2->mwc64_lower = seed_mwc64_lower;
+
+    /* Initialise Cong2 RNG */
+    p_kiss2->cong2 = seed_cong2;
+
+    /* Initialise SHR3_2 RNG */
     if (seed_shr3_2 == 0)
     {
         seed_shr3_2 = UINT32_C(362436000);
     }
-
-    p_kiss2->mwc64_upper = seed_mwc64_upper;
-    p_kiss2->mwc64_lower = seed_mwc64_lower;
-    p_kiss2->cong2 = seed_cong2;
     p_kiss2->shr3_2 = seed_shr3_2;
 }
 
@@ -415,12 +429,15 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
     uint32_t    shr3_2;
 
 
+    /* Calculate next MWC64 RNG */
     mwc64 = UINT64_C(698769069) * p_kiss2->mwc64_lower + p_kiss2->mwc64_upper;
     p_kiss2->mwc64_upper = (mwc64 >> 32u);
     p_kiss2->mwc64_lower = (uint32_t)mwc64;
 
+    /* Calculate next Cong2 RNG */
     p_kiss2->cong2 = UINT32_C(69069) * p_kiss2->cong2 + 12345u;
 
+    /* Calculate next SHR3_2 RNG */
     shr3_2 = p_kiss2->shr3_2;
     shr3_2 ^= (shr3_2 << 13);
     shr3_2 ^= (shr3_2 >> 17);
