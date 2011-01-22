@@ -5,46 +5,46 @@
 #define MWC_UPPER (mwc_upper=36969*(mwc_upper&65535)+(mwc_upper>>16))
 #define MWC_LOWER (mwc_lower=18000*(mwc_lower&65535)+(mwc_lower>>16))
 #define MWC ((MWC_UPPER<<16)+MWC_LOWER )
-#define SHR3 (shr3^=(shr3<<17), shr3^=(shr3>>13), shr3^=(shr3<<5))
-#define CONG (cong=69069*cong+1234567)
+#define SHR3 (shr3^=(shr3<<13), shr3^=(shr3>>17), shr3^=(shr3<<5))
+#define CONG (cong=69069u*cong+12345u)
 #define FIB ((b=a+b),(a=b-a))
 #define KISS ((MWC^CONG)+SHR3)
 #define LFIB4 (c++,t[c]=t[c]+t[(uint8_t)(c+58)]+t[(uint8_t)(c+119)]+t[(uint8_t)(c+178)])
 #define SWB (c++,bro=(x<y),t[c]=(x=t[(uint8_t)(c+34)])-(y=t[(uint8_t)(c+19)]+bro))
 
-#define SHR3B (shr3b ^= (shr3b<<13), shr3b ^= (shr3b>>17), shr3b ^= (shr3b<<5))
-#define CONG2 (cong2 = 69069u * cong2 + 12345u)
 #define MWC64 (mwc64 = UINT64_C(698769069) * (uint32_t)mwc64 + (mwc64 >> 32u), (uint32_t)mwc64)
 #define MWC64_SEED(SEED_C, SEED_Z) ((((uint64_t)(SEED_C)) << 32u) | (SEED_Z))
-#define KISS2 (MWC64 + CONG2 + SHR3B)
+#define KISS2 (MWC64 + CONG + SHR3)
 
 #define UNI (KISS*2.328306e-10)
 #define VNI (((long) KISS)*4.656613e-10)
 
 /* Global static variables: */
-static uint32_t mwc_upper = 362436069, mwc_lower = 521288629, shr3 = 123456789, cong = 380116160;
+static uint32_t mwc_upper = 362436069, mwc_lower = 521288629, shr3 = 362436000, cong = 380116160;
 static uint32_t a = 224466889, b = 7584631, t[256];
 
 static uint64_t mwc64 = MWC64_SEED(7654321, 521288629);
-static uint32_t shr3b = 362436000;
-static uint32_t cong2 = 123456789;
 
 /* Use random seeds to reset mwc_upper,mwc_lower,shr3,cong,a,b, and the table t[256]*/
 static uint32_t x = 0, y = 0, bro = 0;
 static uint8_t c = 0;
 
 /* Example procedure to set the table, using KISS: */
-void settable (uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6)
+void settable(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6)
 {
-    unsigned int    i;
-
     mwc_upper = i1;
-    mwc_lower = i2, shr3 = i3;
+    mwc_lower = i2;
+    shr3 = i3;
     cong = i4;
     a = i5;
     b = i6;
+}
 
-    for (i = 0; i < 256; i = i + 1)
+void init_t(void)
+{
+    unsigned int    i;
+
+    for (i = 0; i < 256; i++)
     {
         t[i] = KISS;
     }
@@ -67,8 +67,8 @@ uint32_t MWC64func(void)
 uint32_t KISS2func(void)
 {
   static uint64_t mwc64 = MWC64_SEED(7654321, 521288629);
-  static uint32_t cong2 = 123456789;
-  static uint32_t shr3b = 362436000;
+  static uint32_t cong = 123456789;
+  static uint32_t shr3 = 362436000;
 
   return KISS2;
 }
@@ -80,6 +80,7 @@ int main (void)
     uint32_t        k;
 
     settable(12345, 65435, 34221, 12345, 9983651, 95746118);
+    init_t();
 
 /*
     for (i = 0; i < 256; i++)
@@ -97,31 +98,31 @@ int main (void)
     {
         k = LFIB4;
     }
-    printf ("%"PRIu32"\n", k - 1064612766U);
+    printf ("%"PRIu32"\n", k - 3673084687U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = SWB;
     }
-    printf ("%"PRIu32"\n", k - 627749721U);
+    printf ("%"PRIu32"\n", k - 319777393U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = KISS;
     }
-    printf ("%"PRIu32"\n", k - 1372460312U);
+    printf ("%"PRIu32"\n", k - 2100035942U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = CONG;
     }
-    printf ("%"PRIu32"\n", k - 1529210297U);
+    printf ("%"PRIu32"\n", k - 2416584377U);
 
     for (i = 0; i < 1000000; i++)
     {
         k = SHR3;
     }
-    printf ("%"PRIu32"\n", k - 2642725982U);
+    printf ("%"PRIu32"\n", k - 1153302609U);
 
     for (i = 0; i < 1000000; i++)
     {
@@ -141,21 +142,9 @@ int main (void)
     }
     printf ("%"PRIu32"\n", k - 3377343606U);
 
-    for (i = 0; i < 1000000; i++)
-    {
-        k = SHR3B;
-    }
-    printf ("%"PRIu32"\n", k - 1517776246U);
-
-    for (i = 0; i < 1000000; i++)
-    {
-        k = CONG2;
-    }
-    printf ("%"PRIu32"\n", k - 410693845U);
-
     mwc64 = MWC64_SEED(7654321, 521288629);
-    shr3b = 362436000;
-    cong2 = 123456789;
+    shr3 = 362436000;
+    cong = 123456789;
     for (i = 0; i < 1000000; i++)
     {
         k = KISS2;
