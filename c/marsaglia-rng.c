@@ -7,10 +7,10 @@
 #define MWC ((MWC_UPPER<<16)+MWC_LOWER )
 #define SHR3 (shr3^=(shr3<<13), shr3^=(shr3>>17), shr3^=(shr3<<5))
 #define CONG (cong=69069u*cong+12345u)
-#define FIB ((b=a+b),(a=b-a))
+#define FIB ((fib_b=fib_a+fib_b),(fib_a=fib_b-fib_a))
 #define KISS ((MWC^CONG)+SHR3)
 #define LFIB4 (c++,t[c]=t[c]+t[(uint8_t)(c+58)]+t[(uint8_t)(c+119)]+t[(uint8_t)(c+178)])
-#define SWB (c++,bro=(x<y),t[c]=(x=t[(uint8_t)(c+34)])-(y=t[(uint8_t)(c+19)]+bro))
+#define SWB (c++,swb_bro=(swb_x<swb_y),t[c]=(swb_x=t[(uint8_t)(c+34)])-(swb_y=t[(uint8_t)(c+19)]+swb_bro))
 
 #define MWC64 (mwc64 = UINT64_C(698769069) * (uint32_t)mwc64 + (mwc64 >> 32u), (uint32_t)mwc64)
 #define MWC64_SEED(SEED_C, SEED_Z) ((((uint64_t)(SEED_C)) << 32u) | (SEED_Z))
@@ -21,12 +21,13 @@
 
 /* Global static variables: */
 static uint32_t mwc_upper = 362436069, mwc_lower = 521288629, shr3 = 362436000, cong = 380116160;
-static uint32_t a = 224466889, b = 7584631, t[256];
+static uint32_t fib_a = 224466889, fib_b = 7584631;
+static uint32_t t[256];
 
 static uint64_t mwc64 = MWC64_SEED(7654321, 521288629);
 
 /* Use random seeds to reset mwc_upper,mwc_lower,shr3,cong,a,b, and the table t[256]*/
-static uint32_t x = 0, y = 0, bro = 0;
+static uint32_t swb_x = 0, swb_y = 0, swb_bro = 0;
 static uint8_t c = 0;
 
 /* Example procedure to set the table, using KISS: */
@@ -36,8 +37,8 @@ void settable(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, u
     mwc_lower = i2;
     shr3 = i3;
     cong = i4;
-    a = i5;
-    b = i6;
+    fib_a = i5;
+    fib_b = i6;
 }
 
 void init_t(void)
@@ -293,10 +294,10 @@ names, to avoid conflict with your own choices. */
    random quantity into an expression, avoiding the
    time and space costs of a function call. I call
    these in-line-define functions. To use them, static
-   variables mwc_upper,mwc_lower,shr3,cong,a and b should be assigned
-   seed values other than their initial values. If
-   LFIB4 or SWB are used, the static table t[256] must
-   be initialized.
+   variables mwc_upper,mwc_lower,shr3,cong,fib_a and
+   fib_b should be assigned seed values other than their
+   initial values. If LFIB4 or SWB are used, the static
+   table t[256] must be initialized.
 
 
    A note on timing: It is difficult to provide exact
