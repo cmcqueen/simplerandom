@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#define znew (z=36969*(z&65535)+(z>>16))
-#define wnew (w=18000*(w&65535)+(w>>16))
-#define MWC ((znew<<16)+wnew )
-#define SHR3 (jsr^=(jsr<<17), jsr^=(jsr>>13), jsr^=(jsr<<5))
-#define CONG (jcong=69069*jcong+1234567)
+#define MWC_UPPER (mwc_upper=36969*(mwc_upper&65535)+(mwc_upper>>16))
+#define MWC_LOWER (mwc_lower=18000*(mwc_lower&65535)+(mwc_lower>>16))
+#define MWC ((MWC_UPPER<<16)+MWC_LOWER )
+#define SHR3 (shr3^=(shr3<<17), shr3^=(shr3>>13), shr3^=(shr3<<5))
+#define CONG (cong=69069*cong+1234567)
 #define FIB ((b=a+b),(a=b-a))
 #define KISS ((MWC^CONG)+SHR3)
 #define LFIB4 (c++,t[c]=t[c]+t[(uint8_t)(c+58)]+t[(uint8_t)(c+119)]+t[(uint8_t)(c+178)])
@@ -22,15 +22,15 @@
 #define VNI (((long) KISS)*4.656613e-10)
 
 /* Global static variables: */
-static uint32_t z = 362436069, w = 521288629, jsr = 123456789, jcong = 380116160;
+static uint32_t mwc_upper = 362436069, mwc_lower = 521288629, shr3 = 123456789, cong = 380116160;
 static uint32_t a = 224466889, b = 7584631, t[256];
 
 static uint64_t mwc64 = MWC64_SEED(7654321, 521288629);
 static uint32_t shr3b = 362436000;
 static uint32_t cong2 = 123456789;
 
-/* Use random seeds to reset z,w,jsr,jcong,a,b, and the table t[256]*/
-static uint32_t x = 0, y = 0, bro;
+/* Use random seeds to reset mwc_upper,mwc_lower,shr3,cong,a,b, and the table t[256]*/
+static uint32_t x = 0, y = 0, bro = 0;
 static uint8_t c = 0;
 
 /* Example procedure to set the table, using KISS: */
@@ -38,9 +38,9 @@ void settable (uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, 
 {
     unsigned int    i;
 
-    z = i1;
-    w = i2, jsr = i3;
-    jcong = i4;
+    mwc_upper = i1;
+    mwc_lower = i2, shr3 = i3;
+    cong = i4;
     a = i5;
     b = i6;
 
@@ -153,9 +153,12 @@ int main (void)
     }
     printf ("%"PRIu32"\n", k - 410693845U);
 
+    mwc64 = MWC64_SEED(7654321, 521288629);
+    shr3b = 362436000;
+    cong2 = 123456789;
     for (i = 0; i < 1000000; i++)
     {
-        k = KISS2func();
+        k = KISS2;
     }
     printf ("%"PRIu32"\n", k - 1010846401U);
 
@@ -301,7 +304,7 @@ names, to avoid conflict with your own choices. */
    random quantity into an expression, avoiding the
    time and space costs of a function call. I call
    these in-line-define functions. To use them, static
-   variables z,w,jsr,jcong,a and b should be assigned
+   variables mwc_upper,mwc_lower,shr3,cong,a and b should be assigned
    seed values other than their initial values. If
    LFIB4 or SWB are used, the static table t[256] must
    be initialized.
