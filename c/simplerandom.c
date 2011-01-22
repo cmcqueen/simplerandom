@@ -34,7 +34,7 @@ void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
 {
-    *p_cong = UINT32_C(69069) * *p_cong + UINT32_C(1234567);
+    *p_cong = UINT32_C(69069) * *p_cong + 12345u;
 
     return *p_cong;
 }
@@ -47,7 +47,7 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
 {
     if (seed == 0)
     {
-        seed = UINT32_C(123456789);
+        seed = UINT32_C(362436000);
     }
 
     *p_shr3 = seed;
@@ -59,8 +59,8 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
 
 
     shr3 = *p_shr3;
-    shr3 ^= (shr3 << 17);
-    shr3 ^= (shr3 >> 13);
+    shr3 ^= (shr3 << 13);
+    shr3 ^= (shr3 >> 17);
     shr3 ^= (shr3 << 5);
     *p_shr3 = shr3;
 
@@ -133,7 +133,7 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
     /* Initialise SHR3 RNG */
     if (seed_shr3 == 0)
     {
-        seed_shr3 = UINT32_C(123456789);
+        seed_shr3 = UINT32_C(362436000);
     }
     p_kiss->shr3 = seed_shr3;
 }
@@ -150,12 +150,12 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     mwc = (p_kiss->mwc_upper << 16u) + p_kiss->mwc_lower;
 
     /* Calculate next Cong RNG */
-    p_kiss->cong = UINT32_C(69069) * p_kiss->cong + UINT32_C(1234567);
+    p_kiss->cong = UINT32_C(69069) * p_kiss->cong + 12345u;
 
     /* Calculate next SHR3 RNG */
     shr3 = p_kiss->shr3;
-    shr3 ^= (shr3 << 17);
-    shr3 ^= (shr3 >> 13);
+    shr3 ^= (shr3 << 13);
+    shr3 ^= (shr3 >> 17);
     shr3 ^= (shr3 << 5);
     p_kiss->shr3 = shr3;
 
@@ -311,50 +311,6 @@ uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib)
     return old_b;
 }
 
-/*********
- * Cong2
- ********/
-
-void simplerandom_cong2_seed(SimpleRandomCong2_t * p_cong, uint32_t seed)
-{
-    *p_cong = seed;
-}
-
-uint32_t simplerandom_cong2_next(SimpleRandomCong2_t * p_cong)
-{
-    *p_cong = UINT32_C(69069) * *p_cong + 12345u;
-
-    return *p_cong;
-}
-
-/*********
- * SHR3_2
- ********/
-
-void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3, uint32_t seed)
-{
-    if (seed == 0)
-    {
-        seed = UINT32_C(362436000);
-    }
-
-    *p_shr3 = seed;
-}
-
-uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3)
-{
-    uint32_t    shr3;
-
-
-    shr3 = *p_shr3;
-    shr3 ^= (shr3 << 13);
-    shr3 ^= (shr3 >> 17);
-    shr3 ^= (shr3 << 5);
-    *p_shr3 = shr3;
-
-    return shr3;
-}
-
 #ifdef UINT64_C
 
 /*********
@@ -412,10 +368,10 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
     p_kiss2->mwc_upper = seed_mwc_upper;
     p_kiss2->mwc_lower = seed_mwc_lower;
 
-    /* Initialise Cong2 RNG */
+    /* Initialise Cong RNG */
     p_kiss2->cong = seed_cong;
 
-    /* Initialise SHR3_2 RNG */
+    /* Initialise SHR3 RNG */
     if (seed_shr3 == 0)
     {
         seed_shr3 = UINT32_C(362436000);
@@ -434,10 +390,10 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
     p_kiss2->mwc_upper = (mwc64 >> 32u);
     p_kiss2->mwc_lower = (uint32_t)mwc64;
 
-    /* Calculate next Cong2 RNG */
+    /* Calculate next Cong RNG */
     p_kiss2->cong = UINT32_C(69069) * p_kiss2->cong + 12345u;
 
-    /* Calculate next SHR3_2 RNG */
+    /* Calculate next SHR3 RNG */
     shr3 = p_kiss2->shr3;
     shr3 ^= (shr3 << 13);
     shr3 ^= (shr3 >> 17);

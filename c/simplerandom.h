@@ -6,30 +6,53 @@
  * All of these are from two newsgroup posts by
  * George Marsaglia.
  *
- * The first was in 1999:
- *     Random Numbers for C: End, at last?
- *     George Marsaglia
- *     Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
- *     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
- * From that newsgroup post, the following RNGs are defined:
+ * The first was in 1999 [1]. From that newsgroup post,
+ * the following RNGs are defined:
  *     MWC
- *     Cong
- *     SHR3
- *     KISS
+ *     KISS (however, instead we use Cong and SHR3 defined in the 2003 post)
  *     Fib
  *     LFIB4
  *     SWB
  *
- * The second was in 2003:
- *     RNGs
+ * Due to analysis of SHR3 in ref [3], I believe the SHR3
+ * as defined in the 1999 post should not be used. The
+ * SHR3 in the 2003 post is very similar, but with two
+ * shift values swapped. My suspicion is that the SHR3
+ * shift values in the 1999 post are a typo.
+ *
+ * Since we don't use the 1999 SHR3, we may as well not
+ * use the 1999 Cong either, since the 2003 Cong is almost
+ * identical, but with a different added constant.
+ * Therefore, we define a KISS function that uses the
+ * 1999 MWC, but the 2003 SHR3 and Cong.
+ * The advantage of using the 1999 MWC and KISS at all is
+ * that the MWC uses only 32-bit math, while the 2003 MWC
+ * uses 64-bit math which may not be suitable for small
+ * embedded systems.
+ *
+ * The second Marsaglia post was in 2003. From that
+ * newsgroup post, the following RNGs are defined:
+ *     MWC64
+ *     Cong
+ *     SHR3
+ *     KISS2
+ *
+ * References:
+ *
+ * [1] Random Numbers for C: End, at last?
+ *     George Marsaglia
+ *     Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
+ *     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
+ *
+ * [2] RNGs
  *     George Marsaglia
  *     Newsgroup post, sci.math, 26 Feb 2003
  *     http://groups.google.com/group/sci.math/msg/9959175f66dd138f
- * From that newsgroup post, the following RNGs are defined:
- *     MWC64
- *     Cong2
- *     SHR3_2
- *     KISS2
+ *
+ * [3] "KISS: A Bit Too Simple"
+ *     Greg Rose
+ *     Qualcomm Inc.
+ *     http://eprint.iacr.org/2011/007.pdf
  */
 
 #ifndef _SIMPLERANDOM_H
@@ -84,10 +107,6 @@ typedef struct
     uint8_t     borrow;
 } SimpleRandomSWB_t;
 
-typedef uint32_t SimpleRandomSHR3_2_t;
-
-typedef uint32_t SimpleRandomCong2_t;
-
 #ifdef UINT64_C
 
 typedef struct
@@ -114,7 +133,7 @@ typedef struct
 /* Cong -- Congruential random number generator
  *
  * This is a congruential generator with the widely used
- * 69069 multiplier: x[n]=69069x[n-1]+1234567. It has
+ * 69069 multiplier: x[n]=69069x[n-1]+12345. It has
  * period 2^32.
  *
  * The leading half of its 32 bits seem to pass tests,
@@ -134,8 +153,16 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
 
 /* SHR3 -- 3-shift-register random number generator
  *
+ * Reading between the lines, I believe the SHR3 defined
+ * in Marsaglia's 1999 post actually has a typo: the
+ * shift values defined don't actually produce a period of
+ * 2^32-1, but have 64 possible cycles, some extremely
+ * short. But the swapped values from Marsaglia's 2003
+ * post produce the full 2^32-1 period. So we use that
+ * definition of SHR3.
+ *
  * SHR3 is a 3-shift-register generator with period
- * 2^32-1. It uses y[n]=y[n-1](I+L^17)(I+R^13)(I+L^5),
+ * 2^32-1. It uses y[n]=y[n-1](I+L^13)(I+R^17)(I+L^5),
  * with the y's viewed as binary vectors, L the 32x32
  * binary matrix that shifts a vector left 1, and R its
  * transpose.
@@ -171,7 +198,7 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc);
 
 /* KISS -- "Keep It Simple Stupid" random number generator
  *
- * It combines the RandomMWC, RandomCong, RandomSHR3
+ * It combines the MWC, Cong, SHR3
  * generators. Period is about 2^123. It is one of
  * Marsaglia's favourite generators.
  */
@@ -263,22 +290,6 @@ void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb);
 void simplerandom_swb_seed_from_kiss(SimpleRandomSWB_t * p_swb, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb);
 
-/* Cong2 -- Congruential random number generator
- *
- * Very similar to Cong, but with different
- * added constant.
- */
-void simplerandom_cong2_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
-uint32_t simplerandom_cong2_next(SimpleRandomCong_t * p_cong);
-
-/* SHR3_2 -- 3-shift-register random number generator
- *
- * This differs from the SHR3 generator in the values of
- * the three shift operations.
- */
-void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3, uint32_t seed);
-uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3);
-
 #ifdef UINT64_C
 
 /* MWC64 -- "Multiply-with-carry" random number generator
@@ -295,16 +306,13 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
 
 /* KISS2 -- "Keep It Simple Stupid" random number generator
  *
- * It combines the MWC64, Cong2, SHR3_2 generators. Period
+ * It combines the MWC64, Cong, SHR3 generators. Period
  * is about 2^123.
  *
  * This is a slightly updated KISS generator design, from
- * the newsgroup post in 2003.
- *
- * The Cong and SHR3 component generators are changed
- * slightly. The MWC component uses a single 64-bit
- * calculation, instead of two 32-bit calculations that
- * are combined.
+ * the newsgroup post in 2003. The MWC component uses a
+ * single 64-bit calculation, instead of two 32-bit
+ * calculations that are combined.
  */
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
