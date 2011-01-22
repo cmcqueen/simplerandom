@@ -183,44 +183,44 @@ cdef class RandomMWCIterator(object):
         http://eprint.iacr.org/2011/007.pdf
     '''
 
-    cdef public uint32_t mwc_z
-    cdef public uint32_t mwc_w
+    cdef public uint32_t mwc_upper
+    cdef public uint32_t mwc_lower
 
-    def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None or (seed_z % 0x9068FFFF)==0:
+    def __init__(self, seed_upper = None, seed_lower = None):
+        if seed_upper==None or (seed_upper % 0x9068FFFF)==0:
             # Default seed, and avoid bad seeds
-            seed_z = 12344
-        if seed_w==None or (seed_w % 0x464FFFFF)==0:
+            seed_upper = 12344
+        if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
-            seed_w = 65437
-        self.mwc_z = int(seed_z)
-        self.mwc_w = int(seed_w)
+            seed_lower = 65437
+        self.mwc_upper = int(seed_upper)
+        self.mwc_lower = int(seed_lower)
 
-    def seed(self, seed_z = None, seed_w = None):
-        self.__init__(seed_z, seed_w)
+    def seed(self, seed_upper = None, seed_lower = None):
+        self.__init__(seed_upper, seed_lower)
 
     def __next__(self):
         cdef uint32_t mwc
-        self.mwc_z = 36969u * (self.mwc_z & 0xFFFFu) + (self.mwc_z >> 16u)
-        self.mwc_w = 18000u * (self.mwc_w & 0xFFFFu) + (self.mwc_w >> 16u)
-        mwc = (self.mwc_z << 16u) + self.mwc_w
+        self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
+        self.mwc_lower = 18000u * (self.mwc_lower & 0xFFFFu) + (self.mwc_lower >> 16u)
+        mwc = (self.mwc_upper << 16u) + self.mwc_lower
         return mwc
 
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = (self.mwc_z << 16u) + self.mwc_w
+            mwc = (self.mwc_upper << 16u) + self.mwc_lower
             return mwc
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.mwc_z, self.mwc_w)
+        return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        self.mwc_z = int(state[0])
-        self.mwc_w = int(state[1])
+        self.mwc_upper = int(state[0])
+        self.mwc_lower = int(state[1])
 
 
 cdef class RandomMWC64Iterator(object):
@@ -231,53 +231,53 @@ cdef class RandomMWC64Iterator(object):
     values.
     '''
 
-    cdef public uint32_t mwc_c
-    cdef public uint32_t mwc_z
+    cdef public uint32_t mwc_upper
+    cdef public uint32_t mwc_lower
 
-    def __init__(self, seed_c = None, seed_z = None):
-        if seed_c==None:
-            seed_c = 7654321
+    def __init__(self, seed_upper = None, seed_lower = None):
+        if seed_upper==None:
+            seed_upper = 7654321
         else:
-            seed_c = int(seed_c) & 0xFFFFFFFF
-        if seed_z==None:
-            seed_z = 521288629
+            seed_upper = int(seed_upper) & 0xFFFFFFFF
+        if seed_lower==None:
+            seed_lower = 521288629
         else:
-            seed_z = int(seed_z) & 0xFFFFFFFF
+            seed_lower = int(seed_lower) & 0xFFFFFFFF
 
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed64 = (seed_c << 32u) + seed_z
+        seed64 = (seed_upper << 32u) + seed_lower
         if seed64 % 0x29A65EACFFFFFFFFu == 0:
-            seed_c = 7654321
-            seed_z = 521288629
+            seed_upper = 7654321
+            seed_lower = 521288629
 
-        self.mwc_c = seed_c
-        self.mwc_z = seed_z
+        self.mwc_upper = seed_upper
+        self.mwc_lower = seed_lower
 
-    def seed(self, seed_c = None, seed_z = None):
-        self.__init__(seed_c, seed_z)
+    def seed(self, seed_upper = None, seed_lower = None):
+        self.__init__(seed_upper, seed_lower)
 
     def __next__(self):
         cdef uint64_t temp64
 
-        temp64 = <uint64_t>698769069u * self.mwc_z + self.mwc_c
-        self.mwc_z = temp64 & 0xFFFFFFFFu
-        self.mwc_c = temp64 >> 32u
-        return self.mwc_z
+        temp64 = <uint64_t>698769069u * self.mwc_lower + self.mwc_upper
+        self.mwc_lower = temp64 & 0xFFFFFFFFu
+        self.mwc_upper = temp64 >> 32u
+        return self.mwc_lower
 
     property mwc:
         def __get__(self):
-            return self.mwc_z
+            return self.mwc_lower
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.mwc_c, self.mwc_z)
+        return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        self.mwc_c = int(state[0])
-        self.mwc_z = int(state[1])
+        self.mwc_upper = int(state[0])
+        self.mwc_lower = int(state[1])
 
 
 cdef class RandomKISSIterator(object):
@@ -293,19 +293,19 @@ cdef class RandomKISSIterator(object):
 
     cdef public uint32_t cong
     cdef public uint32_t shr3_j
-    cdef public uint32_t mwc_z
-    cdef public uint32_t mwc_w
+    cdef public uint32_t mwc_upper
+    cdef public uint32_t mwc_lower
 
-    def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
+    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_mwc_z==None or (seed_mwc_z % 0x9068FFFF)==0:
+        if seed_mwc_upper==None or (seed_mwc_upper % 0x9068FFFF)==0:
             # Default seed, and avoid bad seeds
-            seed_mwc_z = 12344
-        if seed_mwc_w==None or (seed_mwc_w % 0x464FFFFF)==0:
+            seed_mwc_upper = 12344
+        if seed_mwc_lower==None or (seed_mwc_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
-            seed_mwc_w = 65437
-        self.mwc_z = int(seed_mwc_z)
-        self.mwc_w = int(seed_mwc_w)
+            seed_mwc_lower = 65437
+        self.mwc_upper = int(seed_mwc_upper)
+        self.mwc_lower = int(seed_mwc_lower)
 
         # Initialise Cong RNG
         if seed_cong==None:
@@ -317,17 +317,17 @@ cdef class RandomKISSIterator(object):
             seed_shr3 = 34223
         self.shr3_j = int(seed_shr3)
 
-    def seed(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
+    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
     def __next__(self):
         cdef uint32_t mwc
         cdef uint32_t shr3_j
 
         # Update MWC RNG
-        self.mwc_z = 36969u * (self.mwc_z & 0xFFFFu) + (self.mwc_z >> 16u)
-        self.mwc_w = 18000u * (self.mwc_w & 0xFFFFu) + (self.mwc_w >> 16u)
-        mwc = (self.mwc_z << 16u) + self.mwc_w
+        self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
+        self.mwc_lower = 18000u * (self.mwc_lower & 0xFFFFu) + (self.mwc_lower >> 16u)
+        mwc = (self.mwc_upper << 16u) + self.mwc_lower
 
         # Update Cong RNG
         self.cong = 69069u * self.cong + 1234567u
@@ -344,16 +344,16 @@ cdef class RandomKISSIterator(object):
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = (self.mwc_z << 16u) + self.mwc_w
+            mwc = (self.mwc_upper << 16u) + self.mwc_lower
             return mwc
 
     def getstate(self):
-        return ((self.mwc_z, self.mwc_w), (self.cong,), (self.shr3_j,))
+        return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3_j,))
 
     def setstate(self, state):
         (mwc_state, cong_state, shr3_state) = state
-        self.mwc_z = int(mwc_state[0])
-        self.mwc_w = int(mwc_state[1])
+        self.mwc_upper = int(mwc_state[0])
+        self.mwc_lower = int(mwc_state[1])
         self.cong = int(cong_state[0])
         self.shr3_j = int(shr3_state[0])
 
@@ -377,29 +377,29 @@ cdef class RandomKISS2Iterator(object):
 
     cdef public uint32_t cong
     cdef public uint32_t shr3_j
-    cdef public uint32_t mwc_c
-    cdef public uint32_t mwc_z
+    cdef public uint32_t mwc_upper
+    cdef public uint32_t mwc_lower
 
-    def __init__(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
+    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC64 RNG
-        if seed_mwc_c==None:
-            seed_mwc_c = 7654321
+        if seed_mwc_upper==None:
+            seed_mwc_upper = 7654321
         else:
-            seed_mwc_c = int(seed_mwc_c) & 0xFFFFFFFF
-        if seed_mwc_z==None:
-            seed_mwc_z = 521288629
+            seed_mwc_upper = int(seed_mwc_upper) & 0xFFFFFFFF
+        if seed_mwc_lower==None:
+            seed_mwc_lower = 521288629
         else:
-            seed_mwc_z = int(seed_mwc_z) & 0xFFFFFFFF
+            seed_mwc_lower = int(seed_mwc_lower) & 0xFFFFFFFF
 
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed_mwc_64 = (seed_mwc_c << 32u) + seed_mwc_z
+        seed_mwc_64 = (seed_mwc_upper << 32u) + seed_mwc_lower
         if seed_mwc_64 % 0x29A65EACFFFFFFFFu == 0:
-            seed_mwc_c = 7654321
-            seed_mwc_z = 521288629
+            seed_mwc_upper = 7654321
+            seed_mwc_lower = 521288629
 
-        self.mwc_c = seed_mwc_c
-        self.mwc_z = seed_mwc_z
+        self.mwc_upper = seed_mwc_upper
+        self.mwc_lower = seed_mwc_lower
 
         # Initialise Cong2 RNG
         if seed_cong==None:
@@ -411,17 +411,17 @@ cdef class RandomKISS2Iterator(object):
             seed_shr3 = 362436000
         self.shr3_j = int(seed_shr3)
 
-    def seed(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_c, seed_mwc_z, seed_cong, seed_shr3)
+    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
     def __next__(self):
         cdef uint64_t temp64
         cdef uint32_t shr3_j
 
         # Update MWC64 RNG
-        temp64 = <uint64_t>698769069u * self.mwc_z + self.mwc_c
-        self.mwc_z = temp64 & 0xFFFFFFFFu
-        self.mwc_c = temp64 >> 32u
+        temp64 = <uint64_t>698769069u * self.mwc_lower + self.mwc_upper
+        self.mwc_lower = temp64 & 0xFFFFFFFFu
+        self.mwc_upper = temp64 >> 32u
 
         # Update Cong2 RNG
         self.cong = 69069u * self.cong + 12345u
@@ -433,19 +433,19 @@ cdef class RandomKISS2Iterator(object):
         shr3_j ^= shr3_j << 5u
         self.shr3_j = shr3_j
 
-        return self.mwc_z + self.cong + shr3_j
+        return self.mwc_lower + self.cong + shr3_j
 
     property mwc:
         def __get__(self):
-            return self.mwc_z
+            return self.mwc_lower
 
     def getstate(self):
-        return ((self.mwc_c, self.mwc_z), (self.cong,), (self.shr3_j,))
+        return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3_j,))
 
     def setstate(self, state):
         (mwc_state, cong_state, shr3_state) = state
-        self.mwc_c = int(mwc_state[0])
-        self.mwc_z = int(mwc_state[1])
+        self.mwc_upper = int(mwc_state[0])
+        self.mwc_lower = int(mwc_state[1])
         self.cong = int(cong_state[0])
         self.shr3_j = int(shr3_state[0])
 

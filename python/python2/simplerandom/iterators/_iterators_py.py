@@ -181,26 +181,26 @@ class RandomMWCIterator(object):
         http://eprint.iacr.org/2011/007.pdf
     '''
 
-    def __init__(self, seed_z = None, seed_w = None):
-        if seed_z==None or (seed_z % 0x9068ffff)==0:
+    def __init__(self, seed_upper = None, seed_lower = None):
+        if seed_upper==None or (seed_upper % 0x9068ffff)==0:
             # Default seed, and avoid bad seeds
-            seed_z = 12344
-        if seed_w==None or (seed_w % 0x464FFFFF)==0:
+            seed_upper = 12344
+        if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
-            seed_w = 65437
-        self.mwc_z = int(seed_z) & 0xFFFFFFFF
-        self.mwc_w = int(seed_w) & 0xFFFFFFFF
+            seed_lower = 65437
+        self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
+        self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
 
-    def seed(self, seed_z = None, seed_w = None):
-        self.__init__(seed_z, seed_w)
+    def seed(self, seed_upper = None, seed_lower = None):
+        self.__init__(seed_upper, seed_lower)
 
     def next(self):
-        self.mwc_z = 36969 * (self.mwc_z & 0xFFFF) + (self.mwc_z >> 16)
-        self.mwc_w = 18000 * (self.mwc_w & 0xFFFF) + (self.mwc_w >> 16)
+        self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
+        self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
         return self._get_mwc()
 
     def _get_mwc(self):
-        return (((self.mwc_z & 0xFFFF) << 16) + self.mwc_w) & 0xFFFFFFFF
+        return (((self.mwc_upper & 0xFFFF) << 16) + self.mwc_lower) & 0xFFFFFFFF
 
     mwc = property(_get_mwc)
 
@@ -208,10 +208,10 @@ class RandomMWCIterator(object):
         return self
 
     def getstate(self):
-        return (self.mwc_z, self.mwc_w)
+        return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        (self.mwc_z, self.mwc_w) = (int(val) & 0xFFFFFFFF for val in state)
+        (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
 
 
 class RandomMWC64Iterator(object):
@@ -222,38 +222,38 @@ class RandomMWC64Iterator(object):
     values.
     '''
 
-    def __init__(self, seed_c = None, seed_z = None):
-        if seed_c==None:
-            seed_c = 7654321
+    def __init__(self, seed_upper = None, seed_lower = None):
+        if seed_upper==None:
+            seed_upper = 7654321
         else:
-            seed_c = int(seed_c) & 0xFFFFFFFF
+            seed_upper = int(seed_upper) & 0xFFFFFFFF
 
-        if seed_z==None:
-            seed_z = 521288629
+        if seed_lower==None:
+            seed_lower = 521288629
         else:
-            seed_z = int(seed_z) & 0xFFFFFFFF
+            seed_lower = int(seed_lower) & 0xFFFFFFFF
 
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed64 = (seed_c << 32) + seed_z
+        seed64 = (seed_upper << 32) + seed_lower
         if seed64 % 0x29A65EACFFFFFFFF == 0:
-            seed_c = 7654321
-            seed_z = 521288629
+            seed_upper = 7654321
+            seed_lower = 521288629
 
-        self.mwc_c = seed_c
-        self.mwc_z = seed_z
+        self.mwc_upper = seed_upper
+        self.mwc_lower = seed_lower
 
-    def seed(self, seed_c = None, seed_z = None):
-        self.__init__(seed_c, seed_z)
+    def seed(self, seed_upper = None, seed_lower = None):
+        self.__init__(seed_upper, seed_lower)
 
     def next(self):
-        temp64 = 698769069 * self.mwc_z + self.mwc_c
-        self.mwc_z = temp64 & 0xFFFFFFFF
-        self.mwc_c = (temp64 >> 32) & 0xFFFFFFFF
-        return self.mwc_z
+        temp64 = 698769069 * self.mwc_lower + self.mwc_upper
+        self.mwc_lower = temp64 & 0xFFFFFFFF
+        self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
+        return self.mwc_lower
 
     def mwc(self):
-        return self.mwc_z
+        return self.mwc_lower
 
     mwc = property(mwc)
 
@@ -261,10 +261,10 @@ class RandomMWC64Iterator(object):
         return self
 
     def getstate(self):
-        return (self.mwc_c, self.mwc_z)
+        return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        (self.mwc_c, self.mwc_z) = (int(val) & 0xFFFFFFFF for val in state)
+        (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
 
 
 class RandomKISSIterator(object):
@@ -275,13 +275,13 @@ class RandomKISSIterator(object):
     Marsaglia's favourite generators.
     '''
 
-    def __init__(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = RandomMWCIterator(seed_mwc_z, seed_mwc_w)
+    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
+        self.random_mwc = RandomMWCIterator(seed_mwc_upper, seed_mwc_lower)
         self.random_cong = RandomCongIterator(seed_cong)
         self.random_shr3 = RandomSHR3Iterator(seed_shr3)
 
-    def seed(self, seed_mwc_z = None, seed_mwc_w = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_z, seed_mwc_w, seed_cong, seed_shr3)
+    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
     def next(self):
         mwc_val = self.random_mwc.next()
@@ -298,17 +298,17 @@ class RandomKISSIterator(object):
         self.random_cong.setstate(cong_state)
         self.random_shr3.setstate(shr3_state)
 
-    def _get_mwc_z(self):
-        return self.random_mwc.mwc_z
-    def _set_mwc_z(self, value):
-        self.random_mwc.mwc_z = value
-    mwc_z = property(_get_mwc_z, _set_mwc_z)
+    def _get_mwc_upper(self):
+        return self.random_mwc.mwc_upper
+    def _set_mwc_upper(self, value):
+        self.random_mwc.mwc_upper = value
+    mwc_upper = property(_get_mwc_upper, _set_mwc_upper)
 
-    def _get_mwc_w(self):
-        return self.random_mwc.mwc_w
-    def _set_mwc_w(self, value):
-        self.random_mwc.mwc_w = value
-    mwc_w = property(_get_mwc_w, _set_mwc_w)
+    def _get_mwc_lower(self):
+        return self.random_mwc.mwc_lower
+    def _set_mwc_lower(self, value):
+        self.random_mwc.mwc_lower = value
+    mwc_lower = property(_get_mwc_lower, _set_mwc_lower)
 
     def _get_mwc(self):
         return self.random_mwc.mwc
@@ -344,13 +344,13 @@ class RandomKISS2Iterator(object):
     are combined.
     '''
 
-    def __init__(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = RandomMWC64Iterator(seed_mwc_c, seed_mwc_z)
+    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
+        self.random_mwc = RandomMWC64Iterator(seed_mwc_upper, seed_mwc_lower)
         self.random_cong = RandomCong2Iterator(seed_cong)
         self.random_shr3 = RandomSHR3_2Iterator(seed_shr3)
 
-    def seed(self, seed_mwc_c = None, seed_mwc_z = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_c, seed_mwc_z, seed_cong, seed_shr3)
+    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
+        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
     def next(self):
         mwc_val = self.random_mwc.next()
@@ -367,17 +367,17 @@ class RandomKISS2Iterator(object):
         self.random_cong.setstate(cong_state)
         self.random_shr3.setstate(shr3_state)
 
-    def _get_mwc_z(self):
-        return self.random_mwc.mwc_z
-    def _set_mwc_z(self, value):
-        self.random_mwc.mwc_z = value
-    mwc_z = property(_get_mwc_z, _set_mwc_z)
+    def _get_mwc_upper(self):
+        return self.random_mwc.mwc_upper
+    def _set_mwc_upper(self, value):
+        self.random_mwc.mwc_upper = value
+    mwc_upper = property(_get_mwc_upper, _set_mwc_upper)
 
-    def _get_mwc_w(self):
-        return self.random_mwc.mwc_w
-    def _set_mwc_w(self, value):
-        self.random_mwc.mwc_w = value
-    mwc_w = property(_get_mwc_w, _set_mwc_w)
+    def _get_mwc_lower(self):
+        return self.random_mwc.mwc_lower
+    def _set_mwc_lower(self, value):
+        self.random_mwc.mwc_lower = value
+    mwc_lower = property(_get_mwc_lower, _set_mwc_lower)
 
     def _get_mwc(self):
         return self.random_mwc.mwc
