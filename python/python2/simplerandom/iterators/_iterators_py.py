@@ -104,27 +104,27 @@ class RandomSHR3Iterator(object):
     def __init__(self, seed = None):
         if seed==None or seed==0:
             seed = 34223
-        self.shr3_j = int(seed) & 0xFFFFFFFF
+        self.shr3 = int(seed) & 0xFFFFFFFF
 
     def seed(self, seed = None):
         self.__init__(seed)
 
     def next(self):
-        shr3_j = self.shr3_j
-        shr3_j ^= (shr3_j & 0x7FFF) << 17
-        shr3_j ^= shr3_j >> 13
-        shr3_j ^= (shr3_j & 0x7FFFFFF) << 5
-        self.shr3_j = shr3_j
-        return shr3_j
+        shr3 = self.shr3
+        shr3 ^= (shr3 & 0x7FFF) << 17
+        shr3 ^= shr3 >> 13
+        shr3 ^= (shr3 & 0x7FFFFFF) << 5
+        self.shr3 = shr3
+        return shr3
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.shr3_j, )
+        return (self.shr3, )
 
     def setstate(self, state):
-        (self.shr3_j, ) = (int(val) & 0xFFFFFFFF for val in state)
+        (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
 class RandomSHR3_2Iterator(object):
@@ -137,27 +137,27 @@ class RandomSHR3_2Iterator(object):
     def __init__(self, seed = None):
         if seed==None or seed==0:
             seed = 362436000
-        self.shr3_j = int(seed) & 0xFFFFFFFF
+        self.shr3 = int(seed) & 0xFFFFFFFF
 
     def seed(self, seed = None):
         self.__init__(seed)
 
     def next(self):
-        shr3_j = self.shr3_j
-        shr3_j ^= (shr3_j & 0x7FFFF) << 13
-        shr3_j ^= shr3_j >> 17
-        shr3_j ^= (shr3_j & 0x7FFFFFF) << 5
-        self.shr3_j = shr3_j
-        return shr3_j
+        shr3 = self.shr3
+        shr3 ^= (shr3 & 0x7FFFF) << 13
+        shr3 ^= shr3 >> 17
+        shr3 ^= (shr3 & 0x7FFFFFF) << 5
+        self.shr3 = shr3
+        return shr3
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.shr3_j, )
+        return (self.shr3, )
 
     def setstate(self, state):
-        (self.shr3_j, ) = (int(val) & 0xFFFFFFFF for val in state)
+        (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
 class RandomMWCIterator(object):
@@ -314,11 +314,11 @@ class RandomKISSIterator(object):
         return self.random_mwc.mwc
     mwc = property(_get_mwc)
 
-    def _get_shr3_j(self):
-        return self.random_shr3.shr3_j
-    def _set_shr3_j(self, value):
-        self.random_shr3.shr3_j = value
-    shr3_j = property(_get_shr3_j, _set_shr3_j)
+    def _get_shr3(self):
+        return self.random_shr3.shr3
+    def _set_shr3(self, value):
+        self.random_shr3.shr3 = value
+    shr3 = property(_get_shr3, _set_shr3)
 
     def _get_cong(self):
         return self.random_cong.cong
@@ -383,11 +383,11 @@ class RandomKISS2Iterator(object):
         return self.random_mwc.mwc
     mwc = property(_get_mwc)
 
-    def _get_shr3_j(self):
-        return self.random_shr3.shr3_j
-    def _set_shr3_j(self, value):
-        self.random_shr3.shr3_j = value
-    shr3_j = property(_get_shr3_j, _set_shr3_j)
+    def _get_shr3(self):
+        return self.random_shr3.shr3
+    def _set_shr3(self, value):
+        self.random_shr3.shr3 = value
+    shr3 = property(_get_shr3, _set_shr3)
 
     def _get_cong(self):
         return self.random_cong.cong

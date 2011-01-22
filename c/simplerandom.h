@@ -92,16 +92,16 @@ typedef uint32_t SimpleRandomCong2_t;
 
 typedef struct
 {
-    uint32_t mwc64_upper;
-    uint32_t mwc64_lower;
+    uint32_t mwc_upper;
+    uint32_t mwc_lower;
 } SimpleRandomMWC64_t;
 
 typedef struct
 {
-    uint32_t mwc64_upper;
-    uint32_t mwc64_lower;
-    uint32_t cong2;
-    uint32_t shr3_2;
+    uint32_t mwc_upper;
+    uint32_t mwc_lower;
+    uint32_t cong;
+    uint32_t shr3;
 } SimpleRandomKISS2_t;
 
 #endif /* defined(UINT64_C) */
@@ -268,16 +268,16 @@ uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb);
  * Very similar to Cong, but with different
  * added constant.
  */
-void simplerandom_cong2_seed(SimpleRandomCong_t * p_cong2, uint32_t seed);
-uint32_t simplerandom_cong2_next(SimpleRandomCong_t * p_cong2);
+void simplerandom_cong2_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
+uint32_t simplerandom_cong2_next(SimpleRandomCong_t * p_cong);
 
 /* SHR3_2 -- 3-shift-register random number generator
  *
  * This differs from the SHR3 generator in the values of
  * the three shift operations.
  */
-void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3_2, uint32_t seed);
-uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2);
+void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3, uint32_t seed);
+uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3);
 
 #ifdef UINT64_C
 
@@ -290,8 +290,8 @@ uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2);
  * calculation to generate a 32-bit value. The seeds
  * should still be 32-bit values.
  */
-void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower);
-uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64);
+void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
+uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
 
 /* KISS2 -- "Keep It Simple Stupid" random number generator
  *
@@ -306,7 +306,7 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64);
  * calculation, instead of two 32-bit calculations that
  * are combined.
  */
-void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc64_upper, uint32_t seed_mwc64_lower, uint32_t seed_cong2, uint32_t seed_shr3_2);
+void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 
 #endif /* defined(UINT64_C) */

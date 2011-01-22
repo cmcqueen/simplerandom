@@ -97,33 +97,33 @@ cdef class RandomSHR3Iterator(object):
     about 29% of the time.
     '''
 
-    cdef public uint32_t shr3_j
+    cdef public uint32_t shr3
 
     def __init__(self, seed = None):
         if seed==None or seed==0:
             seed = 34223
-        self.shr3_j = int(seed)
+        self.shr3 = int(seed)
 
     def seed(self, seed = None):
         self.__init__(seed)
 
     def __next__(self):
-        cdef uint32_t shr3_j
-        shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 17u
-        shr3_j ^= shr3_j >> 13u
-        shr3_j ^= shr3_j << 5u
-        self.shr3_j = shr3_j
-        return shr3_j
+        cdef uint32_t shr3
+        shr3 = self.shr3
+        shr3 ^= shr3 << 17u
+        shr3 ^= shr3 >> 13u
+        shr3 ^= shr3 << 5u
+        self.shr3 = shr3
+        return shr3
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.shr3_j, )
+        return (self.shr3, )
 
     def setstate(self, state):
-        self.shr3_j = int(state[0])
+        self.shr3 = int(state[0])
 
 
 cdef class RandomSHR3_2Iterator(object):
@@ -133,33 +133,33 @@ cdef class RandomSHR3_2Iterator(object):
     value, and the values of the three shift operations.
     '''
 
-    cdef public uint32_t shr3_j
+    cdef public uint32_t shr3
 
     def __init__(self, seed = None):
         if seed==None or seed==0:
             seed = 362436000
-        self.shr3_j = int(seed)
+        self.shr3 = int(seed)
 
     def seed(self, seed = None):
         self.__init__(seed)
 
     def __next__(self):
-        cdef uint32_t shr3_j
-        shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 13u
-        shr3_j ^= shr3_j >> 17u
-        shr3_j ^= shr3_j << 5u
-        self.shr3_j = shr3_j
-        return shr3_j
+        cdef uint32_t shr3
+        shr3 = self.shr3
+        shr3 ^= shr3 << 13u
+        shr3 ^= shr3 >> 17u
+        shr3 ^= shr3 << 5u
+        self.shr3 = shr3
+        return shr3
 
     def __iter__(self):
         return self
 
     def getstate(self):
-        return (self.shr3_j, )
+        return (self.shr3, )
 
     def setstate(self, state):
-        self.shr3_j = int(state[0])
+        self.shr3 = int(state[0])
 
 
 cdef class RandomMWCIterator(object):
@@ -292,7 +292,7 @@ cdef class RandomKISSIterator(object):
     '''
 
     cdef public uint32_t cong
-    cdef public uint32_t shr3_j
+    cdef public uint32_t shr3
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
 
@@ -315,14 +315,14 @@ cdef class RandomKISSIterator(object):
         # Initialise SHR3 RNG
         if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 34223
-        self.shr3_j = int(seed_shr3)
+        self.shr3 = int(seed_shr3)
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
     def __next__(self):
         cdef uint32_t mwc
-        cdef uint32_t shr3_j
+        cdef uint32_t shr3
 
         # Update MWC RNG
         self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
@@ -333,13 +333,13 @@ cdef class RandomKISSIterator(object):
         self.cong = 69069u * self.cong + 1234567u
 
         # Update SHR3 RNG
-        shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 17u
-        shr3_j ^= shr3_j >> 13u
-        shr3_j ^= shr3_j << 5u
-        self.shr3_j = shr3_j
+        shr3 = self.shr3
+        shr3 ^= shr3 << 17u
+        shr3 ^= shr3 >> 13u
+        shr3 ^= shr3 << 5u
+        self.shr3 = shr3
 
-        return (mwc ^ self.cong) + shr3_j
+        return (mwc ^ self.cong) + shr3
 
     property mwc:
         def __get__(self):
@@ -348,14 +348,14 @@ cdef class RandomKISSIterator(object):
             return mwc
 
     def getstate(self):
-        return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3_j,))
+        return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3,))
 
     def setstate(self, state):
         (mwc_state, cong_state, shr3_state) = state
         self.mwc_upper = int(mwc_state[0])
         self.mwc_lower = int(mwc_state[1])
         self.cong = int(cong_state[0])
-        self.shr3_j = int(shr3_state[0])
+        self.shr3 = int(shr3_state[0])
 
 
 cdef class RandomKISS2Iterator(object):
@@ -376,7 +376,7 @@ cdef class RandomKISS2Iterator(object):
     '''
 
     cdef public uint32_t cong
-    cdef public uint32_t shr3_j
+    cdef public uint32_t shr3
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
 
@@ -409,14 +409,14 @@ cdef class RandomKISS2Iterator(object):
         # Initialise SHR3_2 RNG
         if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 362436000
-        self.shr3_j = int(seed_shr3)
+        self.shr3 = int(seed_shr3)
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
     def __next__(self):
         cdef uint64_t temp64
-        cdef uint32_t shr3_j
+        cdef uint32_t shr3
 
         # Update MWC64 RNG
         temp64 = <uint64_t>698769069u * self.mwc_lower + self.mwc_upper
@@ -427,27 +427,27 @@ cdef class RandomKISS2Iterator(object):
         self.cong = 69069u * self.cong + 12345u
 
         # Update SHR3_2 RNG
-        shr3_j = self.shr3_j
-        shr3_j ^= shr3_j << 13u
-        shr3_j ^= shr3_j >> 17u
-        shr3_j ^= shr3_j << 5u
-        self.shr3_j = shr3_j
+        shr3 = self.shr3
+        shr3 ^= shr3 << 13u
+        shr3 ^= shr3 >> 17u
+        shr3 ^= shr3 << 5u
+        self.shr3 = shr3
 
-        return self.mwc_lower + self.cong + shr3_j
+        return self.mwc_lower + self.cong + shr3
 
     property mwc:
         def __get__(self):
             return self.mwc_lower
 
     def getstate(self):
-        return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3_j,))
+        return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3,))
 
     def setstate(self, state):
         (mwc_state, cong_state, shr3_state) = state
         self.mwc_upper = int(mwc_state[0])
         self.mwc_lower = int(mwc_state[1])
         self.cong = int(cong_state[0])
-        self.shr3_j = int(shr3_state[0])
+        self.shr3 = int(shr3_state[0])
 
 
 def _fib_adjust_seed(seed):

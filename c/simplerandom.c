@@ -315,44 +315,44 @@ uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib)
  * Cong2
  ********/
 
-void simplerandom_cong2_seed(SimpleRandomCong2_t * p_cong2, uint32_t seed)
+void simplerandom_cong2_seed(SimpleRandomCong2_t * p_cong, uint32_t seed)
 {
-    *p_cong2 = seed;
+    *p_cong = seed;
 }
 
-uint32_t simplerandom_cong2_next(SimpleRandomCong2_t * p_cong2)
+uint32_t simplerandom_cong2_next(SimpleRandomCong2_t * p_cong)
 {
-    *p_cong2 = UINT32_C(69069) * *p_cong2 + 12345u;
+    *p_cong = UINT32_C(69069) * *p_cong + 12345u;
 
-    return *p_cong2;
+    return *p_cong;
 }
 
 /*********
  * SHR3_2
  ********/
 
-void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3_2, uint32_t seed)
+void simplerandom_shr3_2_seed(SimpleRandomSHR3_2_t * p_shr3, uint32_t seed)
 {
     if (seed == 0)
     {
         seed = UINT32_C(362436000);
     }
 
-    *p_shr3_2 = seed;
+    *p_shr3 = seed;
 }
 
-uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2)
+uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3)
 {
-    uint32_t    shr3_2;
+    uint32_t    shr3;
 
 
-    shr3_2 = *p_shr3_2;
-    shr3_2 ^= (shr3_2 << 13);
-    shr3_2 ^= (shr3_2 >> 17);
-    shr3_2 ^= (shr3_2 << 5);
-    *p_shr3_2 = shr3_2;
+    shr3 = *p_shr3;
+    shr3 ^= (shr3 << 13);
+    shr3 ^= (shr3 >> 17);
+    shr3 ^= (shr3 << 5);
+    *p_shr3 = shr3;
 
-    return shr3_2;
+    return shr3;
 }
 
 #ifdef UINT64_C
@@ -367,7 +367,7 @@ uint32_t simplerandom_shr3_2_next(SimpleRandomSHR3_2_t * p_shr3_2)
  * 0x29A65EACFFFFFFFF is bad.
  * That is, 698769069 * 0x100000000 - 1.
  */
-void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper, uint32_t seed_lower)
+void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
     uint64_t    seed64;
 
@@ -378,18 +378,18 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc64, uint32_t seed_upper,
         seed_lower = UINT32_C(521288629);
     }
 
-    p_mwc64->mwc64_upper = seed_upper;
-    p_mwc64->mwc64_lower = seed_lower;
+    p_mwc->mwc_upper = seed_upper;
+    p_mwc->mwc_lower = seed_lower;
 }
 
-uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
+uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc)
 {
     uint64_t    mwc64;
 
 
-    mwc64 = UINT64_C(698769069) * p_mwc64->mwc64_lower + p_mwc64->mwc64_upper;
-    p_mwc64->mwc64_upper = (mwc64 >> 32u);
-    p_mwc64->mwc64_lower = (uint32_t)mwc64;
+    mwc64 = UINT64_C(698769069) * p_mwc->mwc_lower + p_mwc->mwc_upper;
+    p_mwc->mwc_upper = (mwc64 >> 32u);
+    p_mwc->mwc_lower = (uint32_t)mwc64;
 
     return (uint32_t)mwc64;
 }
@@ -398,53 +398,53 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc64)
  * KISS2
  ********/
 
-void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc64_upper, uint32_t seed_mwc64_lower, uint32_t seed_cong2, uint32_t seed_shr3_2)
+void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
     uint64_t    seed_mwc64;
 
     /* Initialise MWC64 RNG */
-    seed_mwc64 = ((uint64_t)seed_mwc64_upper << 32u) + seed_mwc64_lower;
+    seed_mwc64 = ((uint64_t)seed_mwc_upper << 32u) + seed_mwc_lower;
     if ((seed_mwc64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
     {
-        seed_mwc64_upper = UINT32_C(7654321);
-        seed_mwc64_lower = UINT32_C(521288629);
+        seed_mwc_upper = UINT32_C(7654321);
+        seed_mwc_lower = UINT32_C(521288629);
     }
-    p_kiss2->mwc64_upper = seed_mwc64_upper;
-    p_kiss2->mwc64_lower = seed_mwc64_lower;
+    p_kiss2->mwc_upper = seed_mwc_upper;
+    p_kiss2->mwc_lower = seed_mwc_lower;
 
     /* Initialise Cong2 RNG */
-    p_kiss2->cong2 = seed_cong2;
+    p_kiss2->cong = seed_cong;
 
     /* Initialise SHR3_2 RNG */
-    if (seed_shr3_2 == 0)
+    if (seed_shr3 == 0)
     {
-        seed_shr3_2 = UINT32_C(362436000);
+        seed_shr3 = UINT32_C(362436000);
     }
-    p_kiss2->shr3_2 = seed_shr3_2;
+    p_kiss2->shr3 = seed_shr3;
 }
 
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
 {
     uint64_t    mwc64;
-    uint32_t    shr3_2;
+    uint32_t    shr3;
 
 
     /* Calculate next MWC64 RNG */
-    mwc64 = UINT64_C(698769069) * p_kiss2->mwc64_lower + p_kiss2->mwc64_upper;
-    p_kiss2->mwc64_upper = (mwc64 >> 32u);
-    p_kiss2->mwc64_lower = (uint32_t)mwc64;
+    mwc64 = UINT64_C(698769069) * p_kiss2->mwc_lower + p_kiss2->mwc_upper;
+    p_kiss2->mwc_upper = (mwc64 >> 32u);
+    p_kiss2->mwc_lower = (uint32_t)mwc64;
 
     /* Calculate next Cong2 RNG */
-    p_kiss2->cong2 = UINT32_C(69069) * p_kiss2->cong2 + 12345u;
+    p_kiss2->cong = UINT32_C(69069) * p_kiss2->cong + 12345u;
 
     /* Calculate next SHR3_2 RNG */
-    shr3_2 = p_kiss2->shr3_2;
-    shr3_2 ^= (shr3_2 << 13);
-    shr3_2 ^= (shr3_2 >> 17);
-    shr3_2 ^= (shr3_2 << 5);
-    p_kiss2->shr3_2 = shr3_2;
+    shr3 = p_kiss2->shr3;
+    shr3 ^= (shr3 << 13);
+    shr3 ^= (shr3 >> 17);
+    shr3 ^= (shr3 << 5);
+    p_kiss2->shr3 = shr3;
 
-    return ((uint32_t)mwc64 + p_kiss2->cong2 + shr3_2);
+    return ((uint32_t)mwc64 + p_kiss2->cong + shr3);
 }
 
 #endif /* defined(UINT64_C) */
