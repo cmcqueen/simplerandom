@@ -78,31 +78,51 @@ class CongTest(unittest.TestCase):
     RNG_RANGE = (1 << RNG_BITS)
 
 
-    def test_seed(self):
+    def setUp(self):
         # Make some random seed values
-        seeds = [ random.randrange(self.RNG_RANGE) for _i in range(self.RNG_SEEDS) ]
+        self.rng_seeds = [ random.randrange(self.RNG_RANGE) for _i in range(self.RNG_SEEDS) ]
 
         # Make the RNG instance
-        rng = self.RNG_CLASS(*seeds)
+        self.rng = self.RNG_CLASS(*self.rng_seeds)
+
+    def test_seed(self):
         # Record its initial state
-        state_from_init = rng.getstate()
+        state_from_init = self.rng.getstate()
         # Use the RNG to make some random numbers
         num_next_calls = random.randrange(3, 10)
-        data_from_init = tuple([ rng.next() for _i in range(num_next_calls) ])
+        data_from_init = tuple([ self.rng.next() for _i in range(num_next_calls) ])
         # Get its state again
-        state_after_data_from_init = rng.getstate()
+        state_after_data_from_init = self.rng.getstate()
 
         # Use the seed function to set its state to the same as before
-        rng.seed(*seeds)
+        self.rng.seed(*self.rng_seeds)
         # Get its state again. It should be the same as before.
-        state_from_seed = rng.getstate()
+        state_from_seed = self.rng.getstate()
         self.assertEqual(state_from_init, state_from_seed)
         # Get random numbers again. They should be the same as before.
-        data_from_seed = tuple([ rng.next() for _i in range(num_next_calls) ])
+        data_from_seed = tuple([ self.rng.next() for _i in range(num_next_calls) ])
         self.assertEqual(data_from_init, data_from_seed)
         # Get its state again. It should be the same as before.
-        state_after_data_from_seed = rng.getstate()
+        state_after_data_from_seed = self.rng.getstate()
         self.assertEqual(state_after_data_from_init, state_after_data_from_seed)
+
+    def test_state(self):
+        # Run it for some random count
+        count1 = random.randrange(100,1000)
+        for _i in range(count1):
+            self.rng.next()
+
+        # Get the state
+        rng_state = self.rng.getstate()
+
+        # Run it again for a while
+        count2 = 1000
+        rng_data = [ self.rng.next() for _i in range(count2) ]
+
+        # Now reset to the previous state, and re-run the data
+        self.rng.setstate(rng_state)
+        for i in range(count2):
+            self.assertEqual(self.rng.next(), rng_data[i])
 
 
 class SHR3Test(CongTest):
