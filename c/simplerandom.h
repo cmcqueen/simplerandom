@@ -15,7 +15,9 @@
  *     SWB
  *
  * Due to analysis of SHR3 in ref [3], I believe the SHR3
- * as defined in the 1999 post should not be used. The
+ * as defined in the 1999 post should not be used. It
+ * doesn't actually have a period of 2^32-1 as expected,
+ * but has 64 cycles, some with very short periods. The
  * SHR3 in the 2003 post is very similar, but with two
  * shift values swapped. My suspicion is that the SHR3
  * shift values in the 1999 post are a typo.
