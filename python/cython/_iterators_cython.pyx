@@ -9,7 +9,7 @@ cdef class RandomCongIterator(object):
     '''Congruential random number generator
 
     This is a congruential generator with the widely used
-    69069 multiplier: x[n]=69069x[n-1]+1234567. It has
+    69069 multiplier: x[n]=69069x[n-1]+12345. It has
     period 2**32.
     
     The leading half of its 32 bits seem to pass tests,
@@ -23,37 +23,6 @@ cdef class RandomCongIterator(object):
     as it was the system generator for VAX and was
     incorporated in several popular software packages,
     all seemingly without complaint.
-    '''
-
-    cdef public uint32_t cong
-
-    def __init__(self, seed = None):
-        if seed==None:
-            seed = 12344
-        self.cong = int(seed)
-
-    def seed(self, seed = None):
-        self.__init__(seed)
-
-    def __next__(self):
-        self.cong = 69069u * self.cong + 1234567u
-        return self.cong
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-        return (self.cong, )
-
-    def setstate(self, state):
-        self.cong = int(state[0])
-
-
-cdef class RandomCong2Iterator(object):
-    '''Congruential random number generator
-
-    Very similar to RandomCongIterator, but with different
-    added constant and different default seed.
     '''
 
     cdef public uint32_t cong
@@ -84,7 +53,7 @@ cdef class RandomSHR3Iterator(object):
     '''3-shift-register random number generator
 
     SHR3 is a 3-shift-register generator with period
-    2**32-1. It uses y[n]=y[n-1](I+L^17)(I+R^13)(I+L^5),
+    2**32-1. It uses y[n]=y[n-1](I+L^13)(I+R^17)(I+L^5),
     with the y's viewed as binary vectors, L the 32x32
     binary matrix that shifts a vector left 1, and R its
     transpose.
@@ -95,42 +64,6 @@ cdef class RandomSHR3Iterator(object):
     32 successive truly random 32-bit integers, viewed
     as binary vectors, will be linearly independent only
     about 29% of the time.
-    '''
-
-    cdef public uint32_t shr3
-
-    def __init__(self, seed = None):
-        if seed==None or seed==0:
-            seed = 34223
-        self.shr3 = int(seed)
-
-    def seed(self, seed = None):
-        self.__init__(seed)
-
-    def __next__(self):
-        cdef uint32_t shr3
-        shr3 = self.shr3
-        shr3 ^= shr3 << 17u
-        shr3 ^= shr3 >> 13u
-        shr3 ^= shr3 << 5u
-        self.shr3 = shr3
-        return shr3
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-        return (self.shr3, )
-
-    def setstate(self, state):
-        self.shr3 = int(state[0])
-
-
-cdef class RandomSHR3_2Iterator(object):
-    '''3-shift-register random number generator
-    
-    This differs from the SHR3 generator in the default seed
-    value, and the values of the three shift operations.
     '''
 
     cdef public uint32_t shr3
@@ -309,12 +242,12 @@ cdef class RandomKISSIterator(object):
 
         # Initialise Cong RNG
         if seed_cong==None:
-            seed_cong = 12344
+            seed_cong = 123456789
         self.cong = int(seed_cong)
 
         # Initialise SHR3 RNG
         if seed_shr3==None or seed_shr3==0:
-            seed_shr3 = 34223
+            seed_shr3 = 362436000
         self.shr3 = int(seed_shr3)
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
@@ -330,12 +263,12 @@ cdef class RandomKISSIterator(object):
         mwc = (self.mwc_upper << 16u) + self.mwc_lower
 
         # Update Cong RNG
-        self.cong = 69069u * self.cong + 1234567u
+        self.cong = 69069u * self.cong + 12345u
 
         # Update SHR3 RNG
         shr3 = self.shr3
-        shr3 ^= shr3 << 17u
-        shr3 ^= shr3 >> 13u
+        shr3 ^= shr3 << 13u
+        shr3 ^= shr3 >> 17u
         shr3 ^= shr3 << 5u
         self.shr3 = shr3
 
@@ -361,18 +294,16 @@ cdef class RandomKISSIterator(object):
 cdef class RandomKISS2Iterator(object):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the RandomMWC64, RandomCong2, RandomSHR3_2
+    It combines the RandomMWC64, RandomCong, RandomSHR3
     generators. Period is about 2**123.
 
     This is a slightly updated KISS generator design, from
     a newsgroup post in 2003:
 
-    http://groups.google.com/group/comp.soft-sys.math.mathematica/msg/95a94c3b2aa5f077
+    http://groups.google.com/group/sci.math/msg/9959175f66dd138f
 
-    The Cong and SHR3 component generators are changed
-    slightly. The MWC component uses a single 64-bit
-    calculation, instead of two 32-bit calculations that
-    are combined.
+    The MWC component uses a single 64-bit calculation,
+    instead of two 32-bit calculations that are combined.
     '''
 
     cdef public uint32_t cong
@@ -401,12 +332,12 @@ cdef class RandomKISS2Iterator(object):
         self.mwc_upper = seed_mwc_upper
         self.mwc_lower = seed_mwc_lower
 
-        # Initialise Cong2 RNG
+        # Initialise Cong RNG
         if seed_cong==None:
             seed_cong = 123456789
         self.cong = int(seed_cong)
 
-        # Initialise SHR3_2 RNG
+        # Initialise SHR3 RNG
         if seed_shr3==None or seed_shr3==0:
             seed_shr3 = 362436000
         self.shr3 = int(seed_shr3)
@@ -423,10 +354,10 @@ cdef class RandomKISS2Iterator(object):
         self.mwc_lower = temp64 & 0xFFFFFFFFu
         self.mwc_upper = temp64 >> 32u
 
-        # Update Cong2 RNG
+        # Update Cong RNG
         self.cong = 69069u * self.cong + 12345u
 
-        # Update SHR3_2 RNG
+        # Update SHR3 RNG
         shr3 = self.shr3
         shr3 ^= shr3 << 13u
         shr3 ^= shr3 >> 17u
@@ -457,7 +388,7 @@ def _fib_adjust_seed(seed):
         seed += 2u
     return seed
 
-cdef class _RandomFibIterator(object):
+cdef class RandomFibIterator(object):
     '''Classical Fibonacci sequence
 
     x[n]=x[n-1]+x[n-2],but taken modulo 2**32. Its

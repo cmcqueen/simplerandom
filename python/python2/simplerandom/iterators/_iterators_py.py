@@ -1,23 +1,9 @@
 
-class _RandomIteratorTemplate(object):
-    '''Template class for random number generator'''
-
-    def __init__(self, seed = None):
-        raise NotImplemented
-
-    def next(self):
-        raise NotImplemented
-        return 0
-
-    def __iter__(self):
-        return self
-
-
 class RandomCongIterator(object):
     '''Congruential random number generator
 
     This is a congruential generator with the widely used
-    69069 multiplier: x[n]=69069x[n-1]+1234567. It has
+    69069 multiplier: x[n]=69069x[n-1]+12345. It has
     period 2**32.
     
     The leading half of its 32 bits seem to pass tests,
@@ -31,35 +17,6 @@ class RandomCongIterator(object):
     as it was the system generator for VAX and was
     incorporated in several popular software packages,
     all seemingly without complaint.
-    '''
-
-    def __init__(self, seed = None):
-        if seed==None:
-            seed = 12344
-        self.cong = int(seed) & 0xFFFFFFFF
-
-    def seed(self, seed = None):
-        self.__init__(seed)
-
-    def next(self):
-        self.cong = (69069 * self.cong + 1234567) & 0xFFFFFFFF
-        return self.cong
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-        return (self.cong, )
-
-    def setstate(self, state):
-        (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
-
-
-class RandomCong2Iterator(object):
-    '''Congruential random number generator
-
-    Very similar to RandomCongIterator, but with different
-    added constant and different default seed.
     '''
 
     def __init__(self, seed = None):
@@ -88,7 +45,7 @@ class RandomSHR3Iterator(object):
     '''3-shift-register random number generator
 
     SHR3 is a 3-shift-register generator with period
-    2**32-1. It uses y[n]=y[n-1](I+L^17)(I+R^13)(I+L^5),
+    2**32-1. It uses y[n]=y[n-1](I+L^13)(I+R^17)(I+L^5),
     with the y's viewed as binary vectors, L the 32x32
     binary matrix that shifts a vector left 1, and R its
     transpose.
@@ -99,39 +56,6 @@ class RandomSHR3Iterator(object):
     32 successive truly random 32-bit integers, viewed
     as binary vectors, will be linearly independent only
     about 29% of the time.
-    '''
-
-    def __init__(self, seed = None):
-        if seed==None or seed==0:
-            seed = 34223
-        self.shr3 = int(seed) & 0xFFFFFFFF
-
-    def seed(self, seed = None):
-        self.__init__(seed)
-
-    def next(self):
-        shr3 = self.shr3
-        shr3 ^= (shr3 & 0x7FFF) << 17
-        shr3 ^= shr3 >> 13
-        shr3 ^= (shr3 & 0x7FFFFFF) << 5
-        self.shr3 = shr3
-        return shr3
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-        return (self.shr3, )
-
-    def setstate(self, state):
-        (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
-
-
-class RandomSHR3_2Iterator(object):
-    '''3-shift-register random number generator
-    
-    This differs from the SHR3 generator in the default seed
-    value, and the values of the three shift operations.
     '''
 
     def __init__(self, seed = None):
@@ -330,7 +254,7 @@ class RandomKISSIterator(object):
 class RandomKISS2Iterator(object):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the RandomMWC64, RandomCong2, RandomSHR3_2
+    It combines the RandomMWC64, RandomCong, RandomSHR3
     generators. Period is about 2**123.
 
     This is a slightly updated KISS generator design, from
@@ -338,16 +262,14 @@ class RandomKISS2Iterator(object):
 
     http://groups.google.com/group/sci.math/msg/9959175f66dd138f
 
-    The Cong and SHR3 component generators are changed
-    slightly. The MWC component uses a single 64-bit
-    calculation, instead of two 32-bit calculations that
-    are combined.
+    The MWC component uses a single 64-bit calculation,
+    instead of two 32-bit calculations that are combined.
     '''
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.random_mwc = RandomMWC64Iterator(seed_mwc_upper, seed_mwc_lower)
-        self.random_cong = RandomCong2Iterator(seed_cong)
-        self.random_shr3 = RandomSHR3_2Iterator(seed_shr3)
+        self.random_cong = RandomCongIterator(seed_cong)
+        self.random_shr3 = RandomSHR3Iterator(seed_shr3)
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
@@ -543,7 +465,7 @@ class RandomSWBIterator(RandomLFIB4Iterator):
             self.borrow = 0
 
 
-class _RandomFibIterator(object):
+class RandomFibIterator(object):
     '''Classical Fibonacci sequence
 
     x[n]=x[n-1]+x[n-2],but taken modulo 2**32. Its

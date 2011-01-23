@@ -31,32 +31,32 @@ class Marsaglia1999Tests(unittest.TestCase):
         lfib4 = sri.RandomLFIB4Iterator(t)
         for i in range(1000000):
             k = lfib4.next()
-        self.assertEqual(k, 1064612766)
+        self.assertEqual(k, 3673084687)
 
         # Test SWB
         swb = sri.RandomSWBIterator(lfib4.t)
         swb.c = lfib4.c
         for i in range(1000000):
             k = swb.next()
-        self.assertEqual(k, 627749721)
+        self.assertEqual(k, 319777393)
 
     def test_kiss_million(self):
-        random_kiss = sri.RandomKISSIterator(2247183469, 99545079, 1017008441, 3259917390)
+        random_kiss = sri.RandomKISSIterator(2247183469, 99545079, 3269400377, 3950144837)
         for i in range(1000000):
             k = random_kiss.next()
-        self.assertEqual(k, 1372460312)
+        self.assertEqual(k, 2100035942)
 
     def test_cong_million(self):
-        cong = sri.RandomCongIterator(2524969849)
+        cong = sri.RandomCongIterator(2051391225)
         for i in range(1000000):
             k = cong.next()
-        self.assertEqual(k, 1529210297)
+        self.assertEqual(k, 2416584377)
 
     def test_shr3_million(self):
-        shr3 = sri.RandomSHR3Iterator(4176875757)
+        shr3 = sri.RandomSHR3Iterator(3360276411)
         for i in range(1000000):
             k = shr3.next()
-        self.assertEqual(k, 2642725982)
+        self.assertEqual(k, 1153302609)
 
     def test_mwc_million(self):
         mwc = sri.RandomMWCIterator(2374144069, 1046675282)
@@ -65,7 +65,7 @@ class Marsaglia1999Tests(unittest.TestCase):
         self.assertEqual(k, 904977562)
 
     def test_fib_million(self):
-        fib = sri._RandomFibIterator(9983651,95746118)
+        fib = sri.RandomFibIterator(9983651,95746118)
         for i in range(1000000):
             k = fib.next()
         self.assertEqual(k, 3519793928)
@@ -105,9 +105,19 @@ class CongTest(unittest.TestCase):
         self.assertEqual(state_after_data_from_init, state_after_data_from_seed)
 
 
-class Cong2Test(CongTest):
-    RNG_CLASS = sri.RandomCong2Iterator
-    MILLION_RESULT = 410693845
+class SHR3Test(CongTest):
+    RNG_CLASS = sri.RandomSHR3Iterator
+
+
+class MWCTest(CongTest):
+    RNG_CLASS = sri.RandomMWCIterator
+    RNG_SEEDS = 2
+
+
+class KISS2Test(CongTest):
+    RNG_CLASS = sri.RandomKISS2Iterator
+    RNG_SEEDS = 4
+    MILLION_RESULT = 1010846401
 
     def test_million(self):
         rng = self.RNG_CLASS()
@@ -116,21 +126,7 @@ class Cong2Test(CongTest):
         self.assertEqual(k, self.MILLION_RESULT)
 
 
-class SHR3Test(CongTest):
-    RNG_CLASS = sri.RandomSHR3Iterator
-
-
-class SHR3_2Test(Cong2Test):
-    RNG_CLASS = sri.RandomSHR3_2Iterator
-    MILLION_RESULT = 1517776246
-
-
-class MWCTest(CongTest):
-    RNG_CLASS = sri.RandomMWCIterator
-    RNG_SEEDS = 2
-
-
-class MWC64Test(Cong2Test):
+class MWC64Test(KISS2Test):
     RNG_CLASS = sri.RandomMWC64Iterator
     RNG_SEEDS = 2
     MILLION_RESULT = 3377343606
@@ -150,14 +146,8 @@ class KISSTest(CongTest):
     RNG_SEEDS = 4
 
 
-class KISS2Test(Cong2Test):
-    RNG_CLASS = sri.RandomKISS2Iterator
-    RNG_SEEDS = 4
-    MILLION_RESULT = 1010846401
-
-
 class FibTest(CongTest):
-    RNG_CLASS = sri._RandomFibIterator
+    RNG_CLASS = sri.RandomFibIterator
     RNG_SEEDS = 2
 
 
@@ -167,3 +157,4 @@ def runtests():
 
 if __name__ == '__main__':
     runtests()
+

@@ -5,7 +5,7 @@ import random
 from simplerandom.iterators import *
 
 
-class StandardRandomTemplate(random.Random):
+class _StandardRandomTemplate(random.Random):
     BPF = random.BPF
     RECIP_BPF = random.RECIP_BPF
     RNG_BITS = 32
@@ -54,23 +54,29 @@ class StandardRandomTemplate(random.Random):
         self.rng_iterator.setstate(rng_state)
 
 
-class RandomCong(StandardRandomTemplate):
+class RandomCong(_StandardRandomTemplate):
     '''Congruential random number generator'''
     RNG_CLASS = RandomCongIterator
 
 
-class RandomSHR3(StandardRandomTemplate):
+class RandomSHR3(_StandardRandomTemplate):
     '''3-shift-register random number generator'''
     RNG_CLASS = RandomSHR3Iterator
 
 
-class RandomMWC(StandardRandomTemplate):
+class RandomMWC(_StandardRandomTemplate):
     '''"Multiply-with-carry" random number generator'''
     RNG_CLASS = RandomMWCIterator
     RNG_SEEDS = 2
 
 
-class RandomKISS(StandardRandomTemplate):
+class RandomMWC64(_StandardRandomTemplate):
+    '''"Multiply-with-carry" random number generator'''
+    RNG_CLASS = RandomMWC64Iterator
+    RNG_SEEDS = 2
+
+
+class RandomKISS(_StandardRandomTemplate):
     '''"Keep It Simple Stupid" random number generator
     
     It combines the RandomMWC, RandomCong, RandomSHR3
@@ -80,7 +86,17 @@ class RandomKISS(StandardRandomTemplate):
     RNG_SEEDS = 4
 
 
-class RandomLFIB4(StandardRandomTemplate):
+class RandomKISS2(_StandardRandomTemplate):
+    '''"Keep It Simple Stupid" random number generator
+    
+    It combines the RandomMWC64, RandomCong, RandomSHR3
+    generators. Period is about 2**123.
+    '''
+    RNG_CLASS = RandomKISS2Iterator
+    RNG_SEEDS = 4
+
+
+class RandomLFIB4(_StandardRandomTemplate):
     '''"Lagged Fibonacci 4-lag" random number generator'''
 
     RNG_CLASS = RandomLFIB4Iterator
