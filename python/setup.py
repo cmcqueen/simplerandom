@@ -7,7 +7,7 @@
 # from the C file.
 USE_CYTHON = True
 
-VERSION_STRING = '0.8.1'
+VERSION_STRING = '0.9.0'
 
 
 import sys
@@ -80,3 +80,4 @@ setup(
     ],
     keywords='simple random pseudorandom RNG PRNG',
 )
+
