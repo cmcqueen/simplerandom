@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 # Set this to True to enable building extensions using Cython.
-# Otherwise, it will build extensions from the C file (that
+# Set it to False to build extensions from the C file (that
 # was previously created using Cython).
+# Set it to 'auto' to build with Cython if available, otherwise
+# from the C file.
 USE_CYTHON = True
 
 VERSION_STRING = '0.8.1'
@@ -14,7 +16,13 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 if USE_CYTHON:
-    from Cython.Distutils import build_ext
+    try:
+        from Cython.Distutils import build_ext
+    except ImportError:
+        if USE_CYTHON=='auto':
+            USE_CYTHON=False
+        else:
+            raise
 
 cmdclass = { }
 ext_modules = [ ]
