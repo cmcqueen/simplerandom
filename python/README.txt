@@ -16,17 +16,42 @@ Intro
 The ``simplerandom`` package is provided, which contains modules containing
 classes for various simple pseudo-random number generators.
 
-The algorithms were obtained from two newsgroup posts by George Marsaglia
-[#marsaglia1999]_ [#marsaglia2003]_. The algorithms were specified in C in the
-newsgroup posts. For the purpose of prototyping software in a high-level
-language such as Python, before writing it in faster C, it is useful to have
-identical algorithms implemented in both Python and C.
-
 One module provides Python iterators, which generate simple unsigned 32-bit
 integers identical to their C counterparts.
 
 Another module provides random classes that are sub-classed from the class
 ``Random`` in the ``random`` module of the standard Python library.
+
+Why use this package? These random number generators are very simple, which
+has two main advantages:
+
+* It is easy to port them to a different platform and/or language. It can be
+  useful to be able to implement the identical algorithm on multiple
+  platforms and/or languages.
+* Small and simple generators can be more appropriate for small embedded
+  systems, with limited RAM and ROM.
+
+An equivalent C implementation (of the Python ``simplerandom.iterators``
+module) has been created. See:
+
+    http://bitbucket.org/cmcqueen1975/simplerandom
+
+Algorithms
+``````````
+
+The algorithms were obtained from two newsgroup posts by George Marsaglia
+[#marsaglia1999]_ [#marsaglia2003]_. However, some modifications have been
+made. From [#rose]_, it seems that the SHR3 algorithm defined in
+[#marsaglia1999]_ is flawed and should not be used. It doesn't actually have a
+period of 2**32-1 as expected, but has 64 different cycles, some with very
+short periods. The SHR3 in the 2003 post is very similar, but with two shift
+values swapped. My suspicion is that the SHR3 shift values in the 1999 post
+are a typo.
+
+We still care about KISS from [#marsaglia1999]_ mainly because it uses 32-bit
+calculations for MWC, which can be more suitable for small embedded systems.
+So we define KISS that uses the MWC from [#marsaglia1999]_, but the Cong and
+SHR3 from [#marsaglia2003]_.
 
 
 References
@@ -48,13 +73,13 @@ References
 .. _RNGs:
     http://groups.google.com/group/sci.math/msg/9959175f66dd138f
 
-.. [#cook]      | `Simple Random Number Generation`__
-                | John D. Cook
-                | The Code Project, 27 Jul 2010
+.. [#rose]      | `KISS: A Bit Too Simple`__
+                | Greg Rose
+                | Qualcomm Inc.
 
 .. __:
-.. _Simple Random Number Generation:
-    http://www.codeproject.com/KB/recipes/SimpleRNG.aspx
+.. _KISS\: A Bit Too Simple:
+    http://eprint.iacr.org/2011/007.pdf
 
 
 ----------------
@@ -77,17 +102,15 @@ In ``simplerandom.iterators``, the following pseudo-random number generators are
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``RandomCongIterator``      This and below from From [#marsaglia1999]_.
-``RandomSHR3Iterator``      
-``RandomMWCIterator``       Slightly different algorithm from that in [#cook]_.
-``RandomKISSIterator``      Combination of MWC, Cong and SHR3
-``RandomLFIB4Iterator``
-``RandomSWBIterator``
-``_RandomFibIterator``      Not useful on its own, but can be used in a combination with other generators.
-``RandomCong2Iterator``     This and below from From [#marsaglia2003]_. Very similar to Cong, but different added constant and default seed.
-``RandomSHR3_2Iterator``    Similar to SHR3, but different shift values and default seed.
-``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation.
-``RandomKISS2Iterator``     Combination of MWC64, Cong2 and SHR3_2
+``RandomMWCIterator``       Two 32-bit MWCs combined. From [#marsaglia1999]_.
+``RandomCongIterator``      From [#marsaglia2003]_.
+``RandomSHR3Iterator``      From [#marsaglia2003]_.
+``RandomLFIB4Iterator``     From [#marsaglia1999]_.
+``RandomSWBIterator``       From [#marsaglia1999]_.
+``RandomFibIterator``       Not useful on its own, but can be used in a combination with other generators. From [#marsaglia1999]_.
+``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
+``RandomKISSIterator``      Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
+``RandomKISS2Iterator``     Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
 ==========================  ===========================================================================
 
 In ``simplerandom.random``, the following pseudo-random number generators are provided:
@@ -95,12 +118,14 @@ In ``simplerandom.random``, the following pseudo-random number generators are pr
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``RandomCong``              This and below from From [#marsaglia1999]_.
-``RandomSHR3``      
-``RandomMWC``               Slightly different algorithm from that in [#cook]_.
-``RandomKISS``              Combination of MWC, Cong and SHR3
-``RandomLFIB4``
-``RandomSWB``
+``RandomMWC``               Two 32-bit MWCs combined. From [#marsaglia1999]_.
+``RandomCong``              From [#marsaglia2003]_.
+``RandomSHR3``              From [#marsaglia2003]_.
+``RandomLFIB4``             From [#marsaglia1999]_.
+``RandomSWB``               From [#marsaglia1999]_.
+``RandomMWC64``             A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
+``RandomKISS``              Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
+``RandomKISS2``             Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
 ==========================  ===========================================================================
 
 
@@ -114,11 +139,11 @@ Iterators
     >>> import simplerandom.iterators as sri
     >>> rng = sri.RandomKISSIterator(123958, 34987243, 3495825239, 2398172431)
     >>> next(rng)
-    21111917L
+    702895144L
     >>> next(rng)
-    1327965872L
+    13983691L
     >>> next(rng)
-    2128842716L
+    699724563L
 
 Random class API
 ````````````````
@@ -126,11 +151,11 @@ Random class API
     >>> import simplerandom.random as srr
     >>> rng = srr.RandomKISS(258725234)
     >>> rng.random()
-    0.30631872435766117
+    0.77345210517180141
     >>> rng.random()
-    0.43903576112750442
+    0.27725185740138936
     >>> rng.random()
-    0.69756297733927486
+    0.91217281705021191
 
 
 -------------------------
