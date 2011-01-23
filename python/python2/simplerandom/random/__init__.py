@@ -8,16 +8,18 @@ Reference: http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 """
 
 __all__ = [
-    "StandardRandomTemplate",
+    "_StandardRandomTemplate",
     "RandomCong",
     "RandomSHR3",
     "RandomMWC",
+    "RandomMWC64",
     "RandomKISS",
+    "RandomKISS2",
     "RandomLFIB4",
     "RandomSWB",
 ]
 
 
 from simplerandom.random._random_py import *
-
+from simplerandom.random._random_py import _StandardRandomTemplate
 
