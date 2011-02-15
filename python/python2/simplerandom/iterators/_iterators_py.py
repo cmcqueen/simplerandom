@@ -514,3 +514,55 @@ class RandomFibIterator(object):
         (self.a, self.b) = (int(val) & 0xFFFFFFFF for val in state)
 
 
+class RandomLFSR113Iterator(object):
+    '''Combined LFSR random number generator by L'Ecuyer
+
+    It combines 4 LFSR generators. The generators have been
+    chosen for maximal equidistribution.
+
+    The period is approximately 2^113.
+    '''
+
+    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
+        def process_seed(seed, min_value):
+            if seed==None:
+                seed = 12345
+            else:
+                seed = int(seed) & 0xFFFFFFFF
+                if seed < min_value:
+                    seed += min_value
+            return seed
+        self.z1 = process_seed(seed_z1, 2)
+        self.z2 = process_seed(seed_z2, 8)
+        self.z3 = process_seed(seed_z3, 16)
+        self.z4 = process_seed(seed_z4, 128)
+
+    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
+        self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
+
+    def next(self):
+        b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
+        self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
+
+        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 27
+        self.z2 = ((self.z2 & 0x3FFFFFF8) << 2) ^ b
+
+        b       = (((self.z3 & 0x0007FFFF) << 13) ^ self.z3) >> 21
+        self.z3 = ((self.z3 & 0x01FFFFF0) << 7) ^ b
+
+        b       = (((self.z4 & 0x1FFFFFFF) << 3) ^ self.z4) >> 12
+        self.z4 = ((self.z4 & 0x0007FF80) << 13) ^ b
+
+        return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.z1, self.z2, self.z3, self.z4)
+
+    def setstate(self, state):
+        (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
+
+
+

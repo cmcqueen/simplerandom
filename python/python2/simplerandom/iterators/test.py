@@ -171,6 +171,12 @@ class FibTest(CongTest):
     RNG_SEEDS = 2
 
 
+class LFSR113Test(KISS2Test):
+    RNG_CLASS = sri.RandomLFSR113Iterator
+    RNG_SEEDS = 4
+    MILLION_RESULT = 1205173390
+
+
 def runtests():
     unittest.main()
 
