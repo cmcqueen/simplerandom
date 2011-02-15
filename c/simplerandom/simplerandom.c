@@ -453,7 +453,7 @@ uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
     b  = ((z1 << 6) ^ z1) >> 13;
     z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 18) ^ b;
 
-    b  = ((z2 << 2) ^ z2) >> 27; 
+    b  = ((z2 << 2) ^ z2) >> 27;
     z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 2) ^ b;
 
     b  = ((z3 << 13) ^ z3) >> 21;
