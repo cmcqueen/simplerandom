@@ -405,3 +405,68 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
 
 #endif /* defined(UINT64_C) */
 
+/*********
+ * LFSR113
+ ********/
+ 
+void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4)
+{
+    if (seed_z1 < 2u)
+    {
+        seed_z1 += 2u;
+    }
+    p_lfsr113->z1 = seed_z1;
+
+    if (seed_z2 < 8u)
+    {
+        seed_z2 += 8u;
+    }
+    p_lfsr113->z2 = seed_z2;
+
+    if (seed_z3 < 16u)
+    {
+        seed_z3 += 16u;
+    }
+    p_lfsr113->z3 = seed_z3;
+
+    if (seed_z4 < 128u)
+    {
+        seed_z4 += 128u;
+    }
+    p_lfsr113->z4 = seed_z4;
+}
+
+uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    b;
+    uint32_t    z1;
+    uint32_t    z2;
+    uint32_t    z3;
+    uint32_t    z4;
+
+
+    z1 = p_lfsr113->z1;
+    z2 = p_lfsr113->z2;
+    z3 = p_lfsr113->z3;
+    z4 = p_lfsr113->z4;
+
+    b  = ((z1 << 6) ^ z1) >> 13;
+    z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 18) ^ b;
+
+    b  = ((z2 << 2) ^ z2) >> 27; 
+    z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 2) ^ b;
+
+    b  = ((z3 << 13) ^ z3) >> 21;
+    z3 = ((z3 & UINT32_C(0xFFFFFFF0)) << 7) ^ b;
+
+    b  = ((z4 << 3) ^ z4) >> 12;
+    z4 = ((z4 & UINT32_C(0xFFFFFF80)) << 13) ^ b;
+
+    p_lfsr113->z1 = z1;
+    p_lfsr113->z2 = z2;
+    p_lfsr113->z3 = z3;
+    p_lfsr113->z4 = z4;
+
+    return (z1 ^ z2 ^ z3 ^ z4);
+}
+

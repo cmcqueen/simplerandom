@@ -17,6 +17,7 @@ int main(void)
     SimpleRandomSWB_t       swb;
     SimpleRandomMWC64_t     mwc64;
     SimpleRandomKISS2_t     kiss2;
+    SimpleRandomLFSR113_t   lfsr113;
     uint32_t                i;
     uint32_t                k;
 
@@ -27,7 +28,7 @@ int main(void)
     {
         k = simplerandom_cong_next(&cong);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(2416584377));
+    printf("Cong        %"PRIu32"\n", k - UINT32_C(2416584377));
 
     /* SHR3 */
     simplerandom_shr3_seed(&shr3, UINT32_C(3360276411));
@@ -35,7 +36,7 @@ int main(void)
     {
         k = simplerandom_shr3_next(&shr3);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(1153302609));
+    printf("SHR3        %"PRIu32"\n", k - UINT32_C(1153302609));
 
     /* MWC */
     simplerandom_mwc_seed(&mwc, UINT32_C(2374144069), UINT32_C(1046675282));
@@ -43,7 +44,7 @@ int main(void)
     {
         k = simplerandom_mwc_next(&mwc);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(904977562));
+    printf("MWC         %"PRIu32"\n", k - UINT32_C(904977562));
 
     /* KISS */
     simplerandom_kiss_seed(&kiss, UINT32_C(2247183469), UINT32_C(99545079), UINT32_C(3269400377), UINT32_C(3950144837));
@@ -51,7 +52,7 @@ int main(void)
     {
         k = simplerandom_kiss_next(&kiss);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(2100035942));
+    printf("KISS        %"PRIu32"\n", k - UINT32_C(2100035942));
 
     /* Fib */
     simplerandom_fib_seed(&fib, UINT32_C(9983651), UINT32_C(95746118));
@@ -59,7 +60,7 @@ int main(void)
     {
         k = simplerandom_fib_next(&fib);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(3519793928));
+    printf("Fib         %"PRIu32"\n", k - UINT32_C(3519793928));
 
     /* LFIB4 */
     /* Below are 2 different seed methods, which should be equivalent */
@@ -77,7 +78,7 @@ int main(void)
     {
         k = simplerandom_lfib4_next(&lfib4);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(3673084687));
+    printf("LFIB4       %"PRIu32"\n", k - UINT32_C(3673084687));
 
     /* SWB */
     /* The 1999 Marsaglia test code ran SWB using LFIB4's
@@ -92,7 +93,7 @@ int main(void)
     {
         k = simplerandom_swb_next(&swb);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(319777393));
+    printf("SWB         %"PRIu32"\n", k - UINT32_C(319777393));
 
 #ifdef UINT64_C
 
@@ -102,7 +103,7 @@ int main(void)
     {
         k = simplerandom_mwc64_next(&mwc64);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(3377343606));
+    printf("MWC64       %"PRIu32"\n", k - UINT32_C(3377343606));
 
     /* KISS2 */
     simplerandom_kiss2_seed(&kiss2, UINT32_C(7654321), UINT32_C(521288629), UINT32_C(123456789), UINT32_C(362436000));
@@ -110,8 +111,17 @@ int main(void)
     {
         k = simplerandom_kiss2_next(&kiss2);
     }
-    printf("%"PRIu32"\n", k - UINT32_C(1010846401));
+    printf("KISS2       %"PRIu32"\n", k - UINT32_C(1010846401));
 
 #endif /* defined(UINT64_C) */
+
+    /* LFSR113 */
+    simplerandom_lfsr113_seed(&lfsr113, UINT32_C(12345), UINT32_C(12345), UINT32_C(12345), UINT32_C(12345));
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_lfsr113_next(&lfsr113);
+    }
+    printf("LFSR113     %"PRIu32"\n", k - UINT32_C(1205173390));
+
 }
 

@@ -3,7 +3,7 @@
  *
  * Simple Pseudo-random Number Generators
  *
- * All of these are from two newsgroup posts by
+ * Most of these are from two newsgroup posts by
  * George Marsaglia.
  *
  * The first was in 1999 [1]. From that newsgroup post,
@@ -39,6 +39,9 @@
  *     SHR3
  *     KISS2
  *
+ * The LFSR113 generator by L'Ecuyer is also implemented
+ * [4].
+ *
  * References:
  *
  * [1] Random Numbers for C: End, at last?
@@ -55,6 +58,11 @@
  *     Greg Rose
  *     Qualcomm Inc.
  *     http://eprint.iacr.org/2011/007.pdf
+ *
+ * [4] "Tables of Maximally-Equidistributed Combined LFSR Generators"
+ *     Pierre L'Ecuyer
+ *     http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.3639
+ *     http://www.iro.umontreal.ca/~simardr/rng/lfsr113.c
  */
 
 #ifndef _SIMPLERANDOM_H
@@ -126,6 +134,14 @@ typedef struct
 } SimpleRandomKISS2_t;
 
 #endif /* defined(UINT64_C) */
+
+typedef struct
+{
+    uint32_t    z1;
+    uint32_t    z2;
+    uint32_t    z3;
+    uint32_t    z4;
+} SimpleRandomLFSR113_t;
 
 
 /*****************************************************************************
@@ -320,6 +336,16 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 
 #endif /* defined(UINT64_C) */
+
+/* LFSR113 -- Combined LFSR random number generator by L'Ecuyer
+ *
+ * It combines 4 LFSR generators. The generators have been
+ * chosen for maximal equidistribution.
+ *
+ * The period is approximately 2^113.
+ */
+void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4);
+uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
 
 
 #endif /* !defined(_SIMPLERANDOM_H) */
