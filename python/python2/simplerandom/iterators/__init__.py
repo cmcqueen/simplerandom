@@ -14,6 +14,7 @@ __all__ = [
     "RandomLFIB4Iterator",
     "RandomSWBIterator",
     "RandomFibIterator",
+    "RandomLFSR113Iterator",
 ]
 
 try:
