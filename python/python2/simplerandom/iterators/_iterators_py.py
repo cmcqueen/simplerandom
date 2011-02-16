@@ -520,7 +520,7 @@ class RandomLFSR113Iterator(object):
     It combines 4 LFSR generators. The generators have been
     chosen for maximal equidistribution.
 
-    The period is approximately 2^113.
+    The period is approximately 2**113.
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
