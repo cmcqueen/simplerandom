@@ -39,19 +39,21 @@ module) has been created. See:
 Algorithms
 ``````````
 
-The algorithms were obtained from two newsgroup posts by George Marsaglia
+Most algorithms were obtained from two newsgroup posts by George Marsaglia
 [#marsaglia1999]_ [#marsaglia2003]_. However, some modifications have been
 made. From [#rose]_, it seems that the SHR3 algorithm defined in
 [#marsaglia1999]_ is flawed and should not be used. It doesn't actually have a
 period of 2**32-1 as expected, but has 64 different cycles, some with very
 short periods. The SHR3 in the 2003 post is very similar, but with two shift
-values swapped. My suspicion is that the SHR3 shift values in the 1999 post
-are a typo.
+values swapped. It has a period of 2**32-1 as expected.
 
-We still care about KISS from [#marsaglia1999]_ mainly because it uses 32-bit
+We still find KISS from [#marsaglia1999]_ useful mainly because it uses 32-bit
 calculations for MWC, which can be more suitable for small embedded systems.
 So we define KISS that uses the MWC from [#marsaglia1999]_, but the Cong and
 SHR3 from [#marsaglia2003]_.
+
+From L'Ecuyer [#lecuyer]_, the LFSR113 algorithm [#lfsr113]_ has been
+implemented.
 
 
 References
@@ -80,6 +82,20 @@ References
 .. __:
 .. _KISS\: A Bit Too Simple:
     http://eprint.iacr.org/2011/007.pdf
+
+.. [#lecuyer]   | `Tables of Maximally-Equidistributed Combined LFSR Generators`__
+                | Pierre L'Ecuyer
+
+.. __:
+.. _Tables of Maximally-Equidistributed Combined LFSR Generators:
+    http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.3639
+
+.. [#lfsr113]   | `LFSR113 C double implementation`__
+                | Pierre L'Ecuyer
+
+.. __:
+.. _LFSR113 C double implementation:
+    http://www.iro.umontreal.ca/~simardr/rng/lfsr113.c
 
 
 ----------------
@@ -111,6 +127,7 @@ Generator                   Notes
 ``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
 ``RandomKISSIterator``      Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
 ``RandomKISS2Iterator``     Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
+``RandomLFSR113Iterator``   Combined LFSR random number generator by L'Ecuyer. From [#lecuyer]_ [#lfsr113]_.
 ==========================  ===========================================================================
 
 In ``simplerandom.random``, the following pseudo-random number generators are provided:
@@ -126,6 +143,7 @@ Generator                   Notes
 ``RandomMWC64``             A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
 ``RandomKISS``              Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
 ``RandomKISS2``             Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
+``RandomLFSR113``           Combined LFSR random number generator by L'Ecuyer. From [#lecuyer]_ [#lfsr113]_.
 ==========================  ===========================================================================
 
 
