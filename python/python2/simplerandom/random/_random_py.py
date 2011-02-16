@@ -118,3 +118,13 @@ class RandomSWB(RandomLFIB4):
     RNG_CLASS = RandomSWBIterator
 
 
+class RandomLFSR113(_StandardRandomTemplate):
+    '''Combined LFSR random number generator by L'Ecuyer
+
+    It combines 4 LFSR generators. The generators have been
+    chosen for maximal equidistribution.
+
+    The period is approximately 2**113.
+    '''
+    RNG_CLASS = RandomLFSR113Iterator
+    RNG_SEEDS = 4
