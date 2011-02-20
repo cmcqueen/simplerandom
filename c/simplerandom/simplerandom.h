@@ -143,6 +143,13 @@ typedef struct
     uint32_t    z4;
 } SimpleRandomLFSR113_t;
 
+typedef struct
+{
+    uint32_t    z1;
+    uint32_t    z2;
+    uint32_t    z3;
+} SimpleRandomLFSR88_t;
+
 
 /*****************************************************************************
  * Function prototypes
@@ -343,11 +350,29 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
  * chosen for maximal equidistribution.
  *
  * The period is approximately 2^113.
+ *
+ * "Tables of Maximally-Equidistributed Combined Lfsr Generators"
+ * P. L'Ecuyer
+ * Mathematics of Computation, 68, 225 (1999), 261–269.
+
  */
 void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4);
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
 
+/* LFSR88 -- Combined LFSR random number generator by L'Ecuyer
+ *
+ * It combines 3 LFSR generators. The generators have been
+ * chosen for maximal equidistribution.
+ *
+ * The period is approximately 2^88.
+ *
+ * "Maximally Equidistributed Combined Tausworthe Generators"
+ * P. L'Ecuyer
+ * Mathematics of Computation, 65, 213 (1996), 203–213. 
+ */
+void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3);
+uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88);
+
 
 #endif /* !defined(_SIMPLERANDOM_H) */
-
 

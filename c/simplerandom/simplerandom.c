@@ -470,3 +470,56 @@ uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
     return (z1 ^ z2 ^ z3 ^ z4);
 }
 
+/*********
+ * LFSR88
+ ********/
+ 
+void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3)
+{
+    if (seed_z1 < 2u)
+    {
+        seed_z1 += 2u;
+    }
+    p_lfsr88->z1 = seed_z1;
+
+    if (seed_z2 < 8u)
+    {
+        seed_z2 += 8u;
+    }
+    p_lfsr88->z2 = seed_z2;
+
+    if (seed_z3 < 16u)
+    {
+        seed_z3 += 16u;
+    }
+    p_lfsr88->z3 = seed_z3;
+}
+
+uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    b;
+    uint32_t    z1;
+    uint32_t    z2;
+    uint32_t    z3;
+
+
+    z1 = p_lfsr88->z1;
+    z2 = p_lfsr88->z2;
+    z3 = p_lfsr88->z3;
+
+    b  = ((z1 << 13) ^ z1) >> 19;
+    z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 12) ^ b;
+
+    b  = ((z2 << 2) ^ z2) >> 25;
+    z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 4) ^ b;
+
+    b  = ((z3 << 3) ^ z3) >> 11;
+    z3 = ((z3 & UINT32_C(0xFFFFFFF0)) << 17) ^ b;
+
+    p_lfsr88->z1 = z1;
+    p_lfsr88->z2 = z2;
+    p_lfsr88->z3 = z3;
+
+    return (z1 ^ z2 ^ z3);
+}
+

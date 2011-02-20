@@ -18,6 +18,7 @@ int main(void)
     SimpleRandomMWC64_t     mwc64;
     SimpleRandomKISS2_t     kiss2;
     SimpleRandomLFSR113_t   lfsr113;
+    SimpleRandomLFSR88_t    lfsr88;
     uint32_t                i;
     uint32_t                k;
 
@@ -122,6 +123,14 @@ int main(void)
         k = simplerandom_lfsr113_next(&lfsr113);
     }
     printf("LFSR113     %"PRIu32"\n", k - UINT32_C(1205173390));
+
+    /* LFSR88 */
+    simplerandom_lfsr88_seed(&lfsr88, UINT32_C(12345), UINT32_C(12345), UINT32_C(12345));
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_lfsr88_next(&lfsr88);
+    }
+    printf("LFSR88      %"PRIu32"\n", k - UINT32_C(3639585634));
 
 }
 
