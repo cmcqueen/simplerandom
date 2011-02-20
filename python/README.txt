@@ -52,8 +52,8 @@ calculations for MWC, which can be more suitable for small embedded systems.
 So we define KISS that uses the MWC from [#marsaglia1999]_, but the Cong and
 SHR3 from [#marsaglia2003]_.
 
-From L'Ecuyer [#lecuyer]_, the LFSR113 algorithm [#lfsr113]_ has been
-implemented.
+From L'Ecuyer [#lecuyer1999]_ [#lecuyer1996]_, the Combined LFSR (Tausworthe)
+LFSR113 algorithm [#lfsr113]_ and LFSR88 (aka Taus88) have been implemented.
 
 
 References
@@ -75,27 +75,36 @@ References
 .. _RNGs:
     http://groups.google.com/group/sci.math/msg/9959175f66dd138f
 
-.. [#rose]      | `KISS: A Bit Too Simple`__
-                | Greg Rose
-                | Qualcomm Inc.
+.. [#rose]          | `KISS: A Bit Too Simple`__
+                    | Greg Rose
+                    | Qualcomm Inc.
 
 .. __:
 .. _KISS\: A Bit Too Simple:
     http://eprint.iacr.org/2011/007.pdf
 
-.. [#lecuyer]   | `Tables of Maximally-Equidistributed Combined LFSR Generators`__
-                | Pierre L'Ecuyer
+.. [#lecuyer1999]   | `Tables of Maximally-Equidistributed Combined LFSR Generators`__
+                    | Pierre L'Ecuyer
+                    | Mathematics of Computation, 68, 225 (1999), 261–269.
 
 .. __:
 .. _Tables of Maximally-Equidistributed Combined LFSR Generators:
     http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.3639
 
-.. [#lfsr113]   | `LFSR113 C double implementation`__
-                | Pierre L'Ecuyer
+.. [#lfsr113]       | `LFSR113 C double implementation`__
+                    | Pierre L'Ecuyer
 
 .. __:
 .. _LFSR113 C double implementation:
     http://www.iro.umontreal.ca/~simardr/rng/lfsr113.c
+
+.. [#lecuyer1996]   | `Maximally Equidistributed Combined Tausworthe Generators`__
+                    | P. L'Ecuyer
+                    | Mathematics of Computation, 65, 213 (1996), 203–213. 
+
+.. __:
+.. _Maximally Equidistributed Combined Tausworthe Generators:
+    http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.4155
 
 
 ----------------
@@ -127,7 +136,8 @@ Generator                   Notes
 ``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
 ``RandomKISSIterator``      Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
 ``RandomKISS2Iterator``     Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
-``RandomLFSR113Iterator``   Combined LFSR random number generator by L'Ecuyer. From [#lecuyer]_ [#lfsr113]_.
+``RandomLFSR113Iterator``   Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
+``RandomLFSR88Iterator``    Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
 ==========================  ===========================================================================
 
 In ``simplerandom.random``, the following pseudo-random number generators are provided:
@@ -143,7 +153,8 @@ Generator                   Notes
 ``RandomMWC64``             A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
 ``RandomKISS``              Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
 ``RandomKISS2``             Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
-``RandomLFSR113``           Combined LFSR random number generator by L'Ecuyer. From [#lecuyer]_ [#lfsr113]_.
+``RandomLFSR113``           Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
+``RandomLFSR88``            Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
 ==========================  ===========================================================================
 
 
