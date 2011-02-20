@@ -154,8 +154,8 @@ class MWC64Test(KISS2Test):
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.
         
-        This caused an exception an earlier version of the Cython code (0.7.0)
-        when built with Cython 0.14.
+        This caused an exception in an earlier version of the Cython code
+        (0.7.0) when built with Cython 0.14.
         """
         mwc64 = sri.RandomMWC64Iterator(2**31, 1)
         mwc64.next()
@@ -175,6 +175,12 @@ class LFSR113Test(KISS2Test):
     RNG_CLASS = sri.RandomLFSR113Iterator
     RNG_SEEDS = 4
     MILLION_RESULT = 1205173390
+
+
+class LFSR88Test(KISS2Test):
+    RNG_CLASS = sri.RandomLFSR88Iterator
+    RNG_SEEDS = 3
+    MILLION_RESULT = 3639585634
 
 
 def runtests():

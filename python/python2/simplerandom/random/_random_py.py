@@ -125,6 +125,27 @@ class RandomLFSR113(_StandardRandomTemplate):
     chosen for maximal equidistribution.
 
     The period is approximately 2**113.
+
+    "Tables of Maximally-Equidistributed Combined Lfsr Generators"
+    P. L'Ecuyer
+    Mathematics of Computation, 68, 225 (1999), 261–269.
     '''
     RNG_CLASS = RandomLFSR113Iterator
     RNG_SEEDS = 4
+
+
+class RandomLFSR88(_StandardRandomTemplate):
+    '''Combined LFSR random number generator by L'Ecuyer
+
+    It combines 3 LFSR generators. The generators have been
+    chosen for maximal equidistribution.
+
+    The period is approximately 2**88.
+
+    "Maximally Equidistributed Combined Tausworthe Generators"
+    P. L'Ecuyer
+    Mathematics of Computation, 65, 213 (1996), 203–213. 
+    '''
+    RNG_CLASS = RandomLFSR88Iterator
+    RNG_SEEDS = 3
+

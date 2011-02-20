@@ -599,7 +599,7 @@ cdef class RandomSWBIterator(RandomLFIB4Iterator):
         self.borrow = 1u if borrow else 0
 
 
-def _lfsr113_process_seed(seed, min_value):
+def _lfsr_process_seed(seed, min_value):
     if seed==None:
         seed = 12345
     else:
@@ -608,6 +608,7 @@ def _lfsr113_process_seed(seed, min_value):
             seed += min_value
     return seed
 
+
 cdef class RandomLFSR113Iterator(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
@@ -615,6 +616,10 @@ cdef class RandomLFSR113Iterator(object):
     chosen for maximal equidistribution.
 
     The period is approximately 2**113.
+
+    "Tables of Maximally-Equidistributed Combined Lfsr Generators"
+    P. L'Ecuyer
+    Mathematics of Computation, 68, 225 (1999), 261–269.
     '''
 
     cdef public uint32_t z1
@@ -623,10 +628,10 @@ cdef class RandomLFSR113Iterator(object):
     cdef public uint32_t z4
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.z1 = _lfsr113_process_seed(seed_z1, 2)
-        self.z2 = _lfsr113_process_seed(seed_z2, 8)
-        self.z3 = _lfsr113_process_seed(seed_z3, 16)
-        self.z4 = _lfsr113_process_seed(seed_z4, 128)
+        self.z1 = _lfsr_process_seed(seed_z1, 2)
+        self.z2 = _lfsr_process_seed(seed_z2, 8)
+        self.z3 = _lfsr_process_seed(seed_z3, 16)
+        self.z4 = _lfsr_process_seed(seed_z4, 128)
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
@@ -659,3 +664,55 @@ cdef class RandomLFSR113Iterator(object):
         self.z2 = int(state[1])
         self.z3 = int(state[2])
         self.z4 = int(state[3])
+
+
+cdef class RandomLFSR88Iterator(object):
+    '''Combined LFSR random number generator by L'Ecuyer
+
+    It combines 3 LFSR generators. The generators have been
+    chosen for maximal equidistribution.
+
+    The period is approximately 2**88.
+
+    "Maximally Equidistributed Combined Tausworthe Generators"
+    P. L'Ecuyer
+    Mathematics of Computation, 65, 213 (1996), 203–213. 
+    '''
+
+    cdef public uint32_t z1
+    cdef public uint32_t z2
+    cdef public uint32_t z3
+
+    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
+        self.z1 = _lfsr_process_seed(seed_z1, 2)
+        self.z2 = _lfsr_process_seed(seed_z2, 8)
+        self.z3 = _lfsr_process_seed(seed_z3, 16)
+
+    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
+        self.__init__(seed_z1, seed_z2, seed_z3)
+
+    def __next__(self):
+        cdef uint32_t b
+
+        b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
+        self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
+
+        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 25
+        self.z2 = ((self.z2 & 0x0FFFFFF8) << 4) ^ b
+
+        b       = (((self.z3 & 0x1FFFFFFF) << 3) ^ self.z3) >> 11
+        self.z3 = ((self.z3 & 0x00007FF0) << 17) ^ b
+
+        return self.z1 ^ self.z2 ^ self.z3
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.z1, self.z2, self.z3)
+
+    def setstate(self, state):
+        self.z1 = int(state[0])
+        self.z2 = int(state[1])
+        self.z3 = int(state[2])
+

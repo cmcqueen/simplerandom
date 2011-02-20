@@ -521,6 +521,10 @@ class RandomLFSR113Iterator(object):
     chosen for maximal equidistribution.
 
     The period is approximately 2**113.
+
+    "Tables of Maximally-Equidistributed Combined Lfsr Generators"
+    P. L'Ecuyer
+    Mathematics of Computation, 68, 225 (1999), 261–269.
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
@@ -564,5 +568,55 @@ class RandomLFSR113Iterator(object):
     def setstate(self, state):
         (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
 
+
+class RandomLFSR88Iterator(object):
+    '''Combined LFSR random number generator by L'Ecuyer
+
+    It combines 3 LFSR generators. The generators have been
+    chosen for maximal equidistribution.
+
+    The period is approximately 2**88.
+
+    "Maximally Equidistributed Combined Tausworthe Generators"
+    P. L'Ecuyer
+    Mathematics of Computation, 65, 213 (1996), 203–213. 
+    '''
+
+    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
+        def process_seed(seed, min_value):
+            if seed==None:
+                seed = 12345
+            else:
+                seed = int(seed) & 0xFFFFFFFF
+                if seed < min_value:
+                    seed += min_value
+            return seed
+        self.z1 = process_seed(seed_z1, 2)
+        self.z2 = process_seed(seed_z2, 8)
+        self.z3 = process_seed(seed_z3, 16)
+
+    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
+        self.__init__(seed_z1, seed_z2, seed_z3)
+
+    def next(self):
+        b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
+        self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
+
+        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 25
+        self.z2 = ((self.z2 & 0x0FFFFFF8) << 4) ^ b
+
+        b       = (((self.z3 & 0x1FFFFFFF) << 3) ^ self.z3) >> 11
+        self.z3 = ((self.z3 & 0x00007FF0) << 17) ^ b
+
+        return self.z1 ^ self.z2 ^ self.z3
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.z1, self.z2, self.z3)
+
+    def setstate(self, state):
+        (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
 
 

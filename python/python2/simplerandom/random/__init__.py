@@ -18,6 +18,7 @@ __all__ = [
     "RandomLFIB4",
     "RandomSWB",
     "RandomLFSR113",
+    "RandomLFSR88",
 ]
 
 
