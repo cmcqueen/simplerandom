@@ -1,5 +1,5 @@
 
-class RandomCongIterator(object):
+class Cong(object):
     '''Congruential random number generator
 
     This is a congruential generator with the widely used
@@ -41,7 +41,7 @@ class RandomCongIterator(object):
         (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomSHR3Iterator(object):
+class SHR3(object):
     '''3-shift-register random number generator
 
     SHR3 is a 3-shift-register generator with period
@@ -84,7 +84,7 @@ class RandomSHR3Iterator(object):
         (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomMWCIterator(object):
+class MWC(object):
     '''"Multiply-with-carry" random number generator
 
     This uses two MWC generators to generate high and
@@ -108,9 +108,13 @@ class RandomMWCIterator(object):
     def __init__(self, seed_upper = None, seed_lower = None):
         if seed_upper==None or (seed_upper % 0x9068ffff)==0:
             # Default seed, and avoid bad seeds
+            # There are a few bad seeds--that is, seeds that are a multiple of
+            # 0x9068FFFF (which is 36969 * 2**16 - 1).
             seed_upper = 12344
         if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
+            # There are a few bad seeds--that is, seeds that are a multiple of
+            # 0x464FFFFF (which is 18000 * 2**16 - 1).
             seed_lower = 65437
         self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
         self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
@@ -138,7 +142,7 @@ class RandomMWCIterator(object):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomMWC64Iterator(object):
+class MWC64(object):
     '''"Multiply-with-carry" random number generator
 
     This uses a single MWC generator with 64 bits to
@@ -191,18 +195,17 @@ class RandomMWC64Iterator(object):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomKISSIterator(object):
+class KISS(object):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the RandomMWC, RandomCong, RandomSHR3
-    generators. Period is about 2**123. It is one of
-    Marsaglia's favourite generators.
+    It combines the MWC, Cong, SHR3 generators. Period is
+    about 2**123.
     '''
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = RandomMWCIterator(seed_mwc_upper, seed_mwc_lower)
-        self.random_cong = RandomCongIterator(seed_cong)
-        self.random_shr3 = RandomSHR3Iterator(seed_shr3)
+        self.random_mwc = MWC(seed_mwc_upper, seed_mwc_lower)
+        self.random_cong = Cong(seed_cong)
+        self.random_shr3 = SHR3(seed_shr3)
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
@@ -251,11 +254,11 @@ class RandomKISSIterator(object):
     cong = property(_get_cong, _set_cong)
 
 
-class RandomKISS2Iterator(object):
+class KISS2(object):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the RandomMWC64, RandomCong, RandomSHR3
-    generators. Period is about 2**123.
+    It combines the MWC64, Cong, SHR3 generators. Period
+    is about 2**123.
 
     This is a slightly updated KISS generator design, from
     a newsgroup post in 2003:
@@ -267,9 +270,9 @@ class RandomKISS2Iterator(object):
     '''
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = RandomMWC64Iterator(seed_mwc_upper, seed_mwc_lower)
-        self.random_cong = RandomCongIterator(seed_cong)
-        self.random_shr3 = RandomSHR3Iterator(seed_shr3)
+        self.random_mwc = MWC64(seed_mwc_upper, seed_mwc_lower)
+        self.random_cong = Cong(seed_cong)
+        self.random_shr3 = SHR3(seed_shr3)
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
@@ -318,7 +321,7 @@ class RandomKISS2Iterator(object):
     cong = property(_get_cong, _set_cong)
 
 
-class RandomLFIB4Iterator(object):
+class LFIB4(object):
     '''"Lagged Fibonacci 4-lag" random number generator
 
     LFIB4 is an extension of what Marsaglia has previously
@@ -352,7 +355,7 @@ class RandomLFIB4Iterator(object):
 
     def __init__(self, seed = None):
         if not seed:
-            random_kiss = RandomKISSIterator(12345, 65435, 12345, 34221)
+            random_kiss = KISS(12345, 65435, 12345, 34221)
             self.t = [ random_kiss.next() for i in range(256) ]
         else:
             if len(seed) != 256:
@@ -392,7 +395,7 @@ class RandomLFIB4Iterator(object):
         self.c = 0
 
 
-class RandomSWBIterator(RandomLFIB4Iterator):
+class SWB(LFIB4):
     '''"Subtract-With-Borrow" random number generator
     
     SWB is a subtract-with-borrow generator that Marsaglia
@@ -429,7 +432,7 @@ class RandomSWBIterator(RandomLFIB4Iterator):
     '''
 
     def __init__(self, seed = None):
-        RandomLFIB4Iterator.__init__(self, seed)
+        LFIB4.__init__(self, seed)
         self.borrow = 0
 
     def next(self):
@@ -453,19 +456,19 @@ class RandomSWBIterator(RandomLFIB4Iterator):
         return new_value
 
     def getstate(self):
-        t_tuple = RandomLFIB4Iterator.getstate(self)
+        t_tuple = LFIB4.getstate(self)
         return (t_tuple, self.borrow)
 
     def setstate(self, state):
         (t_tuple, borrow) = state
-        RandomLFIB4Iterator.setstate(self, t_tuple)
+        LFIB4.setstate(self, t_tuple)
         if borrow:
             self.borrow = 1
         else:
             self.borrow = 0
 
 
-class RandomFibIterator(object):
+class Fib(object):
     '''Classical Fibonacci sequence
 
     x[n]=x[n-1]+x[n-2],but taken modulo 2**32. Its
@@ -514,7 +517,7 @@ class RandomFibIterator(object):
         (self.a, self.b) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomLFSR113Iterator(object):
+class LFSR113(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
     It combines 4 LFSR generators. The generators have been
@@ -569,7 +572,7 @@ class RandomLFSR113Iterator(object):
         (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class RandomLFSR88Iterator(object):
+class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
     It combines 3 LFSR generators. The generators have been

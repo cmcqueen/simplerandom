@@ -24,55 +24,55 @@ class Marsaglia1999Tests(unittest.TestCase):
 
     def test_lfib4_swb_million(self):
         # Set up KISS RNG to initialise seeds for LFIB4 and SWB RNGs.
-        random_kiss = sri.RandomKISSIterator(12345, 65435, 12345, 34221)
+        random_kiss = sri.KISS(12345, 65435, 12345, 34221)
         t = [ random_kiss.next() for i in range(256) ]
 
         # Test LFIB4
-        lfib4 = sri.RandomLFIB4Iterator(t)
+        lfib4 = sri.LFIB4(t)
         for i in range(1000000):
             k = lfib4.next()
         self.assertEqual(k, 3673084687)
 
         # Test SWB
-        swb = sri.RandomSWBIterator(lfib4.t)
+        swb = sri.SWB(lfib4.t)
         swb.c = lfib4.c
         for i in range(1000000):
             k = swb.next()
         self.assertEqual(k, 319777393)
 
     def test_kiss_million(self):
-        random_kiss = sri.RandomKISSIterator(2247183469, 99545079, 3269400377, 3950144837)
+        random_kiss = sri.KISS(2247183469, 99545079, 3269400377, 3950144837)
         for i in range(1000000):
             k = random_kiss.next()
         self.assertEqual(k, 2100035942)
 
     def test_cong_million(self):
-        cong = sri.RandomCongIterator(2051391225)
+        cong = sri.Cong(2051391225)
         for i in range(1000000):
             k = cong.next()
         self.assertEqual(k, 2416584377)
 
     def test_shr3_million(self):
-        shr3 = sri.RandomSHR3Iterator(3360276411)
+        shr3 = sri.SHR3(3360276411)
         for i in range(1000000):
             k = shr3.next()
         self.assertEqual(k, 1153302609)
 
     def test_mwc_million(self):
-        mwc = sri.RandomMWCIterator(2374144069, 1046675282)
+        mwc = sri.MWC(2374144069, 1046675282)
         for i in range(1000000):
             k = mwc.next()
         self.assertEqual(k, 904977562)
 
     def test_fib_million(self):
-        fib = sri.RandomFibIterator(9983651,95746118)
+        fib = sri.Fib(9983651,95746118)
         for i in range(1000000):
             k = fib.next()
         self.assertEqual(k, 3519793928)
 
 
 class CongTest(unittest.TestCase):
-    RNG_CLASS = sri.RandomCongIterator
+    RNG_CLASS = sri.Cong
     RNG_SEEDS = 1
     RNG_BITS = 32
     RNG_RANGE = (1 << RNG_BITS)
@@ -126,16 +126,16 @@ class CongTest(unittest.TestCase):
 
 
 class SHR3Test(CongTest):
-    RNG_CLASS = sri.RandomSHR3Iterator
+    RNG_CLASS = sri.SHR3
 
 
 class MWCTest(CongTest):
-    RNG_CLASS = sri.RandomMWCIterator
+    RNG_CLASS = sri.MWC
     RNG_SEEDS = 2
 
 
 class KISS2Test(CongTest):
-    RNG_CLASS = sri.RandomKISS2Iterator
+    RNG_CLASS = sri.KISS2
     RNG_SEEDS = 4
     MILLION_RESULT = 1010846401
 
@@ -147,7 +147,7 @@ class KISS2Test(CongTest):
 
 
 class MWC64Test(KISS2Test):
-    RNG_CLASS = sri.RandomMWC64Iterator
+    RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
     MILLION_RESULT = 3377343606
 
@@ -157,28 +157,28 @@ class MWC64Test(KISS2Test):
         This caused an exception in an earlier version of the Cython code
         (0.7.0) when built with Cython 0.14.
         """
-        mwc64 = sri.RandomMWC64Iterator(2**31, 1)
+        mwc64 = sri.MWC64(2**31, 1)
         mwc64.next()
 
 
 class KISSTest(CongTest):
-    RNG_CLASS = sri.RandomKISSIterator
+    RNG_CLASS = sri.KISS
     RNG_SEEDS = 4
 
 
 class FibTest(CongTest):
-    RNG_CLASS = sri.RandomFibIterator
+    RNG_CLASS = sri.Fib
     RNG_SEEDS = 2
 
 
 class LFSR113Test(KISS2Test):
-    RNG_CLASS = sri.RandomLFSR113Iterator
+    RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
     MILLION_RESULT = 1205173390
 
 
 class LFSR88Test(KISS2Test):
-    RNG_CLASS = sri.RandomLFSR88Iterator
+    RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
     MILLION_RESULT = 3639585634
 

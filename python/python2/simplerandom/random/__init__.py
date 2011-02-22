@@ -9,16 +9,16 @@ Reference: http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 
 __all__ = [
     "_StandardRandomTemplate",
-    "RandomCong",
-    "RandomSHR3",
-    "RandomMWC",
-    "RandomMWC64",
-    "RandomKISS",
-    "RandomKISS2",
-    "RandomLFIB4",
-    "RandomSWB",
-    "RandomLFSR113",
-    "RandomLFSR88",
+    "Cong",
+    "SHR3",
+    "MWC",
+    "MWC64",
+    "KISS",
+    "KISS2",
+    "LFIB4",
+    "SWB",
+    "LFSR113",
+    "LFSR88",
 ]
 
 

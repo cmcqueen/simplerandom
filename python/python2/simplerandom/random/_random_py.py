@@ -2,7 +2,7 @@
 # Standard Python library
 import random
 
-from simplerandom.iterators import *
+import simplerandom.iterators as sri
 
 
 class _StandardRandomTemplate(random.Random):
@@ -54,52 +54,52 @@ class _StandardRandomTemplate(random.Random):
         self.rng_iterator.setstate(rng_state)
 
 
-class RandomCong(_StandardRandomTemplate):
+class Cong(_StandardRandomTemplate):
     '''Congruential random number generator'''
-    RNG_CLASS = RandomCongIterator
+    RNG_CLASS = sri.Cong
 
 
-class RandomSHR3(_StandardRandomTemplate):
+class SHR3(_StandardRandomTemplate):
     '''3-shift-register random number generator'''
-    RNG_CLASS = RandomSHR3Iterator
+    RNG_CLASS = sri.SHR3
 
 
-class RandomMWC(_StandardRandomTemplate):
+class MWC(_StandardRandomTemplate):
     '''"Multiply-with-carry" random number generator'''
-    RNG_CLASS = RandomMWCIterator
+    RNG_CLASS = sri.MWC
     RNG_SEEDS = 2
 
 
-class RandomMWC64(_StandardRandomTemplate):
+class MWC64(_StandardRandomTemplate):
     '''"Multiply-with-carry" random number generator'''
-    RNG_CLASS = RandomMWC64Iterator
+    RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
 
 
-class RandomKISS(_StandardRandomTemplate):
+class KISS(_StandardRandomTemplate):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the RandomMWC, RandomCong, RandomSHR3
-    generators. Period is about 2**123.
+    It combines the MWC, Cong, SHR3 generators. Period is
+    about 2**123.
     '''
-    RNG_CLASS = RandomKISSIterator
+    RNG_CLASS = sri.KISS
     RNG_SEEDS = 4
 
 
-class RandomKISS2(_StandardRandomTemplate):
+class KISS2(_StandardRandomTemplate):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the RandomMWC64, RandomCong, RandomSHR3
-    generators. Period is about 2**123.
+    It combines the MWC64, Cong, SHR3 generators. Period
+    is about 2**123.
     '''
-    RNG_CLASS = RandomKISS2Iterator
+    RNG_CLASS = sri.KISS2
     RNG_SEEDS = 4
 
 
-class RandomLFIB4(_StandardRandomTemplate):
+class LFIB4(_StandardRandomTemplate):
     '''"Lagged Fibonacci 4-lag" random number generator'''
 
-    RNG_CLASS = RandomLFIB4Iterator
+    RNG_CLASS = sri.LFIB4
 
     def seed(self, seed=None):
         seeder = random.Random(seed)
@@ -109,16 +109,16 @@ class RandomLFIB4(_StandardRandomTemplate):
         self.bits = 0
 
 
-class RandomSWB(RandomLFIB4):
+class SWB(LFIB4):
     '''"Subtract-With-Borrow" random number generator
     
     This is a Fibonacci 2-lag generator with an extra "borrow" operation.
     '''
 
-    RNG_CLASS = RandomSWBIterator
+    RNG_CLASS = sri.SWB
 
 
-class RandomLFSR113(_StandardRandomTemplate):
+class LFSR113(_StandardRandomTemplate):
     '''Combined LFSR random number generator by L'Ecuyer
 
     It combines 4 LFSR generators. The generators have been
@@ -130,11 +130,11 @@ class RandomLFSR113(_StandardRandomTemplate):
     P. L'Ecuyer
     Mathematics of Computation, 68, 225 (1999), 261–269.
     '''
-    RNG_CLASS = RandomLFSR113Iterator
+    RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
 
 
-class RandomLFSR88(_StandardRandomTemplate):
+class LFSR88(_StandardRandomTemplate):
     '''Combined LFSR random number generator by L'Ecuyer
 
     It combines 3 LFSR generators. The generators have been
@@ -146,6 +146,6 @@ class RandomLFSR88(_StandardRandomTemplate):
     P. L'Ecuyer
     Mathematics of Computation, 65, 213 (1996), 203–213. 
     '''
-    RNG_CLASS = RandomLFSR88Iterator
+    RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
 

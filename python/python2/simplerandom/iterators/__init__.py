@@ -5,17 +5,17 @@ This module provides iterators that generate unsigned 32-bit PRNs.
 """
 
 __all__ = [
-    "RandomCongIterator",
-    "RandomSHR3Iterator",
-    "RandomMWCIterator",
-    "RandomMWC64Iterator",
-    "RandomKISSIterator",
-    "RandomKISS2Iterator",
-    "RandomLFIB4Iterator",
-    "RandomSWBIterator",
-    "RandomFibIterator",
-    "RandomLFSR113Iterator",
-    "RandomLFSR88Iterator",
+    "Cong",
+    "SHR3",
+    "MWC",
+    "MWC64",
+    "KISS",
+    "KISS2",
+    "LFIB4",
+    "SWB",
+    "Fib",
+    "LFSR113",
+    "LFSR88",
 ]
 
 try:
