@@ -127,17 +127,17 @@ In ``simplerandom.iterators``, the following pseudo-random number generators are
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``RandomMWCIterator``       Two 32-bit MWCs combined. From [#marsaglia1999]_.
-``RandomCongIterator``      From [#marsaglia2003]_.
-``RandomSHR3Iterator``      From [#marsaglia2003]_.
-``RandomLFIB4Iterator``     From [#marsaglia1999]_.
-``RandomSWBIterator``       From [#marsaglia1999]_.
-``RandomFibIterator``       Not useful on its own, but can be used in a combination with other generators. From [#marsaglia1999]_.
-``RandomMWC64Iterator``     A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
-``RandomKISSIterator``      Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
-``RandomKISS2Iterator``     Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
-``RandomLFSR113Iterator``   Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
-``RandomLFSR88Iterator``    Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
+``MWC``                     Two 32-bit MWCs combined. From [#marsaglia1999]_.
+``Cong``                    From [#marsaglia2003]_.
+``SHR3``                    From [#marsaglia2003]_.
+``LFIB4``                   From [#marsaglia1999]_.
+``SWB``                     From [#marsaglia1999]_.
+``Fib``                     Not useful on its own, but can be used in a combination with other generators. From [#marsaglia1999]_.
+``MWC64``                   A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
+``KISS``                    Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
+``KISS2``                   Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
+``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
+``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
 ==========================  ===========================================================================
 
 In ``simplerandom.random``, the following pseudo-random number generators are provided:
@@ -145,16 +145,16 @@ In ``simplerandom.random``, the following pseudo-random number generators are pr
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``RandomMWC``               Two 32-bit MWCs combined. From [#marsaglia1999]_.
-``RandomCong``              From [#marsaglia2003]_.
-``RandomSHR3``              From [#marsaglia2003]_.
-``RandomLFIB4``             From [#marsaglia1999]_.
-``RandomSWB``               From [#marsaglia1999]_.
-``RandomMWC64``             A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
-``RandomKISS``              Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
-``RandomKISS2``             Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
-``RandomLFSR113``           Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
-``RandomLFSR88``            Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
+``MWC``                     Two 32-bit MWCs combined. From [#marsaglia1999]_.
+``Cong``                    From [#marsaglia2003]_.
+``SHR3``                    From [#marsaglia2003]_.
+``LFIB4``                   From [#marsaglia1999]_.
+``SWB``                     From [#marsaglia1999]_.
+``MWC64``                   A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
+``KISS``                    Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
+``KISS2``                   Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
+``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
+``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
 ==========================  ===========================================================================
 
 
@@ -166,7 +166,7 @@ Iterators
 `````````
 
     >>> import simplerandom.iterators as sri
-    >>> rng = sri.RandomKISSIterator(123958, 34987243, 3495825239, 2398172431)
+    >>> rng = sri.KISS(123958, 34987243, 3495825239, 2398172431)
     >>> next(rng)
     702895144L
     >>> next(rng)
@@ -178,7 +178,7 @@ Random class API
 ````````````````
 
     >>> import simplerandom.random as srr
-    >>> rng = srr.RandomKISS(258725234)
+    >>> rng = srr.KISS(258725234)
     >>> rng.random()
     0.77345210517180141
     >>> rng.random()
