@@ -13,3 +13,5 @@ __all__ = [ 'iterators', 'random', ]
 #import iterators
 #import random
 
+from simplerandom._version import *
+

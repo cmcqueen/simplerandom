@@ -7,13 +7,13 @@
 # from the C file.
 USE_CYTHON = True
 
-VERSION_STRING = '0.9.0'
-
 
 import sys
 
 from distutils.core import setup
 from distutils.extension import Extension
+
+import _version
 
 if USE_CYTHON:
     try:
@@ -47,14 +47,15 @@ else:
 
 setup(
     name='simplerandom',
-    version=VERSION_STRING,
+    version=_version.__version__,
     description='Simple random number generators',
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
     url='http://bitbucket.org/cmcqueen1975/simplerandom/',
-    packages=[ 'simplerandom', 'simplerandom.iterators', 'simplerandom.random', ],
+    packages=[ 'simplerandom', 'simplerandom.iterators', 'simplerandom.random', 'simplerandom._version', ],
     package_dir={
         'simplerandom' : base_dir + '/simplerandom',
+        'simplerandom._version' : '_version',
     },
     cmdclass = cmdclass,
     ext_modules=ext_modules,
