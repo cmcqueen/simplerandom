@@ -13,13 +13,6 @@
 
 
 /*****************************************************************************
- * Local function prototypes
- ****************************************************************************/
-
-static uint32_t fib_adjust_seed(uint32_t seed);
-
-
-/*****************************************************************************
  * Functions
  ****************************************************************************/
 
@@ -214,7 +207,7 @@ uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4)
  *
  * It is not practical to pass the 256 seed values to this
  * function as parameters. Before calling this function,
- * initialise p_lfib4->t[] with 256 good-quality
+ * initialise p_swb->t[] with 256 good-quality
  * [pseudo]random values.
  */
 void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb)
@@ -262,54 +255,6 @@ uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb)
     return new_val;
 }
 
-/*********
- * Fib
- ********/
-
-static uint32_t fib_adjust_seed(uint32_t seed)
-{
-    if ((seed % 2) == 0)
-    {
-        seed++;
-    }
-    if ((seed % 8) == 1)
-    {
-        seed += 2;
-    }
-
-    return seed;
-}
-
-void simplerandom_fib_seed(SimpleRandomFib_t * p_fib, uint32_t seed_a, uint32_t seed_b)
-{
-    if (seed_a == 0)
-    {
-        seed_a = UINT32_C(1468761293);
-    }
-    if (seed_b == 0)
-    {
-        seed_b = UINT32_C(3460192787);
-    }
-    if (fib_adjust_seed(seed_a) != seed_a)
-    {
-        seed_b = fib_adjust_seed(seed_b);
-    }
-
-    p_fib->fib_a = seed_a;
-    p_fib->fib_b = seed_b;
-}
-
-uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib)
-{
-    uint32_t    old_b;
-    
-
-    old_b = p_fib->fib_b;
-    p_fib->fib_b = p_fib->fib_a + old_b;
-    p_fib->fib_a = old_b;
-
-    return old_b;
-}
 
 #ifdef UINT64_C
 
@@ -404,6 +349,7 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
 }
 
 #endif /* defined(UINT64_C) */
+
 
 /*********
  * LFSR113

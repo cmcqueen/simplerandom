@@ -12,7 +12,6 @@ int main(void)
     SimpleRandomSHR3_t      shr3;
     SimpleRandomMWC_t       mwc;
     SimpleRandomKISS_t      kiss;
-    SimpleRandomFib_t       fib;
     SimpleRandomLFIB4_t     lfib4;
     SimpleRandomSWB_t       swb;
     SimpleRandomMWC64_t     mwc64;
@@ -54,14 +53,6 @@ int main(void)
         k = simplerandom_kiss_next(&kiss);
     }
     printf("KISS        %"PRIu32"\n", k - UINT32_C(2100035942));
-
-    /* Fib */
-    simplerandom_fib_seed(&fib, UINT32_C(9983651), UINT32_C(95746118));
-    for (i = 0; i < 1000000; i++)
-    {
-        k = simplerandom_fib_next(&fib);
-    }
-    printf("Fib         %"PRIu32"\n", k - UINT32_C(3519793928));
 
     /* LFIB4 */
     /* Below are 2 different seed methods, which should be equivalent */

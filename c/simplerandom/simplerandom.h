@@ -10,7 +10,6 @@
  * the following RNGs are defined:
  *     MWC
  *     KISS (however, instead we use Cong and SHR3 defined in the 2003 post)
- *     Fib
  *     LFIB4
  *     SWB
  *
@@ -100,12 +99,6 @@ typedef struct
 
 typedef struct
 {
-    uint32_t fib_a;
-    uint32_t fib_b;
-} SimpleRandomFib_t;
-
-typedef struct
-{
     uint32_t    t[256u];
     uint8_t     c;
 } SimpleRandomLFIB4_t;
@@ -164,13 +157,11 @@ typedef struct
  * The leading half of its 32 bits seem to pass tests,
  * but bits in the last half are too regular. It fails
  * tests for which those bits play a significant role.
- * Cong+Fib will also have too much regularity in
- * trailing bits, as each does. But keep in mind that
- * it is a rare application for which the trailing
- * bits play a significant role. Cong is one of the
- * most widely used generators of the last 30 years,
- * as it was the system generator for VAX and was
- * incorporated in several popular software packages,
+ * But keep in mind that it is a rare application for
+ * which the trailing bits play a significant role. Cong
+ * is one of the most widely used generators of the last
+ * 30 years, as it was the system generator for VAX and 
+ * was incorporated in several popular software packages,
  * all seemingly without complaint.
  */
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
@@ -229,19 +220,6 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc);
  */
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
-
-/* Fib -- Classical Fibonacci sequence
- * 
- * x[n]=x[n-1]+x[n-2], but taken modulo 2^32. Its
- * period is 3 * (2^31) if one of its two seeds is
- * odd and not 1 mod 8.
- * 
- * It has little worth as a RNG by itself, since it
- * fails several tests. But it provides a simple and
- * fast component for use in combination generators.
- */
-void simplerandom_fib_seed(SimpleRandomFib_t * p_fib, uint32_t seed_a, uint32_t seed_b);
-uint32_t simplerandom_fib_next(SimpleRandomFib_t * p_fib);
 
 /* LFIB4 -- "Lagged Fibonacci 4-lag" random number generator
  * 
