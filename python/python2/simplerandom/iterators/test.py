@@ -64,12 +64,6 @@ class Marsaglia1999Tests(unittest.TestCase):
             k = mwc.next()
         self.assertEqual(k, 904977562)
 
-    def test_fib_million(self):
-        fib = sri.Fib(9983651,95746118)
-        for i in range(1000000):
-            k = fib.next()
-        self.assertEqual(k, 3519793928)
-
 
 class CongTest(unittest.TestCase):
     RNG_CLASS = sri.Cong
@@ -164,11 +158,6 @@ class MWC64Test(KISS2Test):
 class KISSTest(CongTest):
     RNG_CLASS = sri.KISS
     RNG_SEEDS = 4
-
-
-class FibTest(CongTest):
-    RNG_CLASS = sri.Fib
-    RNG_SEEDS = 2
 
 
 class LFSR113Test(KISS2Test):

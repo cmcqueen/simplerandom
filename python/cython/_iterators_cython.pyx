@@ -15,13 +15,11 @@ cdef class Cong(object):
     The leading half of its 32 bits seem to pass tests,
     but bits in the last half are too regular. It fails
     tests for which those bits play a significant role.
-    Cong+Fib will also have too much regularity in
-    trailing bits, as each does. But keep in mind that
-    it is a rare application for which the trailing
-    bits play a significant role. Cong is one of the
-    most widely used generators of the last 30 years,
-    as it was the system generator for VAX and was
-    incorporated in several popular software packages,
+    But keep in mind that it is a rare application for
+    which the trailing bits play a significant role. Cong
+    is one of the most widely used generators of the last
+    30 years, as it was the system generator for VAX and
+    was incorporated in several popular software packages,
     all seemingly without complaint.
     '''
 
@@ -382,63 +380,6 @@ cdef class KISS2(object):
         self.mwc_lower = int(mwc_state[1])
         self.cong = int(cong_state[0])
         self.shr3 = int(shr3_state[0])
-
-
-def _fib_adjust_seed(seed):
-    if not seed % 2u:
-        seed += 1u
-    if seed % 8u == 1u:
-        seed += 2u
-    return seed
-
-cdef class Fib(object):
-    '''Classical Fibonacci sequence
-
-    x[n]=x[n-1]+x[n-2],but taken modulo 2**32. Its
-    period is 3 * (2**31) if one of its two seeds is
-    odd and not 1 mod 8.
-    
-    It has little worth as a RNG by itself, since it
-    fails several tests. But it provides a simple and
-    fast component for use in combination generators.
-    '''
-
-    cdef public uint32_t a
-    cdef public uint32_t b
-
-    def __init__(self, seed_a = None, seed_b = None):
-        if seed_a==None:
-            seed_a = 1468761293
-        if seed_b==None:
-            seed_b = 3460192787
-        self.a = int(seed_a)
-        self.b = int(seed_b)
-        if self._adjust_seed(self.a) != self.a:
-            self.b = self._adjust_seed(self.b)
-
-    _adjust_seed = staticmethod(_fib_adjust_seed)
-
-    def seed(self, seed_a = None, seed_b = None):
-        self.__init__(seed_a, seed_b)
-
-    def __next__(self):
-        cdef uint32_t new_a
-        cdef uint32_t new_b
-
-        new_a = self.b
-        new_b = self.a + self.b
-        (self.a, self.b) = (new_a, new_b)
-        return new_a
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-        return (self.a, self.b)
-
-    def setstate(self, state):
-        self.a = int(state[0])
-        self.b = int(state[1])
 
 
 cdef class LFIB4(object):

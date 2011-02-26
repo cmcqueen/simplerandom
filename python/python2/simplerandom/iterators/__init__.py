@@ -13,7 +13,6 @@ __all__ = [
     "KISS2",
     "LFIB4",
     "SWB",
-    "Fib",
     "LFSR113",
     "LFSR88",
 ]

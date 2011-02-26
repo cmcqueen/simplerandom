@@ -132,13 +132,19 @@ Generator                   Notes
 ``SHR3``                    From [#marsaglia2003]_.
 ``LFIB4``                   From [#marsaglia1999]_.
 ``SWB``                     From [#marsaglia1999]_.
-``Fib``                     Not useful on its own, but can be used in a combination with other generators. From [#marsaglia1999]_.
 ``MWC64``                   A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
 ``KISS``                    Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
 ``KISS2``                   Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
 ``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
 ``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
 ==========================  ===========================================================================
+
+These generators are Python iterators, of infinite length (they never raise
+``StopIteration``). They implement the ``next()`` method (``__next__()`` in
+Python 3.x) to generate the next random integer. All the generators output
+32-bit unsigned values, and take one or more 32-bit seed values during
+initialisation/seeding.
+
 
 In ``simplerandom.random``, the following pseudo-random number generators are provided:
 
@@ -156,6 +162,11 @@ Generator                   Notes
 ``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
 ``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
 ==========================  ===========================================================================
+
+These generators implement the standard Python ``random.Random`` API, except
+that ``jumpahead()`` (Python 2.x) is not implemented in all cases. Each
+generator uses the iterator of the same name in ``simplerandom.iterators`` to
+generate the random bits used to produce the random floats.
 
 
 -----
