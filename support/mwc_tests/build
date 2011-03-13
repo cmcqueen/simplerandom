@@ -1,0 +1,1 @@
+gcc mwc_tests.c -o mwc_tests -ltestu01 -lprobdist -lmylib -lm
