@@ -1,6 +1,13 @@
 /*
 This tests several variants of Marsaglia's MWC generator, using L'Ecuyer's
 TestU01 RNG test suite.
+
+References:
+
+[1]: http://mathforum.org/kb/thread.jspa?threadID=499149&tstart=17850
+[2]: http://mathforum.org/kb/thread.jspa?threadID=499163&tstart=17685
+[3]: http://mathforum.org/kb/thread.jspa?threadID=499215&tstart=17685
+     http://www.cse.yorku.ca/~oz/marsaglia-rng.html
 */
 
 #include "unif01.h"
@@ -8,10 +15,8 @@ TestU01 RNG test suite.
 
 
 /*
-This is the MWC proposed in an early newsgroup post from Marsaglia in 1999.
-It was later changed by Marsaglia to the implementation shown in mwc2() below,
-as Marsaglia said in a follow-up post, due to the results of the Diehard
-tests.
+This is the MWC proposed in an early newsgroup post from Marsaglia in 1999 [1].
+It was later changed by Marsaglia to the implementation shown in mwc2() below.
 
 This generator doesn't perform well even in SmallCrush tests, and fails many
 Crush tests. I didn't even bother running BigCrush on it.
@@ -109,10 +114,22 @@ unsigned int mwc1(void)
 
 /*
 This is the MWC as eventually specified by Marsaglia in his 1999 newsgroup
-post. It passed Marsaglia's Diehard tests better than mwc1() above.
+post [3]. It passed Marsaglia's Diehard tests better than mwc1() above.
+Quoting [2]:
 
-It passes more of the TestU01 suite, but still fails a large number of the
-Crush tests. So I didn't bother running the BigCrush tests.
+    In my earlier work, done in Fortran, I had implemented
+    two 16-bit multiply-with-carry generators, say z and w,
+    as 32-bit integers, with the carry in the top 16 bits,
+    the output in the bottom 16. They were combined by
+    (z<<16)+w. (In Fortran, ishft(z,16)+w.) Such a
+    combination seemed to pass all tests. In the above-
+    mentioned post, I used (z<<16)+(w&65525), and that
+    does not pass all tests. So (z<<16)+w seems
+    preferable; it is used below, providing a MWC that
+    seems to pass all tests.
+
+It passes more of the TestU01 suite than mwc1(), but still fails a large
+number of the Crush tests. So I didn't bother running the BigCrush tests.
 
 ========= Summary results of SmallCrush =========
 
