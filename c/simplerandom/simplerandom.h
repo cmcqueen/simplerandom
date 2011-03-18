@@ -87,7 +87,9 @@ typedef struct
 {
     uint32_t mwc_upper;
     uint32_t mwc_lower;
-} SimpleRandomMWC_t;
+} SimpleRandomMWC1_t;
+
+typedef SimpleRandomMWC1_t SimpleRandomMWC2_t;
 
 typedef struct
 {
@@ -193,9 +195,12 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
 void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed);
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
 
-/* MWC -- "Multiply-with-carry" random number generator
+/* MWC1 -- "Multiply-with-carry" random number generator
  *
- * This uses two MWC generators to generate high and
+ * This is the MWC as defined in Marsaglia's 1999
+ * newsgroup post.
+ *
+ * It uses two MWC generators to generate high and
  * low 16-bit parts, which are then combined to make a
  * 32-bit value.
  *
@@ -205,18 +210,43 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
  *     x[n]=36969x[n-1]+carry,
  *     y[n]=18000y[n-1]+carry mod 2^16,
  *
- * It has a period about 2^60 and seems to pass all
- * tests of randomness. A favorite stand-alone generator,
- * and faster than KISS, which contains it.
+ * It has a period about 2^60.
+ *
+ * This seems to pass all Marsaglia's Diehard tests.
+ * However, it fails many of L'Ecuyer's TestU01
+ * tests. The modified MWC2 generator passes many more
+ * tests in TestU01, and should probably be preferred,
+ * unless backwards compatibility is required.
  */
-void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
-uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc);
+void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
+uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc);
+
+/* MWC2 -- "Multiply-with-carry" random number generator
+ *
+ * Very similar to MWC1, except that it concatenates the
+ * two 16-bit MWC generators differently. The 'x'
+ * generator is rotated 16 bits instead of just shifted
+ * 16 bits.
+ *
+ * This gets much better test results than MWC1 in
+ * L'Ecuyer's TestU01 test suite, so it should probably
+ * be preferred.
+ */
+void simplerandom_mwc_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
+uint32_t simplerandom_mwc_next(SimpleRandomMWC2_t * p_mwc);
 
 /* KISS -- "Keep It Simple Stupid" random number generator
  *
- * It combines the MWC, Cong, SHR3
- * generators. Period is about 2^123. It is one of
- * Marsaglia's favourite generators.
+ * It combines the MWC2, Cong, SHR3 generators. Period is
+ * about 2^123.
+ *
+ * This is based on, but not identical to, Marsaglia's
+ * KISS generator as defined in his 1999 newsgroup post.
+ * That generator most significantly has problems with its
+ * SHR3 component (see notes on SHR3 above). Since we are
+ * not keeping compatibility with the 1999 KISS generator
+ * for that reason, we take the opportunity to slightly
+ * update the MWC and Cong generators too.
  */
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);

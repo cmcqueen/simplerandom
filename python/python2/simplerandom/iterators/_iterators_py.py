@@ -82,25 +82,17 @@ class SHR3(object):
         (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
 
 
-class MWC(object):
+class MWC2(object):
     '''"Multiply-with-carry" random number generator
 
-    This uses two MWC generators to generate high and
-    low 16-bit parts, which are then combined to make a
-    32-bit value.
+    Very similar to MWC1, except that it concatenates the
+    two 16-bit MWC generators differently. The 'x'
+    generator is rotated 16 bits instead of just shifted
+    16 bits.
 
-    The MWC generator concatenates two 16-bit multiply-
-    with-carry generators:
-
-        x[n]=36969x[n-1]+carry,
-        y[n]=18000y[n-1]+carry mod 2**16,
-
-    It has a period about 2**60 and seems to pass all
-    tests of randomness. A favorite stand-alone generator,
-    and faster than KISS, which contains it.
-
-    There are some bad seed values. See:
-        http://eprint.iacr.org/2011/007.pdf
+    This gets much better test results than MWC1 in
+    L'Ecuyer's TestU01 test suite, so it should probably
+    be preferred.
     '''
 
     def __init__(self, seed_upper = None, seed_lower = None):
@@ -108,7 +100,7 @@ class MWC(object):
             # Default seed, and avoid bad seeds
             # There are a few bad seeds--that is, seeds that are a multiple of
             # 0x9068FFFF (which is 36969 * 2**16 - 1).
-            seed_upper = 12344
+            seed_upper = 12345
         if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
             # There are a few bad seeds--that is, seeds that are a multiple of
@@ -126,7 +118,7 @@ class MWC(object):
         return self._get_mwc()
 
     def _get_mwc(self):
-        return (((self.mwc_upper & 0xFFFF) << 16) + self.mwc_lower) & 0xFFFFFFFF
+        return (((self.mwc_upper & 0xFFFF) << 16) + (self.mwc_upper >> 16) + self.mwc_lower) & 0xFFFFFFFF
 
     mwc = property(_get_mwc)
 
@@ -138,6 +130,35 @@ class MWC(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
+
+
+class MWC1(MWC2):
+    '''"Multiply-with-carry" random number generator
+
+    This is the MWC as defined in Marsaglia's 1999
+    newsgroup post.
+
+    This uses two MWC generators to generate high and
+    low 16-bit parts, which are then combined to make a
+    32-bit value.
+
+    The MWC generator concatenates two 16-bit multiply-
+    with-carry generators:
+
+        x[n]=36969x[n-1]+carry,
+        y[n]=18000y[n-1]+carry mod 2**16,
+
+    It has a period about 2**60.
+
+    This seems to pass all Marsaglia's Diehard tests.
+    However, it fails many of L'Ecuyer's TestU01
+    tests. The modified MWC2 generator passes many more
+    tests in TestU01, and should probably be preferred,
+    unless backwards compatibility is required.
+    '''
+
+    def _get_mwc(self):
+        return (((self.mwc_upper & 0xFFFF) << 16) + self.mwc_lower) & 0xFFFFFFFF
 
 
 class MWC64(object):
@@ -195,13 +216,21 @@ class MWC64(object):
 
 class KISS(object):
     '''"Keep It Simple Stupid" random number generator
-    
-    It combines the MWC, Cong, SHR3 generators. Period is
+
+    It combines the MWC2, Cong, SHR3 generators. Period is
     about 2**123.
+
+    This is based on, but not identical to, Marsaglia's
+    KISS generator as defined in his 1999 newsgroup post.
+    That generator most significantly has problems with its
+    SHR3 component (see notes on SHR3). Since we are not
+    keeping compatibility with the 1999 KISS generator for
+    that reason, we take the opportunity to slightly
+    update the MWC and Cong generators too.
     '''
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = MWC(seed_mwc_upper, seed_mwc_lower)
+        self.random_mwc = MWC2(seed_mwc_upper, seed_mwc_lower)
         self.random_cong = Cong(seed_cong)
         self.random_shr3 = SHR3(seed_shr3)
 

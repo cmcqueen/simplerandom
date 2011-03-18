@@ -7,7 +7,8 @@ This module provides iterators that generate unsigned 32-bit PRNs.
 __all__ = [
     "Cong",
     "SHR3",
-    "MWC",
+    "MWC1",
+    "MWC2",
     "MWC64",
     "KISS",
     "KISS2",

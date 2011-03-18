@@ -61,7 +61,7 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
 }
 
 /*********
- * MWC
+ * MWC1
  ********/
 
 /* There are some bad seed values. See:
@@ -75,7 +75,7 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
  * For lower part, seed value 0x464FFFFF, or any multiple,
  * is bad. That is, 18000 * 0x10000 - 1.
  */
-void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
+void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
     if ((seed_upper == 0) || (seed_upper == UINT32_C(0x9068FFFF)))
     {
@@ -92,7 +92,7 @@ void simplerandom_mwc_seed(SimpleRandomMWC_t * p_mwc, uint32_t seed_upper, uint3
     p_mwc->mwc_lower = seed_lower;
 }
 
-uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc)
+uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
 {
     p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
     p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
@@ -101,12 +101,29 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC_t * p_mwc)
 }
 
 /*********
+ * MWC2
+ ********/
+
+void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
+{
+    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
+}
+
+uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc)
+{
+    p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
+    p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
+    
+    return (p_mwc->mwc_upper << 16u) + (p_mwc->mwc_upper >> 16u) + p_mwc->mwc_lower;
+}
+
+/*********
  * KISS
  ********/
 
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
-    /* Initialise MWC RNG */
+    /* Initialise MWC2 RNG */
     if ((seed_mwc_upper == 0) || (seed_mwc_upper == UINT32_C(0x9068FFFF)))
     {
         seed_mwc_upper = UINT32_C(362436069);
@@ -134,13 +151,13 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
 {
     uint32_t    shr3;
-    uint32_t    mwc;
+    uint32_t    mwc2;
 
 
-    /* Calculate next MWC RNG */
+    /* Calculate next MWC2 RNG */
     p_kiss->mwc_upper = 36969u * (p_kiss->mwc_upper & 0xFFFFu) + (p_kiss->mwc_upper >> 16u);
     p_kiss->mwc_lower = 18000u * (p_kiss->mwc_lower & 0xFFFFu) + (p_kiss->mwc_lower >> 16u);
-    mwc = (p_kiss->mwc_upper << 16u) + p_kiss->mwc_lower;
+    mwc2 = (p_kiss->mwc_upper << 16u) + (p_kiss->mwc_upper >> 16u) + p_kiss->mwc_lower;
 
     /* Calculate next Cong RNG */
     p_kiss->cong = UINT32_C(69069) * p_kiss->cong + 12345u;
@@ -152,7 +169,7 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     shr3 ^= (shr3 << 5);
     p_kiss->shr3 = shr3;
 
-    return ((mwc ^ p_kiss->cong) + shr3);
+    return ((mwc2 ^ p_kiss->cong) + shr3);
 }
 
 /*********

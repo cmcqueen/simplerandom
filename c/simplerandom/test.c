@@ -10,7 +10,8 @@ int main(void)
 {
     SimpleRandomCong_t      cong;
     SimpleRandomSHR3_t      shr3;
-    SimpleRandomMWC_t       mwc;
+    SimpleRandomMWC1_t      mwc1;
+    SimpleRandomMWC2_t      mwc2;
     SimpleRandomKISS_t      kiss;
     SimpleRandomLFIB4_t     lfib4;
     SimpleRandomSWB_t       swb;
@@ -38,13 +39,21 @@ int main(void)
     }
     printf("SHR3        %"PRIu32"\n", k - UINT32_C(1153302609));
 
-    /* MWC */
-    simplerandom_mwc_seed(&mwc, UINT32_C(2374144069), UINT32_C(1046675282));
+    /* MWC1 */
+    simplerandom_mwc1_seed(&mwc1, UINT32_C(2374144069), UINT32_C(1046675282));
     for (i = 0; i < 1000000; i++)
     {
-        k = simplerandom_mwc_next(&mwc);
+        k = simplerandom_mwc1_next(&mwc1);
     }
-    printf("MWC         %"PRIu32"\n", k - UINT32_C(904977562));
+    printf("MWC1        %"PRIu32"\n", k - UINT32_C(904977562));
+
+    /* MWC2 */
+    simplerandom_mwc2_seed(&mwc2, UINT32_C(12345), UINT32_C(65437));
+    for (i = 0; i < 1000000; i++)
+    {
+        k = simplerandom_mwc2_next(&mwc2);
+    }
+    printf("MWC2        %"PRIu32"\n", k - UINT32_C(55050263));
 
     /* KISS */
     simplerandom_kiss_seed(&kiss, UINT32_C(2247183469), UINT32_C(99545079), UINT32_C(3269400377), UINT32_C(3950144837));
@@ -52,7 +61,7 @@ int main(void)
     {
         k = simplerandom_kiss_next(&kiss);
     }
-    printf("KISS        %"PRIu32"\n", k - UINT32_C(2100035942));
+    printf("KISS        %"PRIu32"\n", k - UINT32_C(2100752872));
 
     /* LFIB4 */
     /* Below are 2 different seed methods, which should be equivalent */
@@ -70,7 +79,7 @@ int main(void)
     {
         k = simplerandom_lfib4_next(&lfib4);
     }
-    printf("LFIB4       %"PRIu32"\n", k - UINT32_C(3673084687));
+    printf("LFIB4       %"PRIu32"\n", k - UINT32_C(3874012728));
 
     /* SWB */
     /* The 1999 Marsaglia test code ran SWB using LFIB4's
@@ -85,7 +94,7 @@ int main(void)
     {
         k = simplerandom_swb_next(&swb);
     }
-    printf("SWB         %"PRIu32"\n", k - UINT32_C(319777393));
+    printf("SWB         %"PRIu32"\n", k - UINT32_C(1831941512));
 
 #ifdef UINT64_C
 

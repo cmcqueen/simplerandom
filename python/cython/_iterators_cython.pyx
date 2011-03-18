@@ -93,8 +93,11 @@ cdef class SHR3(object):
         self.shr3 = int(state[0])
 
 
-cdef class MWC(object):
+cdef class MWC1(object):
     '''"Multiply-with-carry" random number generator
+
+    This is the MWC as defined in Marsaglia's 1999
+    newsgroup post.
 
     This uses two MWC generators to generate high and
     low 16-bit parts, which are then combined to make a
@@ -106,12 +109,13 @@ cdef class MWC(object):
         x[n]=36969x[n-1]+carry,
         y[n]=18000y[n-1]+carry mod 2**16,
 
-    It has a period about 2**60 and seems to pass all
-    tests of randomness. A favorite stand-alone generator,
-    and faster than KISS, which contains it.
+    It has a period about 2**60.
 
-    There are some bad seed values. See:
-        http://eprint.iacr.org/2011/007.pdf
+    This seems to pass all Marsaglia's Diehard tests.
+    However, it fails many of L'Ecuyer's TestU01
+    tests. The modified MWC2 generator passes many more
+    tests in TestU01, and should probably be preferred,
+    unless backwards compatibility is required.
     '''
 
     cdef public uint32_t mwc_upper
@@ -122,7 +126,7 @@ cdef class MWC(object):
             # Default seed, and avoid bad seeds
             # There are a few bad seeds--that is, seeds that are a multiple of
             # 0x9068FFFF (which is 36969 * 2**16 - 1).
-            seed_upper = 12344
+            seed_upper = 12345
         if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
             # There are a few bad seeds--that is, seeds that are a multiple of
@@ -145,6 +149,63 @@ cdef class MWC(object):
         def __get__(self):
             cdef uint32_t mwc
             mwc = (self.mwc_upper << 16u) + self.mwc_lower
+            return mwc
+
+    def __iter__(self):
+        return self
+
+    def getstate(self):
+        return (self.mwc_upper, self.mwc_lower)
+
+    def setstate(self, state):
+        self.mwc_upper = int(state[0])
+        self.mwc_lower = int(state[1])
+
+
+cdef class MWC2(object):
+    '''"Multiply-with-carry" random number generator
+
+    Very similar to MWC1, except that it concatenates the
+    two 16-bit MWC generators differently. The 'x'
+    generator is rotated 16 bits instead of just shifted
+    16 bits.
+
+    This gets much better test results than MWC1 in
+    L'Ecuyer's TestU01 test suite, so it should probably
+    be preferred.
+    '''
+
+    cdef public uint32_t mwc_upper
+    cdef public uint32_t mwc_lower
+
+    def __init__(self, seed_upper = None, seed_lower = None):
+        if seed_upper==None or (seed_upper % 0x9068FFFF)==0:
+            # Default seed, and avoid bad seeds
+            # There are a few bad seeds--that is, seeds that are a multiple of
+            # 0x9068FFFF (which is 36969 * 2**16 - 1).
+            seed_upper = 12345
+        if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
+            # Default seed, and avoid bad seeds
+            # There are a few bad seeds--that is, seeds that are a multiple of
+            # 0x464FFFFF (which is 18000 * 2**16 - 1).
+            seed_lower = 65437
+        self.mwc_upper = int(seed_upper)
+        self.mwc_lower = int(seed_lower)
+
+    def seed(self, seed_upper = None, seed_lower = None):
+        self.__init__(seed_upper, seed_lower)
+
+    def __next__(self):
+        cdef uint32_t mwc
+        self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
+        self.mwc_lower = 18000u * (self.mwc_lower & 0xFFFFu) + (self.mwc_lower >> 16u)
+        mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
+        return mwc
+
+    property mwc:
+        def __get__(self):
+            cdef uint32_t mwc
+            mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
             return mwc
 
     def __iter__(self):
@@ -218,11 +279,16 @@ cdef class MWC64(object):
 cdef class KISS(object):
     '''"Keep It Simple Stupid" random number generator
     
-    It combines the MWC, Cong, SHR3 generators. Period is
+    It combines the MWC2, Cong, SHR3 generators. Period is
     about 2**123.
 
-    There are some bad seed values. See:
-        http://eprint.iacr.org/2011/007.pdf
+    This is based on, but not identical to, Marsaglia's
+    KISS generator as defined in his 1999 newsgroup post.
+    That generator most significantly has problems with its
+    SHR3 component (see notes on SHR3). Since we are not
+    keeping compatibility with the 1999 KISS generator for
+    that reason, we take the opportunity to slightly
+    update the MWC and Cong generators too.
     '''
 
     cdef public uint32_t cong
@@ -261,7 +327,7 @@ cdef class KISS(object):
         # Update MWC RNG
         self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
         self.mwc_lower = 18000u * (self.mwc_lower & 0xFFFFu) + (self.mwc_lower >> 16u)
-        mwc = (self.mwc_upper << 16u) + self.mwc_lower
+        mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
 
         # Update Cong RNG
         self.cong = 69069u * self.cong + 12345u
@@ -278,7 +344,7 @@ cdef class KISS(object):
     property mwc:
         def __get__(self):
             cdef uint32_t mwc
-            mwc = (self.mwc_upper << 16u) + self.mwc_lower
+            mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
             return mwc
 
     def getstate(self):

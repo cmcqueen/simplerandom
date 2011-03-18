@@ -55,51 +55,48 @@ class _StandardRandomTemplate(random.Random):
 
 
 class Cong(_StandardRandomTemplate):
-    '''Congruential random number generator'''
     RNG_CLASS = sri.Cong
+    __doc__ = RNG_CLASS.__doc__
 
 
 class SHR3(_StandardRandomTemplate):
-    '''3-shift-register random number generator'''
     RNG_CLASS = sri.SHR3
+    __doc__ = RNG_CLASS.__doc__
 
 
-class MWC(_StandardRandomTemplate):
-    '''"Multiply-with-carry" random number generator'''
-    RNG_CLASS = sri.MWC
+class MWC1(_StandardRandomTemplate):
+    RNG_CLASS = sri.MWC1
     RNG_SEEDS = 2
+    __doc__ = RNG_CLASS.__doc__
+
+
+class MWC2(_StandardRandomTemplate):
+    RNG_CLASS = sri.MWC2
+    RNG_SEEDS = 2
+    __doc__ = RNG_CLASS.__doc__
 
 
 class MWC64(_StandardRandomTemplate):
-    '''"Multiply-with-carry" random number generator'''
     RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
+    __doc__ = RNG_CLASS.__doc__
 
 
 class KISS(_StandardRandomTemplate):
-    '''"Keep It Simple Stupid" random number generator
-    
-    It combines the MWC, Cong, SHR3 generators. Period is
-    about 2**123.
-    '''
     RNG_CLASS = sri.KISS
     RNG_SEEDS = 4
+    __doc__ = RNG_CLASS.__doc__
 
 
 class KISS2(_StandardRandomTemplate):
-    '''"Keep It Simple Stupid" random number generator
-    
-    It combines the MWC64, Cong, SHR3 generators. Period
-    is about 2**123.
-    '''
     RNG_CLASS = sri.KISS2
     RNG_SEEDS = 4
+    __doc__ = RNG_CLASS.__doc__
 
 
 class LFIB4(_StandardRandomTemplate):
-    '''"Lagged Fibonacci 4-lag" random number generator'''
-
     RNG_CLASS = sri.LFIB4
+    __doc__ = RNG_CLASS.__doc__
 
     def seed(self, seed=None):
         seeder = random.Random(seed)
@@ -110,42 +107,18 @@ class LFIB4(_StandardRandomTemplate):
 
 
 class SWB(LFIB4):
-    '''"Subtract-With-Borrow" random number generator
-    
-    This is a Fibonacci 2-lag generator with an extra "borrow" operation.
-    '''
-
     RNG_CLASS = sri.SWB
+    __doc__ = RNG_CLASS.__doc__
 
 
 class LFSR113(_StandardRandomTemplate):
-    '''Combined LFSR random number generator by L'Ecuyer
-
-    It combines 4 LFSR generators. The generators have been
-    chosen for maximal equidistribution.
-
-    The period is approximately 2**113.
-
-    "Tables of Maximally-Equidistributed Combined Lfsr Generators"
-    P. L'Ecuyer
-    Mathematics of Computation, 68, 225 (1999), 261–269.
-    '''
     RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
+    __doc__ = RNG_CLASS.__doc__
 
 
 class LFSR88(_StandardRandomTemplate):
-    '''Combined LFSR random number generator by L'Ecuyer
-
-    It combines 3 LFSR generators. The generators have been
-    chosen for maximal equidistribution.
-
-    The period is approximately 2**88.
-
-    "Maximally Equidistributed Combined Tausworthe Generators"
-    P. L'Ecuyer
-    Mathematics of Computation, 65, 213 (1996), 203–213. 
-    '''
     RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
+    __doc__ = RNG_CLASS.__doc__
 

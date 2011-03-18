@@ -7,8 +7,8 @@ Unit Tests
 import random
 import unittest
 
-import simplerandom.iterators as sri
-#import simplerandom.iterators._iterators_py as sri
+#import simplerandom.iterators as sri
+import simplerandom.iterators._iterators_py as sri
 
 
 class Marsaglia1999Tests(unittest.TestCase):
@@ -31,20 +31,20 @@ class Marsaglia1999Tests(unittest.TestCase):
         lfib4 = sri.LFIB4(t)
         for i in range(1000000):
             k = lfib4.next()
-        self.assertEqual(k, 3673084687)
+        self.assertEqual(k, 3874012728)
 
         # Test SWB
         swb = sri.SWB(lfib4.t)
         swb.c = lfib4.c
         for i in range(1000000):
             k = swb.next()
-        self.assertEqual(k, 319777393)
+        self.assertEqual(k, 1831941512)
 
     def test_kiss_million(self):
         random_kiss = sri.KISS(2247183469, 99545079, 3269400377, 3950144837)
         for i in range(1000000):
             k = random_kiss.next()
-        self.assertEqual(k, 2100035942)
+        self.assertEqual(k, 2100752872)
 
     def test_cong_million(self):
         cong = sri.Cong(2051391225)
@@ -58,8 +58,8 @@ class Marsaglia1999Tests(unittest.TestCase):
             k = shr3.next()
         self.assertEqual(k, 1153302609)
 
-    def test_mwc_million(self):
-        mwc = sri.MWC(2374144069, 1046675282)
+    def test_mwc1_million(self):
+        mwc = sri.MWC1(2374144069, 1046675282)
         for i in range(1000000):
             k = mwc.next()
         self.assertEqual(k, 904977562)
@@ -123,8 +123,8 @@ class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
 
 
-class MWCTest(CongTest):
-    RNG_CLASS = sri.MWC
+class MWC1Test(CongTest):
+    RNG_CLASS = sri.MWC1
     RNG_SEEDS = 2
 
 
@@ -139,6 +139,11 @@ class KISS2Test(CongTest):
             k = rng.next()
         self.assertEqual(k, self.MILLION_RESULT)
 
+
+class MWC2Test(KISS2Test):
+    RNG_CLASS = sri.MWC2
+    RNG_SEEDS = 2
+    MILLION_RESULT = 55050263
 
 class MWC64Test(KISS2Test):
     RNG_CLASS = sri.MWC64
