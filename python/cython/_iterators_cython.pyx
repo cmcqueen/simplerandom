@@ -300,7 +300,7 @@ cdef class KISS(object):
         # Initialise MWC RNG
         if seed_mwc_upper==None or (seed_mwc_upper % 0x9068FFFF)==0:
             # Default seed, and avoid bad seeds
-            seed_mwc_upper = 12344
+            seed_mwc_upper = 12345
         if seed_mwc_lower==None or (seed_mwc_lower % 0x464FFFFF)==0:
             # Default seed, and avoid bad seeds
             seed_mwc_lower = 65437
