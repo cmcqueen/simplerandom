@@ -7,8 +7,8 @@ Unit Tests
 import random
 import unittest
 
-#import simplerandom.iterators as sri
-import simplerandom.iterators._iterators_py as sri
+import simplerandom.iterators as sri
+#import simplerandom.iterators._iterators_py as sri
 
 
 class Marsaglia1999Tests(unittest.TestCase):
