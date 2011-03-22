@@ -1,5 +1,7 @@
 include *.txt
-recursive-include cython *
-recursive-include python2 *
-recursive-include test *
+recursive-include cython *.pyx
+recursive-include cython *.c
+recursive-include cython *.h
+recursive-include python2 *.py
+recursive-include test *.py
 
