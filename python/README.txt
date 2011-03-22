@@ -7,7 +7,7 @@ Simple Random
 :Copyright: 2010 Craig McQueen
 
 
-Simple pseudo-random number generators, from George Marsaglia.
+Simple pseudo-random number generators.
 
 -----
 Intro
@@ -49,11 +49,12 @@ values swapped. It has a period of 2**32-1 as expected.
 
 We still find KISS from [#marsaglia1999]_ useful mainly because it uses 32-bit
 calculations for MWC, which can be more suitable for small embedded systems.
-So we define KISS that uses the MWC from [#marsaglia1999]_, but the Cong and
+So we define KISS that uses a MWC based on [#marsaglia1999]_, but the Cong and
 SHR3 from [#marsaglia2003]_.
 
-From L'Ecuyer [#lecuyer1999]_ [#lecuyer1996]_, the Combined LFSR (Tausworthe)
-LFSR113 algorithm [#lfsr113]_ and LFSR88 (aka Taus88) have been implemented.
+From Pierre L'Ecuyer [#lecuyer1999]_ [#lecuyer1996]_, the Combined LFSR
+(Tausworthe) LFSR113 algorithm [#lfsr113]_ and LFSR88 (aka Taus88) have been
+implemented.
 
 
 References
@@ -127,13 +128,14 @@ In ``simplerandom.iterators``, the following pseudo-random number generators are
 ==========================  ===========================================================================
 Generator                   Notes
 ==========================  ===========================================================================
-``MWC``                     Two 32-bit MWCs combined. From [#marsaglia1999]_.
+``MWC1``                    Two 32-bit MWCs combined. From [#marsaglia1999]_.
+``MWC2``                    Very similar to ``MWC1``, but slightly modified to improve its statistical properties.
 ``Cong``                    From [#marsaglia2003]_.
 ``SHR3``                    From [#marsaglia2003]_.
 ``LFIB4``                   From [#marsaglia1999]_.
 ``SWB``                     From [#marsaglia1999]_.
 ``MWC64``                   A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
-``KISS``                    Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
+``KISS``                    Combination of MWC2, Cong and SHR3. Based on [#marsaglia1999]_ but using Cong and SHR3 from [#marsaglia2003]_, and a modified MWC2.
 ``KISS2``                   Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
 ``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
 ``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
@@ -146,25 +148,10 @@ Python 3.x) to generate the next random integer. All the generators output
 initialisation/seeding.
 
 
-In ``simplerandom.random``, the following pseudo-random number generators are provided:
-
-==========================  ===========================================================================
-Generator                   Notes
-==========================  ===========================================================================
-``MWC``                     Two 32-bit MWCs combined. From [#marsaglia1999]_.
-``Cong``                    From [#marsaglia2003]_.
-``SHR3``                    From [#marsaglia2003]_.
-``LFIB4``                   From [#marsaglia1999]_.
-``SWB``                     From [#marsaglia1999]_.
-``MWC64``                   A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
-``KISS``                    Combination of MWC, Cong and SHR3. Based on [#marsaglia1999]_ but using [#marsaglia2003]_ Cong and SHR3.
-``KISS2``                   Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
-``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
-``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.
-==========================  ===========================================================================
-
-These generators implement the standard Python ``random.Random`` API, except
-that ``jumpahead()`` (Python 2.x) is not implemented in all cases. Each
+In ``simplerandom.random``, pseudo-random number generators are provided which
+have the same names as those in ``simplerandom.iterators``, but these
+generators implement the standard Python ``random.Random`` API. However the
+``jumpahead()`` function (Python 2.x) is not implemented in all cases. Each
 generator uses the iterator of the same name in ``simplerandom.iterators`` to
 generate the random bits used to produce the random floats.
 
