@@ -179,11 +179,11 @@ Iterators
     >>> import simplerandom.iterators as sri
     >>> rng = sri.KISS(123958, 34987243, 3495825239, 2398172431)
     >>> next(rng)
-    702895144L
+    702862187L
     >>> next(rng)
-    13983691L
+    13888114L
     >>> next(rng)
-    699724563L
+    699722976L
 
 Random class API
 ````````````````
@@ -191,11 +191,11 @@ Random class API
     >>> import simplerandom.random as srr
     >>> rng = srr.KISS(258725234)
     >>> rng.random()
-    0.77345210517180141
+    0.773460115942927
     >>> rng.random()
-    0.27725185740138936
+    0.012115143213983215
     >>> rng.random()
-    0.91217281705021191
+    0.8954136598708136
 
 
 -------------------------
