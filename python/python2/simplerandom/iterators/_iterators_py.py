@@ -19,8 +19,9 @@ class Cong(object):
 
     def __init__(self, seed = None):
         if seed==None:
-            seed = 123456789
-        self.cong = int(seed) & 0xFFFFFFFF
+            self.cong = 123456789
+        else:
+            self.cong = int(seed) & 0xFFFFFFFF
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -57,12 +58,20 @@ class SHR3(object):
     '''
 
     def __init__(self, seed = None):
-        if seed==None or seed==0:
-            seed = 362436000
-        self.shr3 = int(seed) & 0xFFFFFFFF
+        if seed==None:
+            self.shr3 = 362436000
+        else:
+            # Ensure a 32-bit unsigned integer
+            self.shr3 = int(seed) & 0xFFFFFFFF
+            self._adjust_seed()
 
     def seed(self, seed = None):
         self.__init__(seed)
+
+    def _adjust_seed(self):
+        if self.shr3 == 0:
+            # 0 is a bad seed. Invert to get a good seed
+            self.shr3 = 0xFFFFFFFF
 
     def next(self):
         shr3 = self.shr3
@@ -80,6 +89,7 @@ class SHR3(object):
 
     def setstate(self, state):
         (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
+        self._adjust_seed()
 
 
 class MWC2(object):
@@ -96,21 +106,30 @@ class MWC2(object):
     '''
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None or (seed_upper % 0x9068ffff)==0:
-            # Default seed, and avoid bad seeds
-            # There are a few bad seeds--that is, seeds that are a multiple of
-            # 0x9068FFFF (which is 36969 * 2**16 - 1).
-            seed_upper = 12345
-        if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
-            # Default seed, and avoid bad seeds
-            # There are a few bad seeds--that is, seeds that are a multiple of
-            # 0x464FFFFF (which is 18000 * 2**16 - 1).
-            seed_lower = 65437
-        self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
-        self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
+        if seed_upper==None:
+            self.mwc_upper = 12345
+        else:
+            self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
+        if seed_lower==None:
+            self.mwc_lower = 65437
+        else:
+            self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
+        self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
+
+    def _adjust_seed(self):
+        # Default seed, and avoid bad seeds
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x9068FFFF (which is 36969 * 2**16 - 1).
+        if (self.mwc_upper % 0x9068ffff)==0:
+            self.mwc_upper = 1
+        # Default seed, and avoid bad seeds
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x464FFFFF (which is 18000 * 2**16 - 1).
+        if (self.mwc_lower % 0x464FFFFF)==0:
+            self.mwc_lower = 1
 
     def next(self):
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
@@ -130,6 +149,7 @@ class MWC2(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
+        self._adjust_seed()
 
 
 class MWC1(MWC2):
