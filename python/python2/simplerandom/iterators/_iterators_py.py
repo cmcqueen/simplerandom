@@ -21,6 +21,7 @@ class Cong(object):
         if seed==None:
             self.cong = 123456789
         else:
+            # Ensure a 32-bit unsigned integer.
             self.cong = int(seed) & 0xFFFFFFFF
 
     def seed(self, seed = None):
@@ -61,7 +62,7 @@ class SHR3(object):
         if seed==None:
             self.shr3 = 362436000
         else:
-            # Ensure a 32-bit unsigned integer
+            # Ensure a 32-bit unsigned integer.
             self.shr3 = int(seed) & 0xFFFFFFFF
             self._adjust_seed()
 
@@ -70,7 +71,7 @@ class SHR3(object):
 
     def _adjust_seed(self):
         if self.shr3 == 0:
-            # 0 is a bad seed. Invert to get a good seed
+            # 0 is a bad seed. Invert to get a good seed.
             self.shr3 = 0xFFFFFFFF
 
     def next(self):
@@ -109,10 +110,12 @@ class MWC2(object):
         if seed_upper==None:
             self.mwc_upper = 12345
         else:
+            # Ensure a 32-bit unsigned integer.
             self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
         if seed_lower==None:
             self.mwc_lower = 65437
         else:
+            # Ensure a 32-bit unsigned integer.
             self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
         self._adjust_seed()
 
@@ -120,16 +123,16 @@ class MWC2(object):
         self.__init__(seed_upper, seed_lower)
 
     def _adjust_seed(self):
-        # Default seed, and avoid bad seeds
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         if (self.mwc_upper % 0x9068ffff)==0:
-            self.mwc_upper = 1
-        # Default seed, and avoid bad seeds
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFF
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
         if (self.mwc_lower % 0x464FFFFF)==0:
-            self.mwc_lower = 1
+            # Invert to get a good seed.
+            self.mwc_lower ^= 0xFFFFFFFF
 
     def next(self):
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
@@ -191,27 +194,28 @@ class MWC64(object):
 
     def __init__(self, seed_upper = None, seed_lower = None):
         if seed_upper==None:
-            seed_upper = 7654321
+            self.mwc_upper = 7654321
         else:
-            seed_upper = int(seed_upper) & 0xFFFFFFFF
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
 
         if seed_lower==None:
-            seed_lower = 521288629
+            self.mwc_lower = 521288629
         else:
-            seed_lower = int(seed_lower) & 0xFFFFFFFF
-
-        # There are a few bad seeds--that is, seeds that are a multiple of
-        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed64 = (seed_upper << 32) + seed_lower
-        if seed64 % 0x29A65EACFFFFFFFF == 0:
-            seed_upper = 7654321
-            seed_lower = 521288629
-
-        self.mwc_upper = seed_upper
-        self.mwc_lower = seed_lower
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
+
+    def _adjust_seed(self):
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
+        seed64 = (self.mwc_upper << 32) + self.mwc_lower
+        if seed64 % 0x29A65EACFFFFFFFF == 0:
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFF
+            self.mwc_lower ^= 0xFFFFFFFF
 
     def next(self):
         temp64 = 698769069 * self.mwc_lower + self.mwc_upper
@@ -232,6 +236,7 @@ class MWC64(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
+        self._adjust_seed()
 
 
 class KISS(object):
@@ -529,21 +534,30 @@ class LFSR113(object):
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        def process_seed(seed, min_value):
+        def process_seed(seed):
             if seed==None:
                 seed = 12345
             else:
                 seed = int(seed) & 0xFFFFFFFF
-                if seed < min_value:
-                    seed += min_value
             return seed
-        self.z1 = process_seed(seed_z1, 2)
-        self.z2 = process_seed(seed_z2, 8)
-        self.z3 = process_seed(seed_z3, 16)
-        self.z4 = process_seed(seed_z4, 128)
+        self.z1 = process_seed(seed_z1)
+        self.z2 = process_seed(seed_z2)
+        self.z3 = process_seed(seed_z3)
+        self.z4 = process_seed(seed_z4)
+        self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
+
+    def _adjust_seed(self):
+        def process_seed(seed, min_value):
+            if seed < min_value:
+                seed ^= 0xFFFFFFFF
+            return seed
+        self.z1 = process_seed(self.z1, 2)
+        self.z2 = process_seed(self.z2, 8)
+        self.z3 = process_seed(self.z3, 16)
+        self.z4 = process_seed(self.z4, 128)
 
     def next(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
@@ -568,6 +582,7 @@ class LFSR113(object):
 
     def setstate(self, state):
         (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
+        self._adjust_seed()
 
 
 class LFSR88(object):
@@ -589,15 +604,23 @@ class LFSR88(object):
                 seed = 12345
             else:
                 seed = int(seed) & 0xFFFFFFFF
-                if seed < min_value:
-                    seed += min_value
             return seed
-        self.z1 = process_seed(seed_z1, 2)
-        self.z2 = process_seed(seed_z2, 8)
-        self.z3 = process_seed(seed_z3, 16)
+        self.z1 = process_seed(seed_z1)
+        self.z2 = process_seed(seed_z2)
+        self.z3 = process_seed(seed_z3)
+        self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
         self.__init__(seed_z1, seed_z2, seed_z3)
+
+    def _adjust_seed(self):
+        def process_seed(seed, min_value):
+            if seed < min_value:
+                seed ^= 0xFFFFFFFF
+            return seed
+        self.z1 = process_seed(self.z1, 2)
+        self.z2 = process_seed(self.z2, 8)
+        self.z3 = process_seed(self.z3, 16)
 
     def next(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
@@ -619,5 +642,6 @@ class LFSR88(object):
 
     def setstate(self, state):
         (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
+        self._adjust_seed()
 
 
