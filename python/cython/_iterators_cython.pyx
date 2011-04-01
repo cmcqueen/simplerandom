@@ -619,6 +619,31 @@ def _lfsr_process_seed(seed, min_value):
     return seed
 
 
+cdef lfsr_init_one_seed(seed, uint32_t min_value_shift):
+    if seed==None:
+        seed = 12345
+    else:
+        seed = int(seed) & 0xFFFFFFFF
+
+        # For the LFSR algorithms, the lower n bits of the state variable
+        # are discarded each iteration. But we want to make some use of all
+        # the bits of the seed value. Especially the lower bits, in case they
+        # are sourced from an incrementing timer.
+
+        # Calculate final mask, which is 32-bits but with the lower unused
+        # bits cleared.
+        mask = 0xFFFFFFFF ^ ((1 << min_value_shift) - 1)
+        # Shift the seed up by the shift value, so the lower bits of the seed
+        # value contribute meaningfully to the initial state.
+        seed = (seed ^ (seed << min_value_shift)) & mask
+    return seed
+
+cdef lfsr_adjust_one_seed(seed, uint32_t min_value_shift):
+    min_value = 1 << min_value_shift
+    if seed < min_value:
+        seed = (seed << min_value_shift) ^ 0xFFFFFFFF
+    return seed
+
 cdef class LFSR113(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
@@ -638,13 +663,20 @@ cdef class LFSR113(object):
     cdef public uint32_t z4
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.z1 = _lfsr_process_seed(seed_z1, 2)
-        self.z2 = _lfsr_process_seed(seed_z2, 8)
-        self.z3 = _lfsr_process_seed(seed_z3, 16)
-        self.z4 = _lfsr_process_seed(seed_z4, 128)
+        self.z1 = lfsr_init_one_seed(seed_z1, 1)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+        self.z4 = lfsr_init_one_seed(seed_z4, 7)
+        self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
+
+    def _adjust_seed(self):
+        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
+        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
+        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
+        self.z4 = lfsr_adjust_one_seed(self.z4, 7)
 
     def __next__(self):
         cdef uint32_t b

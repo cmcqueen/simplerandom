@@ -520,6 +520,31 @@ class SWB(LFIB4):
             self.borrow = 0
 
 
+def lfsr_init_one_seed(seed, min_value_shift):
+    if seed==None:
+        seed = 12345
+    else:
+        seed = int(seed) & 0xFFFFFFFF
+
+        # For the LFSR algorithms, the lower n bits of the state variable
+        # are discarded each iteration. But we want to make some use of all
+        # the bits of the seed value. Especially the lower bits, in case they
+        # are sourced from an incrementing timer.
+
+        # Calculate final mask, which is 32-bits but with the lower unused
+        # bits cleared.
+        mask = 0xFFFFFFFF ^ ((1 << min_value_shift) - 1)
+        # Shift the seed up by the shift value, so the lower bits of the seed
+        # value contribute meaningfully to the initial state.
+        seed = (seed ^ (seed << min_value_shift)) & mask
+    return seed
+
+def lfsr_adjust_one_seed(seed, min_value_shift):
+    min_value = 1 << min_value_shift
+    if seed < min_value:
+        seed = (seed << min_value_shift) ^ 0xFFFFFFFF
+    return seed
+
 class LFSR113(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
@@ -530,34 +555,24 @@ class LFSR113(object):
 
     "Tables of Maximally-Equidistributed Combined Lfsr Generators"
     P. L'Ecuyer
-    Mathematics of Computation, 68, 225 (1999), 261–269.
+    Mathematics of Computation, 68, 225 (1999), 261-269.
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        def process_seed(seed):
-            if seed==None:
-                seed = 12345
-            else:
-                seed = int(seed) & 0xFFFFFFFF
-            return seed
-        self.z1 = process_seed(seed_z1)
-        self.z2 = process_seed(seed_z2)
-        self.z3 = process_seed(seed_z3)
-        self.z4 = process_seed(seed_z4)
+        self.z1 = lfsr_init_one_seed(seed_z1, 1)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+        self.z4 = lfsr_init_one_seed(seed_z4, 7)
         self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
 
     def _adjust_seed(self):
-        def process_seed(seed, min_value):
-            if seed < min_value:
-                seed ^= 0xFFFFFFFF
-            return seed
-        self.z1 = process_seed(self.z1, 2)
-        self.z2 = process_seed(self.z2, 8)
-        self.z3 = process_seed(self.z3, 16)
-        self.z4 = process_seed(self.z4, 128)
+        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
+        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
+        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
+        self.z4 = lfsr_adjust_one_seed(self.z4, 7)
 
     def next(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
@@ -595,32 +610,22 @@ class LFSR88(object):
 
     "Maximally Equidistributed Combined Tausworthe Generators"
     P. L'Ecuyer
-    Mathematics of Computation, 65, 213 (1996), 203–213. 
+    Mathematics of Computation, 65, 213 (1996), 203-213. 
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        def process_seed(seed, min_value):
-            if seed==None:
-                seed = 12345
-            else:
-                seed = int(seed) & 0xFFFFFFFF
-            return seed
-        self.z1 = process_seed(seed_z1)
-        self.z2 = process_seed(seed_z2)
-        self.z3 = process_seed(seed_z3)
+        self.z1 = lfsr_init_one_seed(seed_z1, 1)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4)
         self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
         self.__init__(seed_z1, seed_z2, seed_z3)
 
     def _adjust_seed(self):
-        def process_seed(seed, min_value):
-            if seed < min_value:
-                seed ^= 0xFFFFFFFF
-            return seed
-        self.z1 = process_seed(self.z1, 2)
-        self.z2 = process_seed(self.z2, 8)
-        self.z3 = process_seed(self.z3, 16)
+        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
+        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
+        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
 
     def next(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
