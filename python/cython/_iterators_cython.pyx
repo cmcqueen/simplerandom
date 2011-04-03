@@ -27,8 +27,10 @@ cdef class Cong(object):
 
     def __init__(self, seed = None):
         if seed==None:
-            seed = 123456789
-        self.cong = int(seed)
+            self.cong = 123456789
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.cong = int(seed) & 0xFFFFFFFFu
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -67,12 +69,20 @@ cdef class SHR3(object):
     cdef public uint32_t shr3
 
     def __init__(self, seed = None):
-        if seed==None or seed==0:
-            seed = 362436000
-        self.shr3 = int(seed)
+        if seed==None:
+            self.shr3 = 362436000
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.shr3 = int(seed) & 0xFFFFFFFFu
+            self._adjust_seed()
 
     def seed(self, seed = None):
         self.__init__(seed)
+
+    def _adjust_seed(self):
+        if self.shr3 == 0:
+            # 0 is a bad seed. Invert to get a good seed.
+            self.shr3 = 0xFFFFFFFF
 
     def __next__(self):
         cdef uint32_t shr3
@@ -91,6 +101,7 @@ cdef class SHR3(object):
 
     def setstate(self, state):
         self.shr3 = int(state[0])
+        self._adjust_seed()
 
 
 cdef class MWC1(object):
@@ -122,21 +133,32 @@ cdef class MWC1(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None or (seed_upper % 0x9068FFFF)==0:
-            # Default seed, and avoid bad seeds
-            # There are a few bad seeds--that is, seeds that are a multiple of
-            # 0x9068FFFF (which is 36969 * 2**16 - 1).
-            seed_upper = 12345
-        if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
-            # Default seed, and avoid bad seeds
-            # There are a few bad seeds--that is, seeds that are a multiple of
-            # 0x464FFFFF (which is 18000 * 2**16 - 1).
-            seed_lower = 65437
-        self.mwc_upper = int(seed_upper)
-        self.mwc_lower = int(seed_lower)
+        if seed_upper==None:
+            self.mwc_upper = 12345
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
+        if seed_lower==None:
+            self.mwc_lower = 65437
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
+        self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
+
+    def _adjust_seed(self):
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x9068FFFF (which is 36969 * 2**16 - 1).
+        if (self.mwc_upper % 0x9068ffff)==0:
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFFu
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x464FFFFF (which is 18000 * 2**16 - 1).
+        if (self.mwc_lower % 0x464FFFFF)==0:
+            # Invert to get a good seed.
+            self.mwc_lower ^= 0xFFFFFFFFu
 
     def __next__(self):
         cdef uint32_t mwc
@@ -160,6 +182,7 @@ cdef class MWC1(object):
     def setstate(self, state):
         self.mwc_upper = int(state[0])
         self.mwc_lower = int(state[1])
+        self._adjust_seed()
 
 
 cdef class MWC2(object):
@@ -179,21 +202,32 @@ cdef class MWC2(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None or (seed_upper % 0x9068FFFF)==0:
-            # Default seed, and avoid bad seeds
-            # There are a few bad seeds--that is, seeds that are a multiple of
-            # 0x9068FFFF (which is 36969 * 2**16 - 1).
-            seed_upper = 12345
-        if seed_lower==None or (seed_lower % 0x464FFFFF)==0:
-            # Default seed, and avoid bad seeds
-            # There are a few bad seeds--that is, seeds that are a multiple of
-            # 0x464FFFFF (which is 18000 * 2**16 - 1).
-            seed_lower = 65437
-        self.mwc_upper = int(seed_upper)
-        self.mwc_lower = int(seed_lower)
+        if seed_upper==None:
+            self.mwc_upper = 12345
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
+        if seed_lower==None:
+            self.mwc_lower = 65437
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
+        self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
+
+    def _adjust_seed(self):
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x9068FFFF (which is 36969 * 2**16 - 1).
+        if (self.mwc_upper % 0x9068ffff)==0:
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFFu
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x464FFFFF (which is 18000 * 2**16 - 1).
+        if (self.mwc_lower % 0x464FFFFF)==0:
+            # Invert to get a good seed.
+            self.mwc_lower ^= 0xFFFFFFFFu
 
     def __next__(self):
         cdef uint32_t mwc
@@ -217,6 +251,7 @@ cdef class MWC2(object):
     def setstate(self, state):
         self.mwc_upper = int(state[0])
         self.mwc_lower = int(state[1])
+        self._adjust_seed()
 
 
 cdef class MWC64(object):
@@ -232,26 +267,32 @@ cdef class MWC64(object):
 
     def __init__(self, seed_upper = None, seed_lower = None):
         if seed_upper==None:
-            seed_upper = 7654321
+            self.mwc_upper = 7654321
         else:
-            seed_upper = int(seed_upper) & 0xFFFFFFFF
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
+
         if seed_lower==None:
-            seed_lower = 521288629
+            self.mwc_lower = 521288629
         else:
-            seed_lower = int(seed_lower) & 0xFFFFFFFF
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
 
-        # There are a few bad seeds--that is, seeds that are a multiple of
-        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed64 = (seed_upper << 32u) + seed_lower
-        if seed64 % 0x29A65EACFFFFFFFFu == 0:
-            seed_upper = 7654321
-            seed_lower = 521288629
-
-        self.mwc_upper = seed_upper
-        self.mwc_lower = seed_lower
+        self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
+
+    def _adjust_seed(self):
+        cdef uint64_t seed64
+
+        seed64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
+        if seed64 % 0x29A65EACFFFFFFFFu == 0:
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFFu
+            self.mwc_lower ^= 0xFFFFFFFFu
 
     def __next__(self):
         cdef uint64_t temp64
@@ -274,6 +315,7 @@ cdef class MWC64(object):
     def setstate(self, state):
         self.mwc_upper = int(state[0])
         self.mwc_lower = int(state[1])
+        self._adjust_seed()
 
 
 cdef class KISS(object):
