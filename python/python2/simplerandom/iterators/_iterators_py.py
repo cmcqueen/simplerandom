@@ -205,13 +205,15 @@ class MWC64(object):
             # Ensure a 32-bit unsigned integer.
             self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
 
+        self._adjust_seed()
+
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
     def _adjust_seed(self):
+        seed64 = (self.mwc_upper << 32) + self.mwc_lower
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed64 = (self.mwc_upper << 32) + self.mwc_lower
         if seed64 % 0x29A65EACFFFFFFFF == 0:
             # Invert to get a good seed.
             self.mwc_upper ^= 0xFFFFFFFF
