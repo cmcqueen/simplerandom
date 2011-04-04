@@ -1,4 +1,12 @@
 
+def _init_default_and_int32(seed, default_value):
+    if seed==None:
+        return default_value
+    else:
+        # Ensure a 32-bit unsigned integer.
+        return (int(seed) & 0xFFFFFFFF)
+
+
 class Cong(object):
     '''Congruential random number generator
 
@@ -18,11 +26,7 @@ class Cong(object):
     '''
 
     def __init__(self, seed = None):
-        if seed==None:
-            self.cong = 123456789
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.cong = int(seed) & 0xFFFFFFFF
+        self.cong = _init_default_and_int32(seed, 123456789)
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -59,12 +63,8 @@ class SHR3(object):
     '''
 
     def __init__(self, seed = None):
-        if seed==None:
-            self.shr3 = 362436000
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.shr3 = int(seed) & 0xFFFFFFFF
-            self._adjust_seed()
+        self.shr3 = _init_default_and_int32(seed, 362436000)
+        self._adjust_seed()
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -107,16 +107,8 @@ class MWC2(object):
     '''
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None:
-            self.mwc_upper = 12345
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
-        if seed_lower==None:
-            self.mwc_lower = 65437
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
+        self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
+        self.mwc_lower = _init_default_and_int32(mwc_lower, 65437)
         self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):

@@ -5,6 +5,14 @@ cdef extern from "types.h":
     ctypedef unsigned char uint8_t
 
 
+def _init_default_and_int32(seed, default_value):
+    if seed==None:
+        return default_value
+    else:
+        # Ensure a 32-bit unsigned integer.
+        return (int(seed) & 0xFFFFFFFF)
+
+
 cdef class Cong(object):
     '''Congruential random number generator
 
@@ -26,11 +34,7 @@ cdef class Cong(object):
     cdef public uint32_t cong
 
     def __init__(self, seed = None):
-        if seed==None:
-            self.cong = 123456789
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.cong = int(seed) & 0xFFFFFFFFu
+        self.cong = _init_default_and_int32(seed, 123456789)
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -151,12 +155,12 @@ cdef class MWC1(object):
     def _adjust_seed(self):
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        if (self.mwc_upper % 0x9068ffff)==0:
+        if (self.mwc_upper % 0x9068FFFFu)==0:
             # Invert to get a good seed.
             self.mwc_upper ^= 0xFFFFFFFFu
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
-        if (self.mwc_lower % 0x464FFFFF)==0:
+        if (self.mwc_lower % 0x464FFFFFu)==0:
             # Invert to get a good seed.
             self.mwc_lower ^= 0xFFFFFFFFu
 
@@ -220,12 +224,12 @@ cdef class MWC2(object):
     def _adjust_seed(self):
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        if (self.mwc_upper % 0x9068ffff)==0:
+        if (self.mwc_upper % 0x9068FFFFu)==0:
             # Invert to get a good seed.
             self.mwc_upper ^= 0xFFFFFFFFu
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
-        if (self.mwc_lower % 0x464FFFFF)==0:
+        if (self.mwc_lower % 0x464FFFFFu)==0:
             # Invert to get a good seed.
             self.mwc_lower ^= 0xFFFFFFFFu
 
@@ -340,24 +344,32 @@ cdef class KISS(object):
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_mwc_upper==None or (seed_mwc_upper % 0x9068FFFF)==0:
-            # Default seed, and avoid bad seeds
-            seed_mwc_upper = 12345
-        if seed_mwc_lower==None or (seed_mwc_lower % 0x464FFFFF)==0:
-            # Default seed, and avoid bad seeds
-            seed_mwc_lower = 65437
-        self.mwc_upper = int(seed_mwc_upper)
-        self.mwc_lower = int(seed_mwc_lower)
+        if seed_upper==None:
+            self.mwc_upper = 12345
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
+        if seed_lower==None:
+            self.mwc_lower = 65437
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
 
         # Initialise Cong RNG
-        if seed_cong==None:
-            seed_cong = 123456789
-        self.cong = int(seed_cong)
+        if seed==None:
+            self.cong = 123456789
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.cong = int(seed) & 0xFFFFFFFFu
 
         # Initialise SHR3 RNG
-        if seed_shr3==None or seed_shr3==0:
-            seed_shr3 = 362436000
-        self.shr3 = int(seed_shr3)
+        if seed==None:
+            self.shr3 = 362436000
+        else:
+            # Ensure a 32-bit unsigned integer.
+            self.shr3 = int(seed) & 0xFFFFFFFFu
+
+        self._adjust_seed()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
