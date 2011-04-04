@@ -108,7 +108,7 @@ class MWC2(object):
 
     def __init__(self, seed_upper = None, seed_lower = None):
         self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
-        self.mwc_lower = _init_default_and_int32(mwc_lower, 65437)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 65437)
         self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
@@ -185,18 +185,8 @@ class MWC64(object):
     '''
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None:
-            self.mwc_upper = 7654321
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_upper = int(seed_upper) & 0xFFFFFFFF
-
-        if seed_lower==None:
-            self.mwc_lower = 521288629
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_lower = int(seed_lower) & 0xFFFFFFFF
-
+        self.mwc_upper = _init_default_and_int32(seed_upper, 7654321)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 521288629)
         self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
