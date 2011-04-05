@@ -10,7 +10,7 @@ def _init_default_and_int32(seed, default_value):
         return default_value
     else:
         # Ensure a 32-bit unsigned integer.
-        return (int(seed) & 0xFFFFFFFF)
+        return (int(seed) & 0xFFFFFFFFu)
 
 
 cdef class Cong(object):
@@ -50,7 +50,7 @@ cdef class Cong(object):
         return (self.cong, )
 
     def setstate(self, state):
-        self.cong = int(state[0])
+        self.cong = int(state[0]) & 0xFFFFFFFFu
 
 
 cdef class SHR3(object):
@@ -73,12 +73,8 @@ cdef class SHR3(object):
     cdef public uint32_t shr3
 
     def __init__(self, seed = None):
-        if seed==None:
-            self.shr3 = 362436000
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.shr3 = int(seed) & 0xFFFFFFFFu
-            self._adjust_seed()
+        self.shr3 = _init_default_and_int32(seed, 362436000)
+        self._adjust_seed()
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -104,7 +100,7 @@ cdef class SHR3(object):
         return (self.shr3, )
 
     def setstate(self, state):
-        self.shr3 = int(state[0])
+        self.shr3 = int(state[0]) & 0xFFFFFFFFu
         self._adjust_seed()
 
 
@@ -137,16 +133,8 @@ cdef class MWC1(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None:
-            self.mwc_upper = 12345
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
-        if seed_lower==None:
-            self.mwc_lower = 65437
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
+        self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 65437)
         self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
@@ -184,8 +172,8 @@ cdef class MWC1(object):
         return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        self.mwc_upper = int(state[0])
-        self.mwc_lower = int(state[1])
+        self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
+        self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
         self._adjust_seed()
 
 
@@ -206,16 +194,8 @@ cdef class MWC2(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None:
-            self.mwc_upper = 12345
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
-        if seed_lower==None:
-            self.mwc_lower = 65437
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
+        self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 65437)
         self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
@@ -253,8 +233,8 @@ cdef class MWC2(object):
         return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        self.mwc_upper = int(state[0])
-        self.mwc_lower = int(state[1])
+        self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
+        self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
         self._adjust_seed()
 
 
@@ -270,30 +250,20 @@ cdef class MWC64(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        if seed_upper==None:
-            self.mwc_upper = 7654321
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
-
-        if seed_lower==None:
-            self.mwc_lower = 521288629
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
-
+        self.mwc_upper = _init_default_and_int32(seed_upper, 7654321)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 521288629)
         self._adjust_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
     def _adjust_seed(self):
-        cdef uint64_t seed64
+        cdef uint64_t mwc64
 
-        seed64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        mwc64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        if seed64 % 0x29A65EACFFFFFFFFu == 0:
+        if mwc64 % 0x29A65EACFFFFFFFFu == 0:
             # Invert to get a good seed.
             self.mwc_upper ^= 0xFFFFFFFFu
             self.mwc_lower ^= 0xFFFFFFFFu
@@ -317,8 +287,8 @@ cdef class MWC64(object):
         return (self.mwc_upper, self.mwc_lower)
 
     def setstate(self, state):
-        self.mwc_upper = int(state[0])
-        self.mwc_lower = int(state[1])
+        self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
+        self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
         self._adjust_seed()
 
 
@@ -344,35 +314,37 @@ cdef class KISS(object):
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        if seed_upper==None:
-            self.mwc_upper = 12345
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_upper = int(seed_upper) & 0xFFFFFFFFu
-        if seed_lower==None:
-            self.mwc_lower = 65437
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.mwc_lower = int(seed_lower) & 0xFFFFFFFFu
+        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 12345)
+        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 65437)
 
         # Initialise Cong RNG
-        if seed==None:
-            self.cong = 123456789
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.cong = int(seed) & 0xFFFFFFFFu
+        self.cong = _init_default_and_int32(seed_cong, 123456789)
 
         # Initialise SHR3 RNG
-        if seed==None:
-            self.shr3 = 362436000
-        else:
-            # Ensure a 32-bit unsigned integer.
-            self.shr3 = int(seed) & 0xFFFFFFFFu
+        self.shr3 = _init_default_and_int32(seed_shr3, 362436000)
 
         self._adjust_seed()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
+
+    def _adjust_seed(self):
+        # Adjust MWC seed
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x9068FFFF (which is 36969 * 2**16 - 1).
+        if (self.mwc_upper % 0x9068FFFFu)==0:
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFFu
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x464FFFFF (which is 18000 * 2**16 - 1).
+        if (self.mwc_lower % 0x464FFFFFu)==0:
+            # Invert to get a good seed.
+            self.mwc_lower ^= 0xFFFFFFFFu
+
+        # Adjust SHR3 seed
+        if self.shr3 == 0:
+            # 0 is a bad seed. Invert to get a good seed.
+            self.shr3 = 0xFFFFFFFF
 
     def __next__(self):
         cdef uint32_t mwc
@@ -406,10 +378,11 @@ cdef class KISS(object):
 
     def setstate(self, state):
         (mwc_state, cong_state, shr3_state) = state
-        self.mwc_upper = int(mwc_state[0])
-        self.mwc_lower = int(mwc_state[1])
-        self.cong = int(cong_state[0])
-        self.shr3 = int(shr3_state[0])
+        self.mwc_upper = int(mwc_state[0]) & 0xFFFFFFFFu
+        self.mwc_lower = int(mwc_state[1]) & 0xFFFFFFFFu
+        self.cong = int(cong_state[0]) & 0xFFFFFFFFu
+        self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
+        self._adjust_seed()
 
 
 cdef class KISS2(object):
@@ -434,37 +407,36 @@ cdef class KISS2(object):
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC64 RNG
-        if seed_mwc_upper==None:
-            seed_mwc_upper = 7654321
-        else:
-            seed_mwc_upper = int(seed_mwc_upper) & 0xFFFFFFFF
-        if seed_mwc_lower==None:
-            seed_mwc_lower = 521288629
-        else:
-            seed_mwc_lower = int(seed_mwc_lower) & 0xFFFFFFFF
-
-        # There are a few bad seeds--that is, seeds that are a multiple of
-        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        seed_mwc_64 = (seed_mwc_upper << 32u) + seed_mwc_lower
-        if seed_mwc_64 % 0x29A65EACFFFFFFFFu == 0:
-            seed_mwc_upper = 7654321
-            seed_mwc_lower = 521288629
-
-        self.mwc_upper = seed_mwc_upper
-        self.mwc_lower = seed_mwc_lower
+        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 7654321)
+        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 521288629)
 
         # Initialise Cong RNG
-        if seed_cong==None:
-            seed_cong = 123456789
-        self.cong = int(seed_cong)
+        self.cong = _init_default_and_int32(seed_cong, 123456789)
 
         # Initialise SHR3 RNG
-        if seed_shr3==None or seed_shr3==0:
-            seed_shr3 = 362436000
-        self.shr3 = int(seed_shr3)
+        self.shr3 = _init_default_and_int32(seed_shr3, 362436000)
+
+        self._adjust_seed()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
+
+    def _adjust_seed(self):
+        cdef uint64_t mwc64
+
+        # Adjust MWC seed
+        mwc64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        # There are a few bad seeds--that is, seeds that are a multiple of
+        # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
+        if mwc64 % 0x29A65EACFFFFFFFFu == 0:
+            # Invert to get a good seed.
+            self.mwc_upper ^= 0xFFFFFFFFu
+            self.mwc_lower ^= 0xFFFFFFFFu
+
+        # Adjust SHR3 seed
+        if self.shr3 == 0:
+            # 0 is a bad seed. Invert to get a good seed.
+            self.shr3 = 0xFFFFFFFF
 
     def __next__(self):
         cdef uint64_t temp64
@@ -496,10 +468,11 @@ cdef class KISS2(object):
 
     def setstate(self, state):
         (mwc_state, cong_state, shr3_state) = state
-        self.mwc_upper = int(mwc_state[0])
-        self.mwc_lower = int(mwc_state[1])
-        self.cong = int(cong_state[0])
-        self.shr3 = int(shr3_state[0])
+        self.mwc_upper = int(mwc_state[0]) & 0xFFFFFFFFu
+        self.mwc_lower = int(mwc_state[1]) & 0xFFFFFFFFu
+        self.cong = int(cong_state[0]) & 0xFFFFFFFFu
+        self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
+        self._adjust_seed()
 
 
 cdef class LFIB4(object):
@@ -663,16 +636,6 @@ cdef class SWB(LFIB4):
         self.borrow = 1u if borrow else 0
 
 
-def _lfsr_process_seed(seed, min_value):
-    if seed==None:
-        seed = 12345
-    else:
-        seed = int(seed) & 0xFFFFFFFF
-        if seed < min_value:
-            seed += min_value
-    return seed
-
-
 cdef lfsr_init_one_seed(seed, uint32_t min_value_shift):
     if seed==None:
         seed = 12345
@@ -756,10 +719,11 @@ cdef class LFSR113(object):
         return (self.z1, self.z2, self.z3, self.z4)
 
     def setstate(self, state):
-        self.z1 = int(state[0])
-        self.z2 = int(state[1])
-        self.z3 = int(state[2])
-        self.z4 = int(state[3])
+        self.z1 = int(state[0]) & 0xFFFFFFFFu
+        self.z2 = int(state[1]) & 0xFFFFFFFFu
+        self.z3 = int(state[2]) & 0xFFFFFFFFu
+        self.z4 = int(state[3]) & 0xFFFFFFFFu
+        self._adjust_seed()
 
 
 cdef class LFSR88(object):
@@ -780,12 +744,18 @@ cdef class LFSR88(object):
     cdef public uint32_t z3
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.z1 = _lfsr_process_seed(seed_z1, 2)
-        self.z2 = _lfsr_process_seed(seed_z2, 8)
-        self.z3 = _lfsr_process_seed(seed_z3, 16)
+        self.z1 = lfsr_init_one_seed(seed_z1, 1)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+        self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
         self.__init__(seed_z1, seed_z2, seed_z3)
+
+    def _adjust_seed(self):
+        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
+        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
+        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
 
     def __next__(self):
         cdef uint32_t b
@@ -808,7 +778,8 @@ cdef class LFSR88(object):
         return (self.z1, self.z2, self.z3)
 
     def setstate(self, state):
-        self.z1 = int(state[0])
-        self.z2 = int(state[1])
-        self.z3 = int(state[2])
+        self.z1 = int(state[0]) & 0xFFFFFFFFu
+        self.z2 = int(state[1]) & 0xFFFFFFFFu
+        self.z3 = int(state[2]) & 0xFFFFFFFFu
+        self._adjust_seed()
 
