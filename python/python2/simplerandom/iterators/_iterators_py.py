@@ -252,6 +252,9 @@ class KISS(object):
         shr3_val = self.random_shr3.next()
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
 
+    def __iter__(self):
+        return self
+
     def getstate(self):
         return (self.random_mwc.getstate(), self.random_cong.getstate(), self.random_shr3.getstate())
 
@@ -318,6 +321,9 @@ class KISS2(object):
         cong_val = self.random_cong.next()
         shr3_val = self.random_shr3.next()
         return (mwc_val + cong_val + shr3_val) & 0xFFFFFFFF
+
+    def __iter__(self):
+        return self
 
     def getstate(self):
         return (self.random_mwc.getstate(), self.random_cong.getstate(), self.random_shr3.getstate())
