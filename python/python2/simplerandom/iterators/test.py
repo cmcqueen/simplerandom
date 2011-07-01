@@ -118,6 +118,10 @@ class CongTest(unittest.TestCase):
         for i in range(count2):
             self.assertEqual(self.rng.next(), rng_data[i])
 
+    def test_iter(self):
+        """Test that __iter__ member function is present"""
+        iter_object = iter(self.rng)
+
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
