@@ -373,6 +373,9 @@ cdef class KISS(object):
             mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
             return mwc
 
+    def __iter__(self):
+        return self
+
     def getstate(self):
         return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3,))
 
@@ -462,6 +465,9 @@ cdef class KISS2(object):
     property mwc:
         def __get__(self):
             return self.mwc_lower
+
+    def __iter__(self):
+        return self
 
     def getstate(self):
         return ((self.mwc_upper, self.mwc_lower), (self.cong,), (self.shr3,))
