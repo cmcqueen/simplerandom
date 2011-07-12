@@ -2,9 +2,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define MIN_VALUE_SHIFT             7
+#define MIN_VALUE_SHIFT             3
 
-#define ADJUST_SHIFT                24
+#define ADJUST_SHIFT                4
 
 #define MIN_VALUE_SHIFT_COUNT       (1 << MIN_VALUE_SHIFT)
 #define MIN_VALUE_LOW_BITS_MASK     (MIN_VALUE_SHIFT_COUNT - 1)
@@ -153,12 +153,13 @@ uint32_t inverse_adjust_seed_24(uint32_t seed)
 
 int main()
 {
-    uint32_t    seeds[MIN_VALUE_SHIFT_COUNT];
+    uint32_t    seeds[MIN_VALUE_SHIFT_COUNT * 2];
+    uint32_t    num_seeds;
     uint32_t    local_min_distance;
     uint32_t    min_distance;
     uint32_t    distance;
     uint32_t    val;
-    uint32_t    i;
+    uint32_t    i, j;
     int         seeds_idx;
     int         seeds_idx2;
     
@@ -166,32 +167,36 @@ int main()
     i = MIN_VALUE_SHIFT_COUNT;
     do
     {
-        for (seeds_idx = 0; seeds_idx < MIN_VALUE_SHIFT_COUNT; seeds_idx++)
-        {
-            seeds[seeds_idx] = 0xFFFFFFFF;
-        }
+        //for (seeds_idx = 0; seeds_idx < MIN_VALUE_SHIFT_COUNT; seeds_idx++)
+        //{
+        //    seeds[seeds_idx] = 0xFFFFFFFF;
+        //}
+        num_seeds = 0;
 
+        j = i;
         do
         {
-            val = INVERSE_ADJUST_SEED(i);
-            //seeds[i & MIN_VALUE_LOW_BITS_MASK] = val;
-            for (seeds_idx = 0; seeds_idx < MIN_VALUE_SHIFT_COUNT; seeds_idx++)
+            val = INVERSE_ADJUST_SEED(j);
+
+            // Insert val into array, sorted
+            for (seeds_idx = 0;
+                (seeds_idx < num_seeds) && val > seeds[seeds_idx];
+                seeds_idx++)
             {
-                if (val <= seeds[seeds_idx])
-                {
-                    for (seeds_idx2 = MIN_VALUE_SHIFT_COUNT - 2; seeds_idx2 >= seeds_idx; seeds_idx2--)
-                        seeds[seeds_idx2 + 1] = seeds[seeds_idx2];
-                    seeds[seeds_idx] = val;
-                    break;
-                }
+                // Looking for appropriate spot
             }
-            i++;
-        } while ((i & MIN_VALUE_LOW_BITS_MASK) != 0);
+            for (seeds_idx2 = num_seeds - 1; seeds_idx2 >= seeds_idx; seeds_idx2--)
+                seeds[seeds_idx2 + 1] = seeds[seeds_idx2];
+            seeds[seeds_idx] = val;
+            num_seeds++;
+
+            j++;
+        } while ((j & MIN_VALUE_LOW_BITS_MASK) != 0);
 
         local_min_distance = 0xFFFFFFFF;
-        for (seeds_idx = 0; seeds_idx < MIN_VALUE_SHIFT_COUNT; seeds_idx++)
+        for (seeds_idx = 0; seeds_idx < num_seeds; seeds_idx++)
         {
-            distance = distance_uint32(seeds[seeds_idx], seeds[(seeds_idx + 1) & MIN_VALUE_LOW_BITS_MASK]);
+            distance = distance_uint32(seeds[seeds_idx], seeds[(seeds_idx + 1) % num_seeds]);
             if (distance < local_min_distance)
                 local_min_distance = distance;
         }
@@ -199,8 +204,8 @@ int main()
         if ((local_min_distance < 0x100) ||
             (local_min_distance < min_distance))
         {
-            printf("min dist %08X; seed out %08X; seeds", local_min_distance, i - MIN_VALUE_SHIFT_COUNT);
-            for (seeds_idx = 0; seeds_idx < MIN_VALUE_SHIFT_COUNT; seeds_idx++)
+            printf("min dist %08X; seed out %08X; seeds", local_min_distance, i);
+            for (seeds_idx = 0; seeds_idx < num_seeds; seeds_idx++)
                 printf(" %08X", seeds[seeds_idx]);
             printf("\n");
         }
@@ -209,5 +214,6 @@ int main()
         {
             min_distance = local_min_distance;
         }
+        i += MIN_VALUE_SHIFT_COUNT;
     } while (i != 0);
 }
