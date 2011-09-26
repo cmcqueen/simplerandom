@@ -190,6 +190,8 @@ int main()
             seeds[seeds_idx] = val;
             num_seeds++;
 
+            val = INVERSE_ADJUST_SEED(j ^ 0x80000000);
+            if (ADJUST_SEED(val) < MIN_VALUE_SHIFT_COUNT)
             j++;
         } while ((j & MIN_VALUE_LOW_BITS_MASK) != 0);
 

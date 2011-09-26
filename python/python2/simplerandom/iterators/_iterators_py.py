@@ -510,29 +510,32 @@ class SWB(LFIB4):
             self.borrow = 0
 
 
-def lfsr_init_one_seed(seed, min_value_shift):
+def lfsr_init_one_seed(seed, min_value_shift, init_value_shift):
     if seed==None:
         seed = 12345
     else:
         seed = int(seed) & 0xFFFFFFFF
 
-        # For the LFSR algorithms, the lower n bits of the state variable
-        # are discarded each iteration. But we want to make some use of all
-        # the bits of the seed value. Especially the lower bits, in case they
-        # are sourced from an incrementing timer.
+        # For the LFSR algorithms, the lower 'min_value_shift' bits of the
+        # state variable are discarded each iteration. But we want to make some
+        # use of all the bits of the seed value. Especially the lower bits, in
+        # case they are sourced from an incrementing timer.
 
-        # Calculate final mask, which is 32-bits but with the lower unused
-        # bits cleared.
-        mask = 0xFFFFFFFF ^ ((1 << min_value_shift) - 1)
         # Shift the seed up by the shift value, so the lower bits of the seed
         # value contribute meaningfully to the initial state.
-        seed = (seed ^ (seed << min_value_shift)) & mask
-    return seed
+        working_seed = (seed ^ (seed << init_value_shift)) & 0xFFFFFFFF
+
+        min_value = 1 << min_value_shift
+        if working_seed < min_value:
+            working_seed = (seed << min_value_shift)
+            if working_seed < min_value:
+                working_seed |= 0x80000000
+    return working_seed
 
 def lfsr_adjust_one_seed(seed, min_value_shift):
     min_value = 1 << min_value_shift
     if seed < min_value:
-        seed = (seed << min_value_shift) ^ 0xFFFFFFFF
+        seed = (seed << min_value_shift) ^ 0x80000000
     return seed
 
 class LFSR113(object):
@@ -549,10 +552,10 @@ class LFSR113(object):
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4)
-        self.z4 = lfsr_init_one_seed(seed_z4, 7)
+        self.z1 = lfsr_init_one_seed(seed_z1, 1, 16)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3, 16)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4, 16)
+        self.z4 = lfsr_init_one_seed(seed_z4, 7, 16)
         self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
@@ -604,9 +607,9 @@ class LFSR88(object):
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+        self.z1 = lfsr_init_one_seed(seed_z1, 1, 16)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3, 16)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4, 16)
         self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
