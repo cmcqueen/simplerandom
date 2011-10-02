@@ -40,7 +40,7 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
 {
     if (seed == 0)
     {
-        seed = UINT32_C(362436000);
+        seed = UINT32_C(0xFFFFFFFF);
     }
 
     *p_shr3 = seed;
@@ -64,32 +64,12 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
  * MWC1
  ********/
 
-/* There are some bad seed values. See:
- *     http://eprint.iacr.org/2011/007.pdf
- *
- * Of course 0 is bad for either part.
- *
- * For upper part, seed value 0x9068FFFF is bad. That
- * is, 36969 * 0x10000 - 1.
- *
- * For lower part, seed value 0x464FFFFF, or any multiple,
- * is bad. That is, 18000 * 0x10000 - 1.
+/*
+ * See notes for simplerandom_mwc2_seed().
  */
 void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
-    if ((seed_upper == 0) || (seed_upper == UINT32_C(0x9068FFFF)))
-    {
-        seed_upper = UINT32_C(362436069);
-    }
-    if ((seed_lower == 0) || (seed_lower == UINT32_C(0x464FFFFF) * 1u) ||
-                             (seed_lower == UINT32_C(0x464FFFFF) * 2u) ||
-                             (seed_lower == UINT32_C(0x464FFFFF) * 3u))
-    {
-        seed_lower = UINT32_C(521288629);
-    }
-
-    p_mwc->mwc_upper = seed_upper;
-    p_mwc->mwc_lower = seed_lower;
+    simplerandom_mwc2_seed(p_mwc, seed_upper, seed_lower);
 }
 
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
@@ -104,11 +84,39 @@ uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
  * MWC2
  ********/
 
+/* There are some bad seed values. See:
+ *     http://eprint.iacr.org/2011/007.pdf
+ *
+ * Of course 0 is bad for either part.
+ *
+ * For upper part, seed value 0x9068FFFF is bad. That
+ * is, 36969 * 0x10000 - 1.
+ *
+ * For lower part, seed value 0x464FFFFF, or any multiple,
+ * is bad. That is, 18000 * 0x10000 - 1.
+ */
 void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
-    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
+    if ((seed_upper == 0) || (seed_upper == UINT32_C(0x9068FFFF)))
+    {
+        seed_upper = UINT32_C(0xFFFFFFFF);
+    }
+    if ((seed_lower == 0) || (seed_lower == UINT32_C(0x464FFFFF) * 1u) ||
+                             (seed_lower == UINT32_C(0x464FFFFF) * 2u) ||
+                             (seed_lower == UINT32_C(0x464FFFFF) * 3u))
+    {
+        seed_lower = UINT32_C(0xFFFFFFFF);
+    }
+
+    p_mwc->mwc_upper = seed_upper;
+    p_mwc->mwc_lower = seed_lower;
 }
 
+/*
+ * This is almost identical to simplerandom_mwc1_next(), except that when
+ * combining the upper and lower values in the last step, the upper 16 bits of
+ * mwc_upper are added in too, instead of just being discarded.
+ */
 uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc)
 {
     p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
@@ -126,13 +134,13 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
     /* Initialise MWC2 RNG */
     if ((seed_mwc_upper == 0) || (seed_mwc_upper == UINT32_C(0x9068FFFF)))
     {
-        seed_mwc_upper = UINT32_C(362436069);
+        seed_mwc_upper = UINT32_C(0xFFFFFFFF);
     }
     if ((seed_mwc_lower == 0) || (seed_mwc_lower == UINT32_C(0x464FFFFF) * 1u) ||
                                  (seed_mwc_lower == UINT32_C(0x464FFFFF) * 2u) ||
                                  (seed_mwc_lower == UINT32_C(0x464FFFFF) * 3u))
     {
-        seed_mwc_lower = UINT32_C(521288629);
+        seed_mwc_lower = UINT32_C(0xFFFFFFFF);
     }
     p_kiss->mwc_upper = seed_mwc_upper;
     p_kiss->mwc_lower = seed_mwc_lower;
@@ -143,7 +151,7 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
     /* Initialise SHR3 RNG */
     if (seed_shr3 == 0)
     {
-        seed_shr3 = UINT32_C(362436000);
+        seed_shr3 = UINT32_C(0xFFFFFFFF);
     }
     p_kiss->shr3 = seed_shr3;
 }
@@ -172,106 +180,6 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     return ((mwc2 ^ p_kiss->cong) + shr3);
 }
 
-/*********
- * LFIB4
- ********/
-
-/* LFIB4 seed
- *
- * It is not practical to pass the 256 seed values to this
- * function as parameters. Before calling this function,
- * initialise p_lfib4->t[] with 256 good-quality
- * [pseudo]random values.
- */
-void simplerandom_lfib4_seed(SimpleRandomLFIB4_t * p_lfib4)
-{
-    p_lfib4->c = 0;
-}
-
-void simplerandom_lfib4_seed_from_kiss(SimpleRandomLFIB4_t * p_lfib4, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
-{
-    SimpleRandomKISS_t  kiss;
-    unsigned int        i;
-
-    simplerandom_kiss_seed(&kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
-    for (i = 0; i < 256; i++)
-    {
-        p_lfib4->t[i] = simplerandom_kiss_next(&kiss);
-    }
-    p_lfib4->c = 0;
-}
-
-uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4)
-{
-    uint32_t    new_val;
-    uint8_t     c;
-
-    c = ++(p_lfib4->c);
-    new_val =  (p_lfib4->t[c] +
-                p_lfib4->t[(uint8_t)(c + 58)] +
-                p_lfib4->t[(uint8_t)(c + 119)] +
-                p_lfib4->t[(uint8_t)(c + 178)]);
-    p_lfib4->t[c] = new_val;
-
-    return new_val;
-}
-
-/*********
- * SWB
- ********/
-
-/* SWB seed
- *
- * It is not practical to pass the 256 seed values to this
- * function as parameters. Before calling this function,
- * initialise p_swb->t[] with 256 good-quality
- * [pseudo]random values.
- */
-void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb)
-{
-    p_swb->c = 0;
-    p_swb->borrow = 0;
-}
-
-void simplerandom_swb_seed_from_kiss(SimpleRandomSWB_t * p_swb, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
-{
-    SimpleRandomKISS_t  kiss;
-    unsigned int        i;
-
-    simplerandom_kiss_seed(&kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
-    for (i = 0; i < 256; i++)
-    {
-        p_swb->t[i] = simplerandom_kiss_next(&kiss);
-    }
-    p_swb->c = 0;
-    p_swb->borrow = 0;
-}
-
-uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb)
-{
-    uint32_t    x;
-    uint32_t    y;
-    uint32_t    new_val;
-    uint8_t     c;
-
-    c = ++(p_swb->c);
-
-    x = p_swb->t[(uint8_t)(c + 34)];
-    y = p_swb->t[(uint8_t)(c + 19)] + p_swb->borrow;
-    new_val = x - y;
-    p_swb->t[c] = new_val;
-    if (x < y)
-    {
-        p_swb->borrow = 1;
-    }
-    else
-    {
-        p_swb->borrow = 0;
-    }
-
-    return new_val;
-}
-
 
 #ifdef UINT64_C
 
@@ -292,8 +200,8 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, u
     seed64 = ((uint64_t)seed_upper << 32u) + seed_lower;
     if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
     {
-        seed_upper = UINT32_C(7654321);
-        seed_lower = UINT32_C(521288629);
+        seed_upper = UINT32_C(0xFFFFFFFF);
+        seed_lower = UINT32_C(0xFFFFFFFF);
     }
 
     p_mwc->mwc_upper = seed_upper;
@@ -324,8 +232,8 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
     seed_mwc64 = ((uint64_t)seed_mwc_upper << 32u) + seed_mwc_lower;
     if ((seed_mwc64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
     {
-        seed_mwc_upper = UINT32_C(7654321);
-        seed_mwc_lower = UINT32_C(521288629);
+        seed_mwc_upper = UINT32_C(0xFFFFFFFF);
+        seed_mwc_lower = UINT32_C(0xFFFFFFFF);
     }
     p_kiss2->mwc_upper = seed_mwc_upper;
     p_kiss2->mwc_lower = seed_mwc_lower;
@@ -336,7 +244,7 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
     /* Initialise SHR3 RNG */
     if (seed_shr3 == 0)
     {
-        seed_shr3 = UINT32_C(362436000);
+        seed_shr3 = UINT32_C(0xFFFFFFFF);
     }
     p_kiss2->shr3 = seed_shr3;
 }
@@ -371,32 +279,66 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
 /*********
  * LFSR113
  ********/
- 
+
+#define LFSR_SEED_SHIFT         16u
+#define LFSR_SEED_ALT_SHIFT     24u
+
+#define LFSR_SEED_Z1_MIN_VALUE  2u
+#define LFSR_SEED_Z2_MIN_VALUE  8u
+#define LFSR_SEED_Z3_MIN_VALUE  16u
+#define LFSR_SEED_Z4_MIN_VALUE  128u
+
 void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4)
 {
-    if (seed_z1 < 2u)
-    {
-        seed_z1 += 2u;
-    }
-    p_lfsr113->z1 = seed_z1;
+    uint32_t    working_seed;
 
-    if (seed_z2 < 8u)
+    /* Seed z1 */
+    working_seed = seed_z1 ^ (seed_z1 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
     {
-        seed_z2 += 8u;
+        working_seed = seed_z1 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
     }
-    p_lfsr113->z2 = seed_z2;
+    p_lfsr113->z1 = working_seed;
 
-    if (seed_z3 < 16u)
+    /* Seed z2 */
+    working_seed = seed_z2 ^ (seed_z2 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
     {
-        seed_z3 += 16u;
+        working_seed = seed_z2 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
     }
-    p_lfsr113->z3 = seed_z3;
+    p_lfsr113->z2 = working_seed;
 
-    if (seed_z4 < 128u)
+    /* Seed z3 */
+    working_seed = seed_z3 ^ (seed_z3 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
     {
-        seed_z4 += 128u;
+        working_seed = seed_z3 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
     }
-    p_lfsr113->z4 = seed_z4;
+    p_lfsr113->z3 = working_seed;
+
+    /* Seed z4 */
+    working_seed = seed_z4 ^ (seed_z4 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
+    {
+        working_seed = seed_z4 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
+    }
+    p_lfsr113->z4 = working_seed;
 }
 
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
@@ -436,26 +378,46 @@ uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
 /*********
  * LFSR88
  ********/
- 
+
 void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3)
 {
-    if (seed_z1 < 2u)
-    {
-        seed_z1 += 2u;
-    }
-    p_lfsr88->z1 = seed_z1;
+    uint32_t    working_seed;
 
-    if (seed_z2 < 8u)
+    /* Seed z1 */
+    working_seed = seed_z1 ^ (seed_z1 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
     {
-        seed_z2 += 8u;
+        working_seed = seed_z1 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
     }
-    p_lfsr88->z2 = seed_z2;
+    p_lfsr88->z1 = working_seed;
 
-    if (seed_z3 < 16u)
+    /* Seed z2 */
+    working_seed = seed_z2 ^ (seed_z2 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
     {
-        seed_z3 += 16u;
+        working_seed = seed_z2 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
     }
-    p_lfsr88->z3 = seed_z3;
+    p_lfsr88->z2 = working_seed;
+
+    /* Seed z3 */
+    working_seed = seed_z3 ^ (seed_z3 << LFSR_SEED_SHIFT);
+    if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
+    {
+        working_seed = seed_z3 << LFSR_SEED_ALT_SHIFT;
+        if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
+        {
+            working_seed = ~working_seed;
+        }
+    }
+    p_lfsr88->z3 = working_seed;
 }
 
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88)

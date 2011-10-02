@@ -16,8 +16,6 @@ __all__ = [
     "MWC64",
     "KISS",
     "KISS2",
-    "LFIB4",
-    "SWB",
     "LFSR113",
     "LFSR88",
 ]

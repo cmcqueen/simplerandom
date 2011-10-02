@@ -18,27 +18,8 @@ class Marsaglia1999Tests(unittest.TestCase):
     but relied on the seed values that were side-effects of previous RNG
     executions. But we want to run each test as a stand-alone unit. So we
     have obtained the seed values from the C execution, and set them
-    explicitly in each test here. The exception is LFIB4 followed by SWB--
-    it would be painful to set the SWB seed table explicitly.
+    explicitly in each test here.
     """
-
-    def test_lfib4_swb_million(self):
-        # Set up KISS RNG to initialise seeds for LFIB4 and SWB RNGs.
-        random_kiss = sri.KISS(12345, 65435, 12345, 34221)
-        t = [ random_kiss.next() for i in range(256) ]
-
-        # Test LFIB4
-        lfib4 = sri.LFIB4(t)
-        for i in range(1000000):
-            k = lfib4.next()
-        self.assertEqual(k, 3874012728)
-
-        # Test SWB
-        swb = sri.SWB(lfib4.t)
-        swb.c = lfib4.c
-        for i in range(1000000):
-            k = swb.next()
-        self.assertEqual(k, 1831941512)
 
     def test_kiss_million(self):
         random_kiss = sri.KISS(2247183469, 99545079, 3269400377, 3950144837)
@@ -135,7 +116,7 @@ class MWC1Test(CongTest):
 class KISS2Test(CongTest):
     RNG_CLASS = sri.KISS2
     RNG_SEEDS = 4
-    MILLION_RESULT = 1010846401
+    MILLION_RESULT = 4044786495
 
     def test_million(self):
         rng = self.RNG_CLASS()
@@ -147,12 +128,12 @@ class KISS2Test(CongTest):
 class MWC2Test(KISS2Test):
     RNG_CLASS = sri.MWC2
     RNG_SEEDS = 2
-    MILLION_RESULT = 55050263
+    MILLION_RESULT = 767834450
 
 class MWC64Test(KISS2Test):
     RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
-    MILLION_RESULT = 3377343606
+    MILLION_RESULT = 2191957470
 
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.
@@ -172,13 +153,13 @@ class KISSTest(CongTest):
 class LFSR113Test(KISS2Test):
     RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
-    MILLION_RESULT = 1205173390
+    MILLION_RESULT = 300959510
 
 
 class LFSR88Test(KISS2Test):
     RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
-    MILLION_RESULT = 3639585634
+    MILLION_RESULT = 3774296834
 
 
 def runtests():

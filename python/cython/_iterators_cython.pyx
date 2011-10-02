@@ -34,7 +34,7 @@ cdef class Cong(object):
     cdef public uint32_t cong
 
     def __init__(self, seed = None):
-        self.cong = _init_default_and_int32(seed, 123456789)
+        self.cong = _init_default_and_int32(seed, 0)
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -73,16 +73,16 @@ cdef class SHR3(object):
     cdef public uint32_t shr3
 
     def __init__(self, seed = None):
-        self.shr3 = _init_default_and_int32(seed, 362436000)
-        self._adjust_seed()
+        self.shr3 = _init_default_and_int32(seed, 0xFFFFFFFFu)
+        self._validate_seed()
 
     def seed(self, seed = None):
         self.__init__(seed)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         if self.shr3 == 0:
             # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFF
+            self.shr3 = 0xFFFFFFFFu
 
     def __next__(self):
         cdef uint32_t shr3
@@ -101,7 +101,7 @@ cdef class SHR3(object):
 
     def setstate(self, state):
         self.shr3 = int(state[0]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
 cdef class MWC1(object):
@@ -133,14 +133,14 @@ cdef class MWC1(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 65437)
-        self._adjust_seed()
+        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFFu)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFFu)
+        self._validate_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         if (self.mwc_upper % 0x9068FFFFu)==0:
@@ -174,7 +174,7 @@ cdef class MWC1(object):
     def setstate(self, state):
         self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
         self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
 cdef class MWC2(object):
@@ -194,14 +194,14 @@ cdef class MWC2(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 65437)
-        self._adjust_seed()
+        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFFu)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFFu)
+        self._validate_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         if (self.mwc_upper % 0x9068FFFFu)==0:
@@ -235,7 +235,7 @@ cdef class MWC2(object):
     def setstate(self, state):
         self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
         self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
 cdef class MWC64(object):
@@ -250,14 +250,14 @@ cdef class MWC64(object):
     cdef public uint32_t mwc_lower
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 7654321)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 521288629)
-        self._adjust_seed()
+        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFFu)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFFu)
+        self._validate_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         cdef uint64_t mwc64
 
         mwc64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
@@ -289,7 +289,7 @@ cdef class MWC64(object):
     def setstate(self, state):
         self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
         self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
 cdef class KISS(object):
@@ -314,21 +314,21 @@ cdef class KISS(object):
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC RNG
-        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 12345)
-        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 65437)
+        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 0xFFFFFFFFu)
+        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 0xFFFFFFFFu)
 
         # Initialise Cong RNG
-        self.cong = _init_default_and_int32(seed_cong, 123456789)
+        self.cong = _init_default_and_int32(seed_cong, 0)
 
         # Initialise SHR3 RNG
-        self.shr3 = _init_default_and_int32(seed_shr3, 362436000)
+        self.shr3 = _init_default_and_int32(seed_shr3, 0xFFFFFFFFu)
 
-        self._adjust_seed()
+        self._validate_seed()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         # Adjust MWC seed
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
@@ -385,7 +385,7 @@ cdef class KISS(object):
         self.mwc_lower = int(mwc_state[1]) & 0xFFFFFFFFu
         self.cong = int(cong_state[0]) & 0xFFFFFFFFu
         self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
 cdef class KISS2(object):
@@ -410,21 +410,21 @@ cdef class KISS2(object):
 
     def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         # Initialise MWC64 RNG
-        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 7654321)
-        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 521288629)
+        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 0xFFFFFFFFu)
+        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 0xFFFFFFFFu)
 
         # Initialise Cong RNG
-        self.cong = _init_default_and_int32(seed_cong, 123456789)
+        self.cong = _init_default_and_int32(seed_cong, 0)
 
         # Initialise SHR3 RNG
-        self.shr3 = _init_default_and_int32(seed_shr3, 362436000)
+        self.shr3 = _init_default_and_int32(seed_shr3, 0xFFFFFFFFu)
 
-        self._adjust_seed()
+        self._validate_seed()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         cdef uint64_t mwc64
 
         # Adjust MWC seed
@@ -478,193 +478,53 @@ cdef class KISS2(object):
         self.mwc_lower = int(mwc_state[1]) & 0xFFFFFFFFu
         self.cong = int(cong_state[0]) & 0xFFFFFFFFu
         self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
-cdef class LFIB4(object):
-    '''"Lagged Fibonacci 4-lag" random number generator
-
-    LFIB4 is an extension of what Marsaglia has previously
-    defined as a lagged Fibonacci generator:
-
-        x[n]=x[n-r] op x[n-s]
-
-    with the x's in a finite set over which there is a
-    binary operation op, such as +,- on integers mod 2**32,
-    * on odd such integers, exclusive-or(xor) on binary
-    vectors. Except for those using multiplication, lagged
-    Fibonacci generators fail various tests of randomness,
-    unless the lags are very long. (See SWB).
-
-    To see if more than two lags would serve to overcome
-    the problems of 2-lag generators using +,- or xor,
-    Marsaglia developed the 4-lag generator LFIB4 using
-    addition:
-
-        x[n]=x[n-256]+x[n-179]+x[n-119]+x[n-55] mod 2**32
-
-    Its period is 2**31*(2**256-1), about 2**287,
-    and it seems to pass all tests---in particular,
-    those of the kind for which 2-lag generators using
-    +,-,xor seem to fail.
-
-    For even more confidence in its suitability, LFIB4
-    can be combined with KISS, with a resulting period
-    of about 2**410.
-    '''
-
-    cdef uint32_t tt[256]
-    cdef public uint8_t c
-
-    def __init__(self, seed = None):
-        cdef int i
-        if not seed:
-            random_kiss = KISS(12345, 65435, 12345, 34221)
-            for i in range(256):
-                self.tt[i] = next(random_kiss)
-        else:
-            if len(seed) != 256:
-                raise Exception("seed length must be 256")
-            seed_iter = iter(seed)
-            for i in range(256):
-                self.tt[i] = next(seed_iter)
-        self.c = 0
-
-    def seed(self, seed = None):
-        self.__init__(seed)
-
-    def __next__(self):
-        cdef uint32_t new_value
-        self.c += 1
-
-        new_value = (self.tt[self.c] +
-                     self.tt[(self.c + 58u) % 256u] +
-                     self.tt[(self.c + 119u) % 256u] +
-                     self.tt[(self.c + 178u) % 256u])
-
-        self.tt[self.c] = new_value
-
-        return new_value
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-#        return tuple( self.tt[(i + self.c) % 256u] for i in range(256u) )
-        return tuple([ self.tt[(i + self.c) % 256u] for i in range(256u) ])
-
-    def setstate(self, state):
-        cdef int i
-        if len(state) != 256:
-            raise Exception("state length must be 256")
-#        self.tt = list(int(val) & 0xFFFFFFFFu for val in state)
-#        self.tt = [ int(val) & 0xFFFFFFFFu for val in state ]
-        for i in range(256u):
-            self.tt[i] = state[i]
-        self.c = 0
-
-    property t:
-        def __get__(self):
-            cdef int i
-            return tuple([ self.tt[i] for i in range(256u) ])
-
-        def __set__(self, value):
-            cdef int i
-            for i in range(256u):
-                self.tt[i] = value[i]
-
-
-cdef class SWB(LFIB4):
-    '''"Subtract-With-Borrow" random number generator
+def lfsr_init_one_seed(seed, uint32_t min_value_shift):
+    """High-quality seeding for LFSR generators.
     
-    SWB is a subtract-with-borrow generator that Marsaglia
-    developed to give a simple method for producing
-    extremely long periods:
-    x[n]=x[n-222]-x[n-237]- borrow mod 2**32.
-    The 'borrow' is 0, or set to 1 if computing x[n-1]
-    caused overflow in 32-bit integer arithmetic. This
-    generator has a very long period, 2**7098(2**480-1),
-    about 2**7578.
+    The LFSR generator components discard a certain number of their lower bits
+    when generating each output. The significant bits of their state must not
+    all be zero. We must ensure that when seeding the generator.
+    
+    In case generators are seeded from an incrementing input (such as a system
+    timer), and between increments only the lower bits may change, we would
+    also like the lower bits of the input to change the initial state, and not
+    just be discarded. So we do basic manipulation of the seed input value to
+    ensure that all bits of the seed input affect the initial state.
+    """
+    cdef uint32_t min_value
+    cdef uint32_t working_seed
 
-    It seems to pass all tests of randomness, except
-    for the Birthday Spacings test, which it fails
-    badly, as do all lagged Fibonacci generators using
-    +,- or xor. Marsaglia suggests combining SWB with
-    KISS, MWC, SHR3, or Cong. KISS+SWB has period
-    >2**7700 and is highly recommended.
-
-    Subtract-with-borrow has the same local behaviour
-    as lagged Fibonacci using +,-,xor---the borrow
-    merely provides a much longer period.
-
-    SWB fails the birthday spacings test, as do all
-    lagged Fibonacci and other generators that merely
-    combine two previous values by means of =,- or xor.
-    Those failures are for a particular case: m=512
-    birthdays in a year of n=2**24 days. There are
-    choices of m and n for which lags >1000 will also
-    fail the test. A reasonable precaution is to always
-    combine a 2-lag Fibonacci or SWB generator with
-    another kind of generator, unless the generator uses
-    *, for which a very satisfactory sequence of odd
-    32-bit integers results.
-    '''
-
-    cdef public uint8_t borrow
-
-    def __init__(self, seed = None):
-        LFIB4.__init__(self, seed)
-        self.borrow = 0
-
-    def __next__(self):
-        cdef uint32_t x
-        cdef uint32_t y
-
-        self.c += 1
-
-        x = self.tt[(self.c + 34u) % 256u]
-        y = (self.tt[(self.c + 19u) % 256u] + self.borrow)
-        new_value = x - y
-
-        self.tt[self.c] = new_value
-
-        self.borrow = 1u if (x < y) else 0
-
-        return new_value
-
-    def getstate(self):
-        t_tuple = LFIB4.getstate(self)
-        return (t_tuple, self.borrow)
-
-    def setstate(self, state):
-        (t_tuple, borrow) = state
-        LFIB4.setstate(self, t_tuple)
-        self.borrow = 1u if borrow else 0
-
-
-cdef lfsr_init_one_seed(seed, uint32_t min_value_shift):
     if seed==None:
-        seed = 12345
+        working_seed = 0xFFFFFFFFu
     else:
-        seed = int(seed) & 0xFFFFFFFF
+        seed = int(seed) & 0xFFFFFFFFu
 
-        # For the LFSR algorithms, the lower n bits of the state variable
-        # are discarded each iteration. But we want to make some use of all
-        # the bits of the seed value. Especially the lower bits, in case they
-        # are sourced from an incrementing timer.
+        working_seed = (seed ^ (seed << 16)) & 0xFFFFFFFFu
 
-        # Calculate final mask, which is 32-bits but with the lower unused
-        # bits cleared.
-        mask = 0xFFFFFFFF ^ ((1 << min_value_shift) - 1)
-        # Shift the seed up by the shift value, so the lower bits of the seed
-        # value contribute meaningfully to the initial state.
-        seed = (seed ^ (seed << min_value_shift)) & mask
-    return seed
+        min_value = 1 << min_value_shift
+        if working_seed < min_value:
+            working_seed = (seed << 24) & 0xFFFFFFFFu
+            if working_seed < min_value:
+                working_seed ^= 0xFFFFFFFFu
+    return working_seed
 
-cdef lfsr_adjust_one_seed(seed, uint32_t min_value_shift):
+def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
+    '''Validate seeds for LFSR generators
+    
+    The LFSR generator components discard a certain number of their lower bits
+    when generating each output. The significant bits of their state must not
+    all be zero. We must ensure that when seeding the generator.
+    
+    This is a light-weight validation of seeds, used from setstate().
+    '''
+    cdef uint32_t min_value
+
     min_value = 1 << min_value_shift
     if seed < min_value:
-        seed = (seed << min_value_shift) ^ 0xFFFFFFFF
+        seed ^= 0xFFFFFFFFu
     return seed
 
 cdef class LFSR113(object):
@@ -690,16 +550,15 @@ cdef class LFSR113(object):
         self.z2 = lfsr_init_one_seed(seed_z2, 3)
         self.z3 = lfsr_init_one_seed(seed_z3, 4)
         self.z4 = lfsr_init_one_seed(seed_z4, 7)
-        self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
 
-    def _adjust_seed(self):
-        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
-        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
-        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
-        self.z4 = lfsr_adjust_one_seed(self.z4, 7)
+    def _validate_seed(self):
+        self.z1 = lfsr_validate_one_seed(self.z1, 1)
+        self.z2 = lfsr_validate_one_seed(self.z2, 3)
+        self.z3 = lfsr_validate_one_seed(self.z3, 4)
+        self.z4 = lfsr_validate_one_seed(self.z4, 7)
 
     def __next__(self):
         cdef uint32_t b
@@ -729,7 +588,7 @@ cdef class LFSR113(object):
         self.z2 = int(state[1]) & 0xFFFFFFFFu
         self.z3 = int(state[2]) & 0xFFFFFFFFu
         self.z4 = int(state[3]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 
 
 cdef class LFSR88(object):
@@ -753,15 +612,14 @@ cdef class LFSR88(object):
         self.z1 = lfsr_init_one_seed(seed_z1, 1)
         self.z2 = lfsr_init_one_seed(seed_z2, 3)
         self.z3 = lfsr_init_one_seed(seed_z3, 4)
-        self._adjust_seed()
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
         self.__init__(seed_z1, seed_z2, seed_z3)
 
-    def _adjust_seed(self):
-        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
-        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
-        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
+    def _validate_seed(self):
+        self.z1 = lfsr_validate_one_seed(self.z1, 1)
+        self.z2 = lfsr_validate_one_seed(self.z2, 3)
+        self.z3 = lfsr_validate_one_seed(self.z3, 4)
 
     def __next__(self):
         cdef uint32_t b
@@ -787,5 +645,5 @@ cdef class LFSR88(object):
         self.z1 = int(state[0]) & 0xFFFFFFFFu
         self.z2 = int(state[1]) & 0xFFFFFFFFu
         self.z3 = int(state[2]) & 0xFFFFFFFFu
-        self._adjust_seed()
+        self._validate_seed()
 

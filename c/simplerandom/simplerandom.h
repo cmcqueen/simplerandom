@@ -10,8 +10,6 @@
  * the following RNGs are defined:
  *     MWC
  *     KISS (however, instead we use Cong and SHR3 defined in the 2003 post)
- *     LFIB4
- *     SWB
  *
  * Due to analysis of SHR3 in ref [3], I believe the SHR3
  * as defined in the 1999 post should not be used. It
@@ -39,7 +37,7 @@
  *     KISS2
  *
  * The LFSR113 generator by L'Ecuyer is also implemented
- * [4].
+ * [4], along with his earlier LFSR88.
  *
  * References:
  *
@@ -98,19 +96,6 @@ typedef struct
     uint32_t cong;
     uint32_t shr3;
 } SimpleRandomKISS_t;
-
-typedef struct
-{
-    uint32_t    t[256u];
-    uint8_t     c;
-} SimpleRandomLFIB4_t;
-
-typedef struct
-{
-    uint32_t    t[256u];
-    uint8_t     c;
-    uint8_t     borrow;
-} SimpleRandomSWB_t;
 
 #ifdef UINT64_C
 
@@ -232,8 +217,8 @@ uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc);
  * L'Ecuyer's TestU01 test suite, so it should probably
  * be preferred.
  */
-void simplerandom_mwc_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
-uint32_t simplerandom_mwc_next(SimpleRandomMWC2_t * p_mwc);
+void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
+uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc);
 
 /* KISS -- "Keep It Simple Stupid" random number generator
  *
@@ -251,77 +236,6 @@ uint32_t simplerandom_mwc_next(SimpleRandomMWC2_t * p_mwc);
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
 
-/* LFIB4 -- "Lagged Fibonacci 4-lag" random number generator
- * 
- * LFIB4 is an extension of what Marsaglia has previously
- * defined as a lagged Fibonacci generator:
- * 
- *     x[n]=x[n-r] op x[n-s]
- * 
- * with the x's in a finite set over which there is a
- * binary operation op, such as +,- on integers mod 2^32,
- * * on odd such integers, exclusive-or(xor) on binary
- * vectors. Except for those using multiplication, lagged
- * Fibonacci generators fail various tests of randomness,
- * unless the lags are very long. (See SWB).
- * 
- * To see if more than two lags would serve to overcome
- * the problems of 2-lag generators using +,- or xor,
- * Marsaglia developed the 4-lag generator LFIB4 using
- * addition:
- * 
- *     x[n]=x[n-256]+x[n-179]+x[n-119]+x[n-55] mod 2^32
- * 
- * Its period is 2^31*(2^256-1), about 2^287,
- * and it seems to pass all tests---in particular,
- * those of the kind for which 2-lag generators using
- * +,-,xor seem to fail.
- * 
- * For even more confidence in its suitability, LFIB4
- * can be combined with KISS, with a resulting period
- * of about 2^410.
- */
-void simplerandom_lfib4_seed(SimpleRandomLFIB4_t * p_lfib4);
-void simplerandom_lfib4_seed_from_kiss(SimpleRandomLFIB4_t * p_lfib4, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
-uint32_t simplerandom_lfib4_next(SimpleRandomLFIB4_t * p_lfib4);
-
-/* SWB -- "Subtract-With-Borrow" random number generator
- * 
- * SWB is a subtract-with-borrow generator that Marsaglia
- * developed to give a simple method for producing
- * extremely long periods:
- * x[n]=x[n-222]-x[n-237]- borrow mod 2^32.
- * The 'borrow' is 0, or set to 1 if computing x[n-1]
- * caused overflow in 32-bit integer arithmetic. This
- * generator has a very long period, 2^7098(2^480-1),
- * about 2^7578.
- * 
- * It seems to pass all tests of randomness, except
- * for the Birthday Spacings test, which it fails
- * badly, as do all lagged Fibonacci generators using
- * +,- or xor. Marsaglia suggests combining SWB with
- * KISS, MWC, SHR3, or Cong. KISS+SWB has period
- * >2^7700 and is highly recommended.
- * 
- * Subtract-with-borrow has the same local behaviour
- * as lagged Fibonacci using +,-,xor---the borrow
- * merely provides a much longer period.
- * 
- * SWB fails the birthday spacings test, as do all
- * lagged Fibonacci and other generators that merely
- * combine two previous values by means of =,- or xor.
- * Those failures are for a particular case: m=512
- * birthdays in a year of n=2^24 days. There are
- * choices of m and n for which lags >1000 will also
- * fail the test. A reasonable precaution is to always
- * combine a 2-lag Fibonacci or SWB generator with
- * another kind of generator, unless the generator uses
- * *, for which a very satisfactory sequence of odd
- * 32-bit integers results.
- */
-void simplerandom_swb_seed(SimpleRandomSWB_t * p_swb);
-void simplerandom_swb_seed_from_kiss(SimpleRandomSWB_t * p_swb, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
-uint32_t simplerandom_swb_next(SimpleRandomSWB_t * p_swb);
 
 #ifdef UINT64_C
 
@@ -351,6 +265,7 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 
 #endif /* defined(UINT64_C) */
+
 
 /* LFSR113 -- Combined LFSR random number generator by L'Ecuyer
  *

@@ -132,10 +132,8 @@ Generator                   Notes
 ``MWC2``                    Very similar to ``MWC1``, but slightly modified to improve its statistical properties.
 ``Cong``                    From [#marsaglia2003]_.
 ``SHR3``                    From [#marsaglia2003]_.
-``LFIB4``                   From [#marsaglia1999]_.
-``SWB``                     From [#marsaglia1999]_.
 ``MWC64``                   A single 64-bit multiply-with-carry calculation. From [#marsaglia2003]_.
-``KISS``                    Combination of MWC2, Cong and SHR3. Based on [#marsaglia1999]_ but using Cong and SHR3 from [#marsaglia2003]_, and a modified MWC2.
+``KISS``                    Combination of MWC2, Cong and SHR3. Based on [#marsaglia1999]_ but using Cong and SHR3 from [#marsaglia2003]_, and the modified MWC.
 ``KISS2``                   Combination of MWC64, Cong and SHR3. From [#marsaglia2003]_.
 ``LFSR113``                 Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1999]_ [#lfsr113]_.
 ``LFSR88``                  Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [#lecuyer1996]_.

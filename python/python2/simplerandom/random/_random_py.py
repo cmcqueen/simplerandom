@@ -94,23 +94,6 @@ class KISS2(_StandardRandomTemplate):
     __doc__ = RNG_CLASS.__doc__
 
 
-class LFIB4(_StandardRandomTemplate):
-    RNG_CLASS = sri.LFIB4
-    __doc__ = RNG_CLASS.__doc__
-
-    def seed(self, seed=None):
-        seeder = random.Random(seed)
-        seed_t = [ seeder.randrange(self.RNG_RANGE) for _i in range(256) ]
-        self.rng_iterator.seed(seed_t)
-        self.f = 0
-        self.bits = 0
-
-
-class SWB(LFIB4):
-    RNG_CLASS = sri.SWB
-    __doc__ = RNG_CLASS.__doc__
-
-
 class LFSR113(_StandardRandomTemplate):
     RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4

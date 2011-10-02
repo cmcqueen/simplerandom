@@ -13,8 +13,6 @@ int main(void)
     SimpleRandomMWC1_t      mwc1;
     SimpleRandomMWC2_t      mwc2;
     SimpleRandomKISS_t      kiss;
-    SimpleRandomLFIB4_t     lfib4;
-    SimpleRandomSWB_t       swb;
     SimpleRandomMWC64_t     mwc64;
     SimpleRandomKISS2_t     kiss2;
     SimpleRandomLFSR113_t   lfsr113;
@@ -63,39 +61,6 @@ int main(void)
     }
     printf("KISS        %"PRIu32"\n", k - UINT32_C(2100752872));
 
-    /* LFIB4 */
-    /* Below are 2 different seed methods, which should be equivalent */
-#if 0
-    simplerandom_kiss_seed(&kiss, UINT32_C(12345), UINT32_C(65435), UINT32_C(12345), UINT32_C(34221));
-    for (i = 0; i < 256; i++)
-    {
-        lfib4.t[i] = simplerandom_kiss_next(&kiss);
-    }
-    simplerandom_lfib4_seed(&lfib4);
-#else
-    simplerandom_lfib4_seed_from_kiss(&lfib4, UINT32_C(12345), UINT32_C(65435), UINT32_C(12345), UINT32_C(34221));
-#endif
-    for (i = 0; i < 1000000; i++)
-    {
-        k = simplerandom_lfib4_next(&lfib4);
-    }
-    printf("LFIB4       %"PRIu32"\n", k - UINT32_C(3874012728));
-
-    /* SWB */
-    /* The 1999 Marsaglia test code ran SWB using LFIB4's
-     * state after the LFIB4 test. So we will duplicate
-     * that even though it's a bit ugly and not
-     * recommended.
-     */
-    memcpy(swb.t, lfib4.t, sizeof(swb.t));
-    simplerandom_swb_seed(&swb);
-    swb.c = lfib4.c;
-    for (i = 0; i < 1000000; i++)
-    {
-        k = simplerandom_swb_next(&swb);
-    }
-    printf("SWB         %"PRIu32"\n", k - UINT32_C(1831941512));
-
 #ifdef UINT64_C
 
     /* MWC64 */
@@ -117,20 +82,21 @@ int main(void)
 #endif /* defined(UINT64_C) */
 
     /* LFSR113 */
-    simplerandom_lfsr113_seed(&lfsr113, UINT32_C(12345), UINT32_C(12345), UINT32_C(12345), UINT32_C(12345));
+    simplerandom_lfsr113_seed(&lfsr113, 0, 0, 0, 0);
     for (i = 0; i < 1000000; i++)
     {
         k = simplerandom_lfsr113_next(&lfsr113);
     }
-    printf("LFSR113     %"PRIu32"\n", k - UINT32_C(1205173390));
+    printf("LFSR113     %"PRIu32"\n", k - UINT32_C(300959510));
 
     /* LFSR88 */
-    simplerandom_lfsr88_seed(&lfsr88, UINT32_C(12345), UINT32_C(12345), UINT32_C(12345));
+    simplerandom_lfsr88_seed(&lfsr88, 0, 0, 0);
     for (i = 0; i < 1000000; i++)
     {
         k = simplerandom_lfsr88_next(&lfsr88);
     }
-    printf("LFSR88      %"PRIu32"\n", k - UINT32_C(3639585634));
+    printf("LFSR88      %"PRIu32"\n", k - UINT32_C(3774296834));
 
+    return 0;
 }
 

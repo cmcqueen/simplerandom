@@ -26,7 +26,7 @@ class Cong(object):
     '''
 
     def __init__(self, seed = None):
-        self.cong = _init_default_and_int32(seed, 123456789)
+        self.cong = _init_default_and_int32(seed, 0)
 
     def seed(self, seed = None):
         self.__init__(seed)
@@ -63,13 +63,13 @@ class SHR3(object):
     '''
 
     def __init__(self, seed = None):
-        self.shr3 = _init_default_and_int32(seed, 362436000)
-        self._adjust_seed()
+        self.shr3 = _init_default_and_int32(seed, 0xFFFFFFFF)
+        self._validate_seed()
 
     def seed(self, seed = None):
         self.__init__(seed)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         if self.shr3 == 0:
             # 0 is a bad seed. Invert to get a good seed.
             self.shr3 = 0xFFFFFFFF
@@ -90,7 +90,7 @@ class SHR3(object):
 
     def setstate(self, state):
         (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
-        self._adjust_seed()
+        self._validate_seed()
 
 
 class MWC2(object):
@@ -107,14 +107,14 @@ class MWC2(object):
     '''
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 12345)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 65437)
-        self._adjust_seed()
+        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFF)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFF)
+        self._validate_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         if (self.mwc_upper % 0x9068ffff)==0:
@@ -144,7 +144,7 @@ class MWC2(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
-        self._adjust_seed()
+        self._validate_seed()
 
 
 class MWC1(MWC2):
@@ -185,14 +185,14 @@ class MWC64(object):
     '''
 
     def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 7654321)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 521288629)
-        self._adjust_seed()
+        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFF)
+        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFF)
+        self._validate_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
         self.__init__(seed_upper, seed_lower)
 
-    def _adjust_seed(self):
+    def _validate_seed(self):
         seed64 = (self.mwc_upper << 32) + self.mwc_lower
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
@@ -220,7 +220,7 @@ class MWC64(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
-        self._adjust_seed()
+        self._validate_seed()
 
 
 class KISS(object):
@@ -363,179 +363,45 @@ class KISS2(object):
     cong = property(_get_cong, _set_cong)
 
 
-class LFIB4(object):
-    '''"Lagged Fibonacci 4-lag" random number generator
-
-    LFIB4 is an extension of what Marsaglia has previously
-    defined as a lagged Fibonacci generator:
-
-        x[n]=x[n-r] op x[n-s]
-
-    with the x's in a finite set over which there is a
-    binary operation op, such as +,- on integers mod 2**32,
-    * on odd such integers, exclusive-or(xor) on binary
-    vectors. Except for those using multiplication, lagged
-    Fibonacci generators fail various tests of randomness,
-    unless the lags are very long. (See SWB).
-
-    To see if more than two lags would serve to overcome
-    the problems of 2-lag generators using +,- or xor,
-    Marsaglia developed the 4-lag generator LFIB4 using
-    addition:
-
-        x[n]=x[n-256]+x[n-179]+x[n-119]+x[n-55] mod 2**32
-
-    Its period is 2**31*(2**256-1), about 2**287,
-    and it seems to pass all tests---in particular,
-    those of the kind for which 2-lag generators using
-    +,-,xor seem to fail.
-
-    For even more confidence in its suitability, LFIB4
-    can be combined with KISS, with a resulting period
-    of about 2**410.
-    '''
-
-    def __init__(self, seed = None):
-        if not seed:
-            random_kiss = KISS(12345, 65435, 12345, 34221)
-            self.t = [ random_kiss.next() for i in range(256) ]
-        else:
-            if len(seed) != 256:
-                raise Exception("seed length must be 256")
-            self.t = [ int(val) & 0xFFFFFFFF for val in seed ]
-        self.c = 0
-
-    def seed(self, seed = None):
-        self.__init__(seed)
-
-    def next(self):
-        t = self.t
-
-        c = self.c
-        c = (c + 1) % 256
-        self.c = c
-
-        new_value = (t[c] +
-                     t[(c + 58) % 256] +
-                     t[(c + 119) % 256] +
-                     t[(c + 178) % 256]) & 0xFFFFFFFF
-
-        t[c] = new_value
-
-        return new_value
-
-    def __iter__(self):
-        return self
-
-    def getstate(self):
-        return tuple(self.t[self.c :] + self.t[: self.c])
-
-    def setstate(self, state):
-        if len(state) != 256:
-            raise Exception("state length must be 256")
-        self.t = list(int(val) & 0xFFFFFFFF for val in state)
-        self.c = 0
-
-
-class SWB(LFIB4):
-    '''"Subtract-With-Borrow" random number generator
+def lfsr_init_one_seed(seed, min_value_shift):
+    """High-quality seeding for LFSR generators.
     
-    SWB is a subtract-with-borrow generator that Marsaglia
-    developed to give a simple method for producing
-    extremely long periods:
-    x[n]=x[n-222]-x[n-237]- borrow mod 2**32.
-    The 'borrow' is 0, or set to 1 if computing x[n-1]
-    caused overflow in 32-bit integer arithmetic. This
-    generator has a very long period, 2**7098(2**480-1),
-    about 2**7578.
-
-    It seems to pass all tests of randomness, except
-    for the Birthday Spacings test, which it fails
-    badly, as do all lagged Fibonacci generators using
-    +,- or xor. Marsaglia suggests combining SWB with
-    KISS, MWC, SHR3, or Cong. KISS+SWB has period
-    >2**7700 and is highly recommended.
-
-    Subtract-with-borrow has the same local behaviour
-    as lagged Fibonacci using +,-,xor---the borrow
-    merely provides a much longer period.
-
-    SWB fails the birthday spacings test, as do all
-    lagged Fibonacci and other generators that merely
-    combine two previous values by means of =,- or xor.
-    Those failures are for a particular case: m=512
-    birthdays in a year of n=2**24 days. There are
-    choices of m and n for which lags >1000 will also
-    fail the test. A reasonable precaution is to always
-    combine a 2-lag Fibonacci or SWB generator with
-    another kind of generator, unless the generator uses
-    *, for which a very satisfactory sequence of odd
-    32-bit integers results.
-    '''
-
-    def __init__(self, seed = None):
-        LFIB4.__init__(self, seed)
-        self.borrow = 0
-
-    def next(self):
-        t = self.t
-
-        c = self.c
-        c = (c + 1) % 256
-        self.c = c
-
-        x = t[(c + 34) % 256]
-        y = (t[(c + 19) % 256] + self.borrow) & 0xFFFFFFFF
-        new_value = (x - y) & 0xFFFFFFFF
-
-        t[c] = new_value
-
-        if (x < y):
-            self.borrow = 1
-        else:
-            self.borrow = 0
-
-        return new_value
-
-    def getstate(self):
-        t_tuple = LFIB4.getstate(self)
-        return (t_tuple, self.borrow)
-
-    def setstate(self, state):
-        (t_tuple, borrow) = state
-        LFIB4.setstate(self, t_tuple)
-        if borrow:
-            self.borrow = 1
-        else:
-            self.borrow = 0
-
-
-def lfsr_init_one_seed(seed, min_value_shift, init_value_shift):
+    The LFSR generator components discard a certain number of their lower bits
+    when generating each output. The significant bits of their state must not
+    all be zero. We must ensure that when seeding the generator.
+    
+    In case generators are seeded from an incrementing input (such as a system
+    timer), and between increments only the lower bits may change, we would
+    also like the lower bits of the input to change the initial state, and not
+    just be discarded. So we do basic manipulation of the seed input value to
+    ensure that all bits of the seed input affect the initial state.
+    """
     if seed==None:
-        seed = 12345
+        working_seed = 0xFFFFFFFF
     else:
         seed = int(seed) & 0xFFFFFFFF
 
-        # For the LFSR algorithms, the lower 'min_value_shift' bits of the
-        # state variable are discarded each iteration. But we want to make some
-        # use of all the bits of the seed value. Especially the lower bits, in
-        # case they are sourced from an incrementing timer.
-
-        # Shift the seed up by the shift value, so the lower bits of the seed
-        # value contribute meaningfully to the initial state.
-        working_seed = (seed ^ (seed << init_value_shift)) & 0xFFFFFFFF
+        working_seed = (seed ^ (seed << 16)) & 0xFFFFFFFF
 
         min_value = 1 << min_value_shift
         if working_seed < min_value:
-            working_seed = (seed << min_value_shift)
+            working_seed = (seed << 24) & 0xFFFFFFFF
             if working_seed < min_value:
-                working_seed |= 0x80000000
+                working_seed ^= 0xFFFFFFFF
     return working_seed
 
-def lfsr_adjust_one_seed(seed, min_value_shift):
+def lfsr_validate_one_seed(seed, min_value_shift):
+    '''Validate seeds for LFSR generators
+    
+    The LFSR generator components discard a certain number of their lower bits
+    when generating each output. The significant bits of their state must not
+    all be zero. We must ensure that when seeding the generator.
+    
+    This is a light-weight validation of seeds, used from setstate().
+    '''
     min_value = 1 << min_value_shift
     if seed < min_value:
-        seed = (seed << min_value_shift) ^ 0x80000000
+        seed ^= 0xFFFFFFFF
     return seed
 
 class LFSR113(object):
@@ -552,20 +418,19 @@ class LFSR113(object):
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1, 16)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3, 16)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4, 16)
-        self.z4 = lfsr_init_one_seed(seed_z4, 7, 16)
-        self._adjust_seed()
+        self.z1 = lfsr_init_one_seed(seed_z1, 1)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+        self.z4 = lfsr_init_one_seed(seed_z4, 7)
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
 
-    def _adjust_seed(self):
-        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
-        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
-        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
-        self.z4 = lfsr_adjust_one_seed(self.z4, 7)
+    def _validate_seed(self):
+        self.z1 = lfsr_validate_one_seed(self.z1, 1)
+        self.z2 = lfsr_validate_one_seed(self.z2, 3)
+        self.z3 = lfsr_validate_one_seed(self.z3, 4)
+        self.z4 = lfsr_validate_one_seed(self.z4, 7)
 
     def next(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
@@ -590,7 +455,7 @@ class LFSR113(object):
 
     def setstate(self, state):
         (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
-        self._adjust_seed()
+        self._validate_seed()
 
 
 class LFSR88(object):
@@ -607,18 +472,17 @@ class LFSR88(object):
     '''
 
     def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1, 16)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3, 16)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4, 16)
-        self._adjust_seed()
+        self.z1 = lfsr_init_one_seed(seed_z1, 1)
+        self.z2 = lfsr_init_one_seed(seed_z2, 3)
+        self.z3 = lfsr_init_one_seed(seed_z3, 4)
 
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
         self.__init__(seed_z1, seed_z2, seed_z3)
 
-    def _adjust_seed(self):
-        self.z1 = lfsr_adjust_one_seed(self.z1, 1)
-        self.z2 = lfsr_adjust_one_seed(self.z2, 3)
-        self.z3 = lfsr_adjust_one_seed(self.z3, 4)
+    def _validate_seed(self):
+        self.z1 = lfsr_validate_one_seed(self.z1, 1)
+        self.z2 = lfsr_validate_one_seed(self.z2, 3)
+        self.z3 = lfsr_validate_one_seed(self.z3, 4)
 
     def next(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
@@ -640,6 +504,6 @@ class LFSR88(object):
 
     def setstate(self, state):
         (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
-        self._adjust_seed()
+        self._validate_seed()
 
 
