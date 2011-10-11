@@ -1,0 +1,1 @@
+gcc test_testu01.c ../simplerandom.c -I".." -o test_testu01 -ltestu01 -lprobdist -lmylib -lm
