@@ -198,23 +198,22 @@
 
  All tests were passed
 
-The following are provisional, copied from mwc3 results from mwc_tests.c.
-
 ========= Summary results of BigCrush =========
 
  Version:          TestU01 1.2.3
- Generator:        mwc3
+ Generator:        mwc2
  Number of statistics:  160
- Total CPU time:   06:21:05.18
+ Total CPU time:   07:08:47.14
  The following tests gave p-values outside [0.001, 0.9990]:
  (eps  means a value < 1.0e-300):
  (eps1 means a value < 1.0e-015):
 
        Test                          p-value
  ----------------------------------------------
- 15  BirthdaySpacings, t = 4        1.4e-17
+ 15  BirthdaySpacings, t = 4        3.8e-12
  ----------------------------------------------
  All other tests were passed
+
 
 
 == MWC64 ==
@@ -228,7 +227,6 @@ The following are provisional, copied from mwc3 results from mwc_tests.c.
 
  All tests were passed
 
- 
 ========= Summary results of Crush =========
 
  Version:          TestU01 1.2.3
@@ -246,6 +244,29 @@ The following are provisional, copied from mwc3 results from mwc_tests.c.
  19  ClosePairs mNP2S, t = 3        4.0e-69
  ----------------------------------------------
  All other tests were passed
+
+========= Summary results of BigCrush =========
+
+ Version:          TestU01 1.2.3
+ Generator:        mwc64
+ Number of statistics:  160
+ Total CPU time:   07:06:38.07
+ The following tests gave p-values outside [0.001, 0.9990]:
+ (eps  means a value < 1.0e-300):
+ (eps1 means a value < 1.0e-015):
+
+       Test                          p-value
+ ----------------------------------------------
+ 14  BirthdaySpacings, t = 3          eps  
+ 15  BirthdaySpacings, t = 4          eps  
+ 16  BirthdaySpacings, t = 7        3.0e-10
+ 17  BirthdaySpacings, t = 7        1.5e-07
+ 22  ClosePairs mNP, t = 3          2.7e-56
+ 22  ClosePairs mNP1, t = 3         1.1e-92
+ 22  ClosePairs mNP2S, t = 3          eps  
+ ----------------------------------------------
+ All other tests were passed
+
 
 
 == KISS ==
@@ -269,6 +290,7 @@ The following are provisional, copied from mwc3 results from mwc_tests.c.
  All tests were passed
 
 
+
 == KISS2 ==
 
 ========= Summary results of SmallCrush =========
@@ -288,6 +310,23 @@ The following are provisional, copied from mwc3 results from mwc_tests.c.
  Total CPU time:   01:02:14.48
 
  All tests were passed
+
+========= Summary results of BigCrush =========
+
+ Version:          TestU01 1.2.3
+ Generator:        kiss2
+ Number of statistics:  160
+ Total CPU time:   08:03:42.71
+ The following tests gave p-values outside [0.001, 0.9990]:
+ (eps  means a value < 1.0e-300):
+ (eps1 means a value < 1.0e-015):
+
+       Test                          p-value
+ ----------------------------------------------
+ 25  ClosePairs mNP2S, t = 16        0.9998 
+ ----------------------------------------------
+ All other tests were passed
+
 
 
 == LFSR113 ==
