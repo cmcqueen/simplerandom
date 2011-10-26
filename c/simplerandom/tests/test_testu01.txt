@@ -289,6 +289,15 @@
 
  All tests were passed
 
+========= Summary results of BigCrush =========
+
+ Version:          TestU01 1.2.3
+ Generator:        kiss
+ Number of statistics:  160
+ Total CPU time:   08:19:52.06
+
+ All tests were passed
+
 
 
 == KISS2 ==
@@ -361,6 +370,30 @@
  ----------------------------------------------
  All other tests were passed
 
+========= Summary results of BigCrush =========
+
+ Version:          TestU01 1.2.3
+ Generator:        lfsr113
+ Number of statistics:  160
+ Total CPU time:   07:32:25.73
+ The following tests gave p-values outside [0.001, 0.9990]:
+ (eps  means a value < 1.0e-300):
+ (eps1 means a value < 1.0e-015):
+
+       Test                          p-value
+ ----------------------------------------------
+ 24  ClosePairs mNP2, t = 9          0.9998 
+ 29  SimpPoker, r = 25               0.9993 
+ 47  MaxOft, t = 16                  0.9994 
+ 68  MatrixRank, L=1000, r=0          eps  
+ 69  MatrixRank, L=1000, r=26         eps  
+ 70  MatrixRank, L=5000               eps  
+ 71  MatrixRank, L=5000               eps  
+ 80  LinearComp, r = 0              1 - eps1
+ 81  LinearComp, r = 29             1 - eps1
+ ----------------------------------------------
+ All other tests were passed
+
 
 
 == LFSR88 ==
@@ -395,3 +428,24 @@
  ----------------------------------------------
  All other tests were passed
 
+========= Summary results of BigCrush =========
+
+ Version:          TestU01 1.2.3
+ Generator:        lfsr88
+ Number of statistics:  160
+ Total CPU time:   07:11:44.23
+ The following tests gave p-values outside [0.001, 0.9990]:
+ (eps  means a value < 1.0e-300):
+ (eps1 means a value < 1.0e-015):
+
+       Test                          p-value
+ ----------------------------------------------
+ 68  MatrixRank, L=1000, r=0          eps  
+ 69  MatrixRank, L=1000, r=26         eps  
+ 70  MatrixRank, L=5000               eps  
+ 71  MatrixRank, L=5000               eps  
+ 78  RandomWalk1 R (L=10000, r=0)   4.9e-04
+ 80  LinearComp, r = 0              1 - eps1
+ 81  LinearComp, r = 29             1 - eps1
+ ----------------------------------------------
+ All other tests were passed
