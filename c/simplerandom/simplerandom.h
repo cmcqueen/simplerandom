@@ -135,6 +135,10 @@ typedef struct
  * Function prototypes
  ****************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Cong -- Congruential random number generator
  *
  * This is a congruential generator with the widely used
@@ -295,6 +299,11 @@ uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
  */
 void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3);
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88);
+
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 
 #endif /* !defined(_SIMPLERANDOM_H) */
