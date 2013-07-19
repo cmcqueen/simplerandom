@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE_NAME@
+Description: Simple pseudo-random number generators library.
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -l@PACKAGE_NAME@-@PACKAGE_VERSION@
+Cflags: -I${includedir}/@PACKAGE_NAME@-@PACKAGE_VERSION@
