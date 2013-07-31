@@ -1,4 +1,9 @@
 
+include _timesys.mak
+
+# Definitions used by _timesys.mak
+PACKAGEFIRSTLETTER=s
+
 AM_CPPFLAGS = -DSYSCONFDIR=\"$(sysconfdir)\"
 AM_LDFLAGS = -version-info @LIB_SO_VERSION@
 

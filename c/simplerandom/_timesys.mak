@@ -1,0 +1,15 @@
+
+TIMESYSDISTDIR=timesys/$(PACKAGEFIRSTLETTER)/$(PACKAGE)/$(distdir)
+TIMESYSDISTDIRS=timesys timesys/$(PACKAGEFIRSTLETTER) timesys/$(PACKAGEFIRSTLETTER)/$(PACKAGE) $(TIMESYSDISTDIR)
+
+# Timesys distribution targets
+timesys-dist: dist
+	mkdir -p --mode=2775 $(TIMESYSDISTDIRS)
+	mv $(DIST_ARCHIVES) $(TIMESYSDISTDIR)       && cd $(TIMESYSDISTDIR) && chmod 664 $(DIST_ARCHIVES)
+#	cp $(srcdir)/$(TIMESYS_INITSCRIPT) $(TIMESYSDISTDIR)  && cd $(TIMESYSDISTDIR) && chmod 664 $(TIMESYS_INITSCRIPT)
+
+timesys-distclean:
+#	rm -f $(TIMESYSDISTDIR)/$(TIMESYS_INITSCRIPT)
+	cd $(TIMESYSDISTDIR) && rm -f $(DIST_ARCHIVES)
+	rmdir -p $(TIMESYSDISTDIR)
+
