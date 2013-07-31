@@ -22,14 +22,20 @@
 
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
-    *p_cong = seed;
+    p_cong->cong = seed;
+    /* Byte interface */
+    p_cong->byte_buffer = 0;
+    p_cong->byte_index = 0;
 }
 
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
 {
-    *p_cong = UINT32_C(69069) * *p_cong + 12345u;
+    uint32_t    cong;
 
-    return *p_cong;
+    cong = UINT32_C(69069) * p_cong->cong + 12345u;
+    p_cong->cong = cong;
+
+    return cong;
 }
 
 /*********
@@ -43,7 +49,11 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
         seed = UINT32_C(0xFFFFFFFF);
     }
 
-    *p_shr3 = seed;
+    p_shr3->shr3 = seed;
+
+    /* Byte interface */
+    p_shr3->byte_buffer = 0;
+    p_shr3->byte_index = 0;
 }
 
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
@@ -51,11 +61,11 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
     uint32_t    shr3;
 
 
-    shr3 = *p_shr3;
+    shr3 = p_shr3->shr3;
     shr3 ^= (shr3 << 13);
     shr3 ^= (shr3 >> 17);
     shr3 ^= (shr3 << 5);
-    *p_shr3 = shr3;
+    p_shr3->shr3 = shr3;
 
     return shr3;
 }
@@ -110,6 +120,10 @@ void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uin
 
     p_mwc->mwc_upper = seed_upper;
     p_mwc->mwc_lower = seed_lower;
+
+    /* Byte interface */
+    p_mwc->byte_buffer = 0;
+    p_mwc->byte_index = 0;
 }
 
 /*
@@ -154,10 +168,15 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
         seed_shr3 = UINT32_C(0xFFFFFFFF);
     }
     p_kiss->shr3 = seed_shr3;
+
+    /* Byte interface */
+    p_kiss->byte_buffer = 0;
+    p_kiss->byte_index = 0;
 }
 
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
 {
+    uint32_t    cong;
     uint32_t    shr3;
     uint32_t    mwc2;
 
@@ -168,7 +187,8 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     mwc2 = (p_kiss->mwc_upper << 16u) + (p_kiss->mwc_upper >> 16u) + p_kiss->mwc_lower;
 
     /* Calculate next Cong RNG */
-    p_kiss->cong = UINT32_C(69069) * p_kiss->cong + 12345u;
+    cong = UINT32_C(69069) * p_kiss->cong + 12345u;
+    p_kiss->cong = cong;
 
     /* Calculate next SHR3 RNG */
     shr3 = p_kiss->shr3;
@@ -177,9 +197,23 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     shr3 ^= (shr3 << 5);
     p_kiss->shr3 = shr3;
 
-    return ((mwc2 ^ p_kiss->cong) + shr3);
+    return ((mwc2 ^ cong) + shr3);
 }
 
+uint8_t simplerandom_kiss_next_byte(SimpleRandomKISS_t * p_kiss)
+{
+    if (p_kiss->byte_index == 0)
+    {
+        p_kiss->byte_buffer = simplerandom_kiss_next(p_kiss);
+        p_kiss->byte_index = 3;
+    }
+    else
+    {
+        p_kiss->byte_buffer >>= 8u;
+        p_kiss->byte_index--;
+    }
+    return (p_kiss->byte_buffer & 0xFFu);
+}
 
 #ifdef UINT64_C
 
@@ -206,6 +240,10 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, u
 
     p_mwc->mwc_upper = seed_upper;
     p_mwc->mwc_lower = seed_lower;
+
+    /* Byte interface */
+    p_mwc->byte_buffer = 0;
+    p_mwc->byte_index = 0;
 }
 
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc)
@@ -247,6 +285,10 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
         seed_shr3 = UINT32_C(0xFFFFFFFF);
     }
     p_kiss2->shr3 = seed_shr3;
+
+    /* Byte interface */
+    p_kiss2->byte_buffer = 0;
+    p_kiss2->byte_index = 0;
 }
 
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
@@ -339,6 +381,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
         }
     }
     p_lfsr113->z4 = working_seed;
+
+    /* Byte interface */
+    p_lfsr113->byte_buffer = 0;
+    p_lfsr113->byte_index = 0;
 }
 
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
@@ -418,6 +464,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
         }
     }
     p_lfsr88->z3 = working_seed;
+
+    /* Byte interface */
+    p_lfsr88->byte_buffer = 0;
+    p_lfsr88->byte_index = 0;
 }
 
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88)

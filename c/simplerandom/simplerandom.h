@@ -77,57 +77,87 @@
  * Typedefs
  ****************************************************************************/
 
-typedef uint32_t SimpleRandomCong_t;
-
-typedef uint32_t SimpleRandomSHR3_t;
+typedef struct
+{
+    uint32_t        cong;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
+} SimpleRandomCong_t;
 
 typedef struct
 {
-    uint32_t mwc_upper;
-    uint32_t mwc_lower;
+    uint32_t        shr3;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
+} SimpleRandomSHR3_t;
+
+typedef struct
+{
+    uint32_t        mwc_upper;
+    uint32_t        mwc_lower;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
 } SimpleRandomMWC1_t;
 
 typedef SimpleRandomMWC1_t SimpleRandomMWC2_t;
 
 typedef struct
 {
-    uint32_t mwc_upper;
-    uint32_t mwc_lower;
-    uint32_t cong;
-    uint32_t shr3;
+    uint32_t        mwc_upper;
+    uint32_t        mwc_lower;
+    uint32_t        cong;
+    uint32_t        shr3;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
 } SimpleRandomKISS_t;
 
 #ifdef UINT64_C
 
 typedef struct
 {
-    uint32_t mwc_upper;
-    uint32_t mwc_lower;
+    uint32_t        mwc_upper;
+    uint32_t        mwc_lower;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
 } SimpleRandomMWC64_t;
 
 typedef struct
 {
-    uint32_t mwc_upper;
-    uint32_t mwc_lower;
-    uint32_t cong;
-    uint32_t shr3;
+    uint32_t        mwc_upper;
+    uint32_t        mwc_lower;
+    uint32_t        cong;
+    uint32_t        shr3;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
 } SimpleRandomKISS2_t;
 
 #endif /* defined(UINT64_C) */
 
 typedef struct
 {
-    uint32_t    z1;
-    uint32_t    z2;
-    uint32_t    z3;
-    uint32_t    z4;
+    uint32_t        z1;
+    uint32_t        z2;
+    uint32_t        z3;
+    uint32_t        z4;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
 } SimpleRandomLFSR113_t;
 
 typedef struct
 {
-    uint32_t    z1;
-    uint32_t    z2;
-    uint32_t    z3;
+    uint32_t        z1;
+    uint32_t        z2;
+    uint32_t        z3;
+    /* Byte interface */
+    uint32_t        byte_buffer;
+    uint_fast8_t    byte_index;
 } SimpleRandomLFSR88_t;
 
 
@@ -239,6 +269,7 @@ uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc);
  */
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
+uint8_t simplerandom_kiss_next_byte(SimpleRandomKISS_t * p_kiss);
 
 
 #ifdef UINT64_C
