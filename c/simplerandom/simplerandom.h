@@ -3,34 +3,33 @@
  *
  * Simple Pseudo-random Number Generators
  *
- * Most of these are from two newsgroup posts by
- * George Marsaglia.
+ * Most of these are from two newsgroup posts by George Marsaglia.
  *
- * The first was in 1999 [1]. From that newsgroup post,
- * the following RNGs are defined:
- *     MWC
- *     KISS (however, instead we use Cong and SHR3 defined in the 2003 post)
+ * The first was in 1999 [1]. From that newsgroup post, the following RNGs are
+ * defined:
+ *     MWC1
+ * We use the principles of SHR3 and KISS, but with several modifications.
  *
- * Due to analysis of SHR3 in ref [3], I believe the SHR3
- * as defined in the 1999 post should not be used. It
- * doesn't actually have a period of 2^32-1 as expected,
- * but has 64 cycles, some with very short periods. The
- * SHR3 in the 2003 post is very similar, but with two
- * shift values swapped. My suspicion is that the SHR3
- * shift values in the 1999 post are a typo.
+ * MWC2, a small modification of the 1999 MWC, yields a longer period for the
+ * lower 16 bits, and therefore better test results in the L'Ecuyer TestU01
+ * test suite.
  *
- * Since we don't use the 1999 SHR3, we may as well not
- * use the 1999 Cong either, since the 2003 Cong is almost
- * identical, but with a different added constant.
- * Therefore, we define a KISS function that uses the
- * 1999 MWC, but the 2003 SHR3 and Cong.
- * The advantage of using the 1999 MWC and KISS at all is
- * that the MWC uses only 32-bit math, while the 2003 MWC
- * uses 64-bit math which may not be suitable for small
- * embedded systems.
+ * Due to analysis of SHR3 in ref [3], the SHR3 as defined in the 1999 post
+ * should not be used. It doesn't actually have a period of 2^32-1 as expected,
+ * but has 64 cycles, some with very short periods. The SHR3 in the 2003 post
+ * is very similar, but with two shift values swapped. It is most likely that
+ * the SHR3 shift values in the 1999 post are a typo.
  *
- * The second Marsaglia post was in 2003. From that
- * newsgroup post, the following RNGs are defined:
+ * Since we don't use the 1999 SHR3, we may as well not use the 1999 Cong or
+ * MWC either. The 2003 Cong is almost identical, but with a different added
+ * constant. Therefore, we define a KISS function that uses MWC2 (the improved
+ * version of the 1999 MWC), and the 2003 SHR3 and Cong. The advantage of using
+ * the 1999 MWC and KISS at all is that the MWC uses only 32-bit math, while
+ * the 2003 MWC uses 64-bit math which may not be suitable for small embedded
+ * systems.
+ *
+ * The second Marsaglia post was in 2003. From that newsgroup post, the
+ * following RNGs are defined:
  *     MWC64
  *     Cong
  *     SHR3
@@ -38,6 +37,17 @@
  *
  * The LFSR113 generator by L'Ecuyer is also implemented
  * [4], along with his earlier LFSR88.
+ *
+ * Some generators naturally have "bad" seed values, which if used will
+ * not output a good-quality sequence. The most obvious is zero values for the
+ * SHR3, MWC and LFSR generators, yielding constant zero output. But there are
+ * also other less obvious "bad" seed values for the MWC and LFSR generators.
+ *
+ * So it is essential to avoid seeding the generators with any bad seed values.
+ * The seed functions for all these generators take care of any "bad" seed
+ * values, replacing them with a good alternative seed. So all these
+ * generators' seed functions can safely be given _any_ unsigned 32-bit seed
+ * values.
  *
  * References:
  *
@@ -80,26 +90,26 @@
 typedef struct
 {
     uint32_t        cong;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomCong_t;
 
 typedef struct
 {
     uint32_t        shr3;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomSHR3_t;
 
 typedef struct
 {
     uint32_t        mwc_upper;
     uint32_t        mwc_lower;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomMWC1_t;
 
 typedef SimpleRandomMWC1_t SimpleRandomMWC2_t;
@@ -110,9 +120,9 @@ typedef struct
     uint32_t        mwc_lower;
     uint32_t        cong;
     uint32_t        shr3;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomKISS_t;
 
 #ifdef UINT64_C
@@ -121,9 +131,9 @@ typedef struct
 {
     uint32_t        mwc_upper;
     uint32_t        mwc_lower;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomMWC64_t;
 
 typedef struct
@@ -132,9 +142,9 @@ typedef struct
     uint32_t        mwc_lower;
     uint32_t        cong;
     uint32_t        shr3;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomKISS2_t;
 
 #endif /* defined(UINT64_C) */
@@ -145,9 +155,9 @@ typedef struct
     uint32_t        z2;
     uint32_t        z3;
     uint32_t        z4;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomLFSR113_t;
 
 typedef struct
@@ -155,9 +165,9 @@ typedef struct
     uint32_t        z1;
     uint32_t        z2;
     uint32_t        z3;
-    /* Byte interface */
-    uint32_t        byte_buffer;
-    uint_fast8_t    byte_index;
+    /* Bit/byte interface */
+    uint32_t        bit_buffer;
+    uint_fast8_t    bit_index;
 } SimpleRandomLFSR88_t;
 
 
@@ -187,6 +197,8 @@ extern "C" {
  */
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
+uint8_t simplerandom_cong_next_uint8(SimpleRandomCong_t * p_cong);
+uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong);
 
 /* SHR3 -- 3-shift-register random number generator
  *
@@ -213,6 +225,8 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
  */
 void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed);
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
+uint8_t simplerandom_shr3_next_uint8(SimpleRandomSHR3_t * p_shr3);
+uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3);
 
 /* MWC1 -- "Multiply-with-carry" random number generator
  *
@@ -239,6 +253,8 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
  */
 void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc);
+uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc);
+uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc);
 
 /* MWC2 -- "Multiply-with-carry" random number generator
  *
@@ -253,6 +269,8 @@ uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc);
  */
 void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc);
+uint8_t simplerandom_mwc2_next_uint8(SimpleRandomMWC2_t * p_mwc);
+uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc);
 
 /* KISS -- "Keep It Simple Stupid" random number generator
  *
@@ -269,7 +287,8 @@ uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc);
  */
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
-uint8_t simplerandom_kiss_next_byte(SimpleRandomKISS_t * p_kiss);
+uint8_t simplerandom_kiss_next_uint8(SimpleRandomKISS_t * p_kiss);
+uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss);
 
 
 #ifdef UINT64_C
@@ -285,6 +304,8 @@ uint8_t simplerandom_kiss_next_byte(SimpleRandomKISS_t * p_kiss);
  */
 void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
+uint8_t simplerandom_mwc64_next_uint8(SimpleRandomMWC64_t * p_mwc);
+uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc);
 
 /* KISS2 -- "Keep It Simple Stupid" random number generator
  *
@@ -294,10 +315,13 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
  * This is a slightly updated KISS generator design, from
  * the newsgroup post in 2003. The MWC component uses a
  * single 64-bit calculation, instead of two 32-bit
- * calculations that are combined.
+ * calculations that are combined. The seeds should
+ * still be 32-bit values.
  */
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
+uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2);
+uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2);
 
 #endif /* defined(UINT64_C) */
 
@@ -316,6 +340,8 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
  */
 void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4);
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
+uint8_t simplerandom_lfsr113_next_uint8(SimpleRandomLFSR113_t * p_lfsr113);
+uint16_t simplerandom_lfsr113_next_uint16(SimpleRandomLFSR113_t * p_lfsr113);
 
 /* LFSR88 -- Combined LFSR random number generator by L'Ecuyer
  *
@@ -330,6 +356,8 @@ uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
  */
 void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3);
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88);
+uint8_t simplerandom_lfsr88_next_uint8(SimpleRandomLFSR88_t * p_lfsr88);
+uint16_t simplerandom_lfsr88_next_uint16(SimpleRandomLFSR88_t * p_lfsr88);
 
 
 #ifdef __cplusplus
