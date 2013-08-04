@@ -32,3 +32,11 @@ lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = simplerandom.c
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = @PACKAGE_NAME@.pc
 
+
+# Tests
+TESTS = test_simple
+
+check_PROGRAMS = test_simple
+
+test_simple_SOURCES = tests/test_simple.c
+test_simple_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
