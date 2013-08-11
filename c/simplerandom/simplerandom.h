@@ -111,9 +111,6 @@ typedef struct
     uint32_t        mwc_lower;
     uint32_t        cong;
     uint32_t        shr3;
-    /* Bit/byte interface */
-    uint32_t        bit_buffer;
-    uint_fast8_t    bit_index;
 } SimpleRandomKISS_t;
 
 #ifdef UINT64_C
@@ -122,9 +119,6 @@ typedef struct
 {
     uint32_t        mwc_upper;
     uint32_t        mwc_lower;
-    /* Bit/byte interface */
-    uint32_t        bit_buffer;
-    uint_fast8_t    bit_index;
 } SimpleRandomMWC64_t;
 
 typedef struct
@@ -133,9 +127,6 @@ typedef struct
     uint32_t        mwc_lower;
     uint32_t        cong;
     uint32_t        shr3;
-    /* Bit/byte interface */
-    uint32_t        bit_buffer;
-    uint_fast8_t    bit_index;
 } SimpleRandomKISS2_t;
 
 #endif /* defined(UINT64_C) */
@@ -146,9 +137,6 @@ typedef struct
     uint32_t        z2;
     uint32_t        z3;
     uint32_t        z4;
-    /* Bit/byte interface */
-    uint32_t        bit_buffer;
-    uint_fast8_t    bit_index;
 } SimpleRandomLFSR113_t;
 
 typedef struct
@@ -156,9 +144,6 @@ typedef struct
     uint32_t        z1;
     uint32_t        z2;
     uint32_t        z3;
-    /* Bit/byte interface */
-    uint32_t        bit_buffer;
-    uint_fast8_t    bit_index;
 } SimpleRandomLFSR88_t;
 
 
