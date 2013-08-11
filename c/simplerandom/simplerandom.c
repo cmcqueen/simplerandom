@@ -23,9 +23,6 @@
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
     p_cong->cong = seed;
-    /* Bit/byte interface */
-    p_cong->bit_buffer = 0;
-    p_cong->bit_index = 0;
 }
 
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
@@ -40,38 +37,14 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
 
 uint8_t simplerandom_cong_next_uint8(SimpleRandomCong_t * p_cong)
 {
-    uint8_t     ret_val;
-
-    if (p_cong->bit_index < 8u)
-    {
-        p_cong->bit_buffer = simplerandom_cong_next(p_cong);
-        p_cong->bit_index = 24u;
-    }
-    else
-    {
-        p_cong->bit_index -= 8u;
-    }
-    ret_val = (p_cong->bit_buffer & 0xFFu);
-    p_cong->bit_buffer >>= 8u;
-    return ret_val;
+    /* Return most-significant 8 bits. */
+    return (simplerandom_cong_next(p_cong) >> 24u);
 }
 
 uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong)
 {
-    uint16_t    ret_val;
-
-    if (p_cong->bit_index < 16u)
-    {
-        p_cong->bit_buffer = simplerandom_cong_next(p_cong);
-        p_cong->bit_index = 16u;
-    }
-    else
-    {
-        p_cong->bit_index -= 16u;
-    }
-    ret_val = (p_cong->bit_buffer & 0xFFFFu);
-    p_cong->bit_buffer >>= 16u;
-    return ret_val;
+    /* Return most-significant 16 bits. */
+    return (simplerandom_cong_next(p_cong) >> 16u);
 }
 
 /*********
@@ -86,10 +59,6 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
     }
 
     p_shr3->shr3 = seed;
-
-    /* Bit/byte interface */
-    p_shr3->bit_buffer = 0;
-    p_shr3->bit_index = 0;
 }
 
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
@@ -108,38 +77,14 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
 
 uint8_t simplerandom_shr3_next_uint8(SimpleRandomSHR3_t * p_shr3)
 {
-    uint8_t     ret_val;
-
-    if (p_shr3->bit_index < 8u)
-    {
-        p_shr3->bit_buffer = simplerandom_shr3_next(p_shr3);
-        p_shr3->bit_index = 24u;
-    }
-    else
-    {
-        p_shr3->bit_index -= 8u;
-    }
-    ret_val = (p_shr3->bit_buffer & 0xFFu);
-    p_shr3->bit_buffer >>= 8u;
-    return ret_val;
+    /* Return most-significant 8 bits. */
+    return (simplerandom_shr3_next(p_shr3) >> 24u);
 }
 
 uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3)
 {
-    uint16_t    ret_val;
-
-    if (p_shr3->bit_index < 16u)
-    {
-        p_shr3->bit_buffer = simplerandom_shr3_next(p_shr3);
-        p_shr3->bit_index = 16u;
-    }
-    else
-    {
-        p_shr3->bit_index -= 16u;
-    }
-    ret_val = (p_shr3->bit_buffer & 0xFFFFu);
-    p_shr3->bit_buffer >>= 16u;
-    return ret_val;
+    /* Return most-significant 16 bits. */
+    return (simplerandom_shr3_next(p_shr3) >> 16u);
 }
 
 /*********
@@ -164,38 +109,14 @@ uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
 
 uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc)
 {
-    uint8_t     ret_val;
-
-    if (p_mwc->bit_index < 8u)
-    {
-        p_mwc->bit_buffer = simplerandom_mwc1_next(p_mwc);
-        p_mwc->bit_index = 24u;
-    }
-    else
-    {
-        p_mwc->bit_index -= 8u;
-    }
-    ret_val = (p_mwc->bit_buffer & 0xFFu);
-    p_mwc->bit_buffer >>= 8u;
-    return ret_val;
+    /* Return most-significant 8 bits. */
+    return (simplerandom_mwc1_next(p_mwc) >> 24u);
 }
 
 uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc)
 {
-    uint16_t    ret_val;
-
-    if (p_mwc->bit_index < 16u)
-    {
-        p_mwc->bit_buffer = simplerandom_mwc1_next(p_mwc);
-        p_mwc->bit_index = 16u;
-    }
-    else
-    {
-        p_mwc->bit_index -= 16u;
-    }
-    ret_val = (p_mwc->bit_buffer & 0xFFFFu);
-    p_mwc->bit_buffer >>= 16u;
-    return ret_val;
+    /* Return most-significant 16 bits. */
+    return (simplerandom_mwc1_next(p_mwc) >> 16u);
 }
 
 /*********
@@ -228,10 +149,6 @@ void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uin
 
     p_mwc->mwc_upper = seed_upper;
     p_mwc->mwc_lower = seed_lower;
-
-    /* Bit/byte interface */
-    p_mwc->bit_buffer = 0;
-    p_mwc->bit_index = 0;
 }
 
 /*
@@ -249,38 +166,14 @@ uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc)
 
 uint8_t simplerandom_mwc2_next_uint8(SimpleRandomMWC2_t * p_mwc)
 {
-    uint8_t     ret_val;
-
-    if (p_mwc->bit_index < 8u)
-    {
-        p_mwc->bit_buffer = simplerandom_mwc2_next(p_mwc);
-        p_mwc->bit_index = 24u;
-    }
-    else
-    {
-        p_mwc->bit_index -= 8u;
-    }
-    ret_val = (p_mwc->bit_buffer & 0xFFu);
-    p_mwc->bit_buffer >>= 8u;
-    return ret_val;
+    /* Return most-significant 8 bits. */
+    return (simplerandom_mwc2_next(p_mwc) >> 24u);
 }
 
 uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc)
 {
-    uint16_t    ret_val;
-
-    if (p_mwc->bit_index < 16u)
-    {
-        p_mwc->bit_buffer = simplerandom_mwc2_next(p_mwc);
-        p_mwc->bit_index = 16u;
-    }
-    else
-    {
-        p_mwc->bit_index -= 16u;
-    }
-    ret_val = (p_mwc->bit_buffer & 0xFFFFu);
-    p_mwc->bit_buffer >>= 16u;
-    return ret_val;
+    /* Return most-significant 16 bits. */
+    return (simplerandom_mwc2_next(p_mwc) >> 16u);
 }
 
 /*********
