@@ -44,6 +44,27 @@ size_t simplerandom_cong_seed_array(SimpleRandomCong_t * p_cong, const uint32_t 
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
     p_cong->cong = seed;
+    simplerandom_cong_sanitize(p_cong);
+}
+
+void simplerandom_cong_sanitize(SimpleRandomCong_t * p_cong)
+{
+    /* All state values are valid for Cong. No sanitizing needed. */
+    (const void *) p_cong;
+}
+
+void simplerandom_cong_mix(SimpleRandomCong_t * p_cong, const uint32_t * p_data, size_t num_data)
+{
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            p_cong->cong ^= *p_data++;
+            simplerandom_cong_sanitize(p_cong);
+            simplerandom_cong_next(p_cong);
+        }
+    }
 }
 
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
@@ -95,12 +116,31 @@ size_t simplerandom_shr3_seed_array(SimpleRandomSHR3_t * p_shr3, const uint32_t 
 
 void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
 {
-    if (seed == 0)
-    {
-        seed = UINT32_C(0xFFFFFFFF);
-    }
-
     p_shr3->shr3 = seed;
+    simplerandom_shr3_sanitize(p_shr3);
+}
+
+void simplerandom_shr3_sanitize(SimpleRandomSHR3_t * p_shr3)
+{
+    /* Zero is a bad state value for SHR3. */
+    if (p_shr3->shr3 == 0)
+    {
+        p_shr3->shr3 = UINT32_C(0xFFFFFFFF);
+    }
+}
+
+void simplerandom_shr3_mix(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_data, size_t num_data)
+{
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            p_shr3->shr3 ^= *p_data++;
+            simplerandom_shr3_sanitize(p_shr3);
+            simplerandom_shr3_next(p_shr3);
+        }
+    }
 }
 
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
@@ -217,19 +257,48 @@ size_t simplerandom_mwc2_seed_array(SimpleRandomMWC2_t * p_mwc, const uint32_t *
  */
 void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
 {
-    if ((seed_upper == 0) || (seed_upper == UINT32_C(0x9068FFFF)))
-    {
-        seed_upper = UINT32_C(0xFFFFFFFF);
-    }
-    if ((seed_lower == 0) || (seed_lower == UINT32_C(0x464FFFFF) * 1u) ||
-                             (seed_lower == UINT32_C(0x464FFFFF) * 2u) ||
-                             (seed_lower == UINT32_C(0x464FFFFF) * 3u))
-    {
-        seed_lower = UINT32_C(0xFFFFFFFF);
-    }
-
     p_mwc->mwc_upper = seed_upper;
     p_mwc->mwc_lower = seed_lower;
+    simplerandom_mwc2_sanitize(p_mwc);
+}
+
+void simplerandom_mwc2_sanitize(SimpleRandomMWC2_t * p_mwc)
+{
+    uint32_t    temp;
+
+    temp = p_mwc->mwc_upper;
+    if ((temp == 0) || (temp == UINT32_C(0x9068FFFF)))
+    {
+        p_mwc->mwc_upper = UINT32_C(0xFFFFFFFF);
+    }
+    temp = p_mwc->mwc_lower;
+    if ((temp == 0) ||  (temp == UINT32_C(0x464FFFFF) * 1u) ||
+                        (temp == UINT32_C(0x464FFFFF) * 2u) ||
+                        (temp == UINT32_C(0x464FFFFF) * 3u))
+    {
+        p_mwc->mwc_lower = UINT32_C(0xFFFFFFFF);
+    }
+}
+
+void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = (p_mwc->mwc_upper << 16u) + (p_mwc->mwc_upper >> 16u) + p_mwc->mwc_lower;
+        while (num_data)
+        {
+            --num_data;
+            if (current & 0x1)
+                p_mwc->mwc_upper ^= *p_data;
+            else
+                p_mwc->mwc_lower ^= *p_data;
+            ++p_data;
+            simplerandom_mwc2_sanitize(p_mwc);
+            current = simplerandom_mwc2_next(p_mwc);
+        }
+    }
 }
 
 /*
@@ -241,7 +310,7 @@ uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc)
 {
     p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
     p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
-    
+
     return (p_mwc->mwc_upper << 16u) + (p_mwc->mwc_upper >> 16u) + p_mwc->mwc_lower;
 }
 
