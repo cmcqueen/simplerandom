@@ -20,6 +20,27 @@
  * Cong
  ********/
 
+size_t simplerandom_cong_num_seeds(const SimpleRandomCong_t * p_cong)
+{
+    (const void *)p_cong;   /* We only use this parameter for type checking. */
+
+    return 1u;
+}
+
+size_t simplerandom_cong_seed_array(SimpleRandomCong_t * p_cong, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed = p_seeds[0];
+        num_seeds_used = 1u;
+    }
+    simplerandom_cong_seed(p_cong, seed);
+    return num_seeds_used;
+}
+
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
     p_cong->cong = seed;
@@ -50,6 +71,27 @@ uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong)
 /*********
  * SHR3
  ********/
+
+size_t simplerandom_shr3_num_seeds(const SimpleRandomSHR3_t * p_shr3)
+{
+    (const void *)p_shr3;   /* We only use this parameter for type checking. */
+
+    return 1u;
+}
+
+size_t simplerandom_shr3_seed_array(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed = p_seeds[0];
+        num_seeds_used = 1u;
+    }
+    simplerandom_shr3_seed(p_shr3, seed);
+    return num_seeds_used;
+}
 
 void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
 {
@@ -91,6 +133,18 @@ uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3)
  * MWC1
  ********/
 
+size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
+{
+    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+
+    return 2u;
+}
+
+size_t simplerandom_mwc1_seed_array(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    return simplerandom_mwc2_seed_array(p_mwc, p_seeds, num_seeds, mix_extras);
+}
+
 /*
  * See notes for simplerandom_mwc2_seed().
  */
@@ -122,6 +176,33 @@ uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc)
 /*********
  * MWC2
  ********/
+
+size_t simplerandom_mwc2_num_seeds(const SimpleRandomMWC2_t * p_mwc)
+{
+    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+
+    return 2u;
+}
+
+size_t simplerandom_mwc2_seed_array(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_upper = 0;
+    uint32_t    seed_lower = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed_upper = p_seeds[0];
+        num_seeds_used = 1u;
+        if (num_seeds >= 2)
+        {
+            seed_lower = p_seeds[1];
+            num_seeds_used = 2u;
+        }
+    }
+    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
+    return num_seeds_used;
+}
 
 /* There are some bad seed values. See:
  *     http://eprint.iacr.org/2011/007.pdf
@@ -179,6 +260,45 @@ uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc)
 /*********
  * KISS
  ********/
+
+size_t simplerandom_kiss_num_seeds(const SimpleRandomKISS_t * p_kiss)
+{
+    (const void *)p_kiss;   /* We only use this parameter for type checking. */
+
+    return 4u;
+}
+
+size_t simplerandom_kiss_seed_array(SimpleRandomKISS_t * p_kiss, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_mwc_upper = 0;
+    uint32_t    seed_mwc_lower = 0;
+    uint32_t    seed_cong = 0;
+    uint32_t    seed_shr3 = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed_mwc_upper = p_seeds[0];
+        num_seeds_used = 1u;
+        if (num_seeds >= 2)
+        {
+            seed_mwc_lower = p_seeds[1];
+            num_seeds_used = 2u;
+            if (num_seeds >= 3)
+            {
+                seed_cong = p_seeds[2];
+                num_seeds_used = 3u;
+                if (num_seeds >= 4)
+                {
+                    seed_shr3 = p_seeds[3];
+                    num_seeds_used = 4u;
+                }
+            }
+        }
+    }
+    simplerandom_kiss_seed(p_kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
+    return num_seeds_used;
+}
 
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
@@ -251,6 +371,33 @@ uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss)
  * MWC64
  ********/
 
+size_t simplerandom_mwc64_num_seeds(const SimpleRandomMWC64_t * p_mwc)
+{
+    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+
+    return 2u;
+}
+
+size_t simplerandom_mwc64_seed_array(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_upper = 0;
+    uint32_t    seed_lower = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed_upper = p_seeds[0];
+        num_seeds_used = 1u;
+        if (num_seeds >= 2)
+        {
+            seed_lower = p_seeds[1];
+            num_seeds_used = 2u;
+        }
+    }
+    simplerandom_mwc64_seed(p_mwc, seed_upper, seed_lower);
+    return num_seeds_used;
+}
+
 /* There are some bad seed values. See notes for MWC.
  *
  * For MWC64, a seed that is any multiple of
@@ -299,6 +446,45 @@ uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc)
 /*********
  * KISS2
  ********/
+
+size_t simplerandom_kiss2_num_seeds(const SimpleRandomKISS2_t * p_kiss2)
+{
+    (const void *)p_kiss2;  /* We only use this parameter for type checking. */
+
+    return 4u;
+}
+
+size_t simplerandom_kiss2_seed_array(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_mwc_upper = 0;
+    uint32_t    seed_mwc_lower = 0;
+    uint32_t    seed_cong = 0;
+    uint32_t    seed_shr3 = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed_mwc_upper = p_seeds[0];
+        num_seeds_used = 1u;
+        if (num_seeds >= 2)
+        {
+            seed_mwc_lower = p_seeds[1];
+            num_seeds_used = 2u;
+            if (num_seeds >= 3)
+            {
+                seed_cong = p_seeds[2];
+                num_seeds_used = 3u;
+                if (num_seeds >= 4)
+                {
+                    seed_shr3 = p_seeds[3];
+                    num_seeds_used = 4u;
+                }
+            }
+        }
+    }
+    simplerandom_kiss2_seed(p_kiss2, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
+    return num_seeds_used;
+}
 
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
@@ -375,6 +561,45 @@ uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2)
 #define LFSR_SEED_Z2_MIN_VALUE  8u
 #define LFSR_SEED_Z3_MIN_VALUE  16u
 #define LFSR_SEED_Z4_MIN_VALUE  128u
+
+size_t simplerandom_lfsr113_num_seeds(const SimpleRandomLFSR113_t * p_lfsr113)
+{
+    (const void *)p_lfsr113;    /* We only use this parameter for type checking. */
+
+    return 4u;
+}
+
+size_t simplerandom_lfsr113_seed_array(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_z1 = 0;
+    uint32_t    seed_z2 = 0;
+    uint32_t    seed_z3 = 0;
+    uint32_t    seed_z4 = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed_z1 = p_seeds[0];
+        num_seeds_used = 1u;
+        if (num_seeds >= 2)
+        {
+            seed_z2 = p_seeds[1];
+            num_seeds_used = 2u;
+            if (num_seeds >= 3)
+            {
+                seed_z3 = p_seeds[2];
+                num_seeds_used = 3u;
+                if (num_seeds >= 4)
+                {
+                    seed_z4 = p_seeds[3];
+                    num_seeds_used = 4u;
+                }
+            }
+        }
+    }
+    simplerandom_lfsr113_seed(p_lfsr113, seed_z1, seed_z2, seed_z3, seed_z4);
+    return num_seeds_used;
+}
 
 void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4)
 {
@@ -478,6 +703,39 @@ uint16_t simplerandom_lfsr113_next_uint16(SimpleRandomLFSR113_t * p_lfsr113)
 /*********
  * LFSR88
  ********/
+
+size_t simplerandom_lfsr88_num_seeds(const SimpleRandomLFSR88_t * p_lfsr88)
+{
+    (const void *)p_lfsr88; /* We only use this parameter for type checking. */
+
+    return 3u;
+}
+
+size_t simplerandom_lfsr88_seed_array(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_z1 = 0;
+    uint32_t    seed_z2 = 0;
+    uint32_t    seed_z3 = 0;
+    size_t      num_seeds_used = 0;
+
+    if (num_seeds >= 1 && p_seeds != NULL)
+    {
+        seed_z1 = p_seeds[0];
+        num_seeds_used = 1u;
+        if (num_seeds >= 2)
+        {
+            seed_z2 = p_seeds[1];
+            num_seeds_used = 2u;
+            if (num_seeds >= 3)
+            {
+                seed_z3 = p_seeds[2];
+                num_seeds_used = 3u;
+            }
+        }
+    }
+    simplerandom_lfsr88_seed(p_lfsr88, seed_z1, seed_z2, seed_z3);
+    return num_seeds_used;
+}
 
 void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3)
 {

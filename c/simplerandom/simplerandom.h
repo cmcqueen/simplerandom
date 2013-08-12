@@ -81,6 +81,8 @@
  ****************************************************************************/
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 
 /*****************************************************************************
@@ -171,6 +173,8 @@ extern "C" {
  * was incorporated in several popular software packages,
  * all seemingly without complaint.
  */
+size_t simplerandom_cong_num_seeds(const SimpleRandomCong_t * p_cong);
+size_t simplerandom_cong_seed_array(SimpleRandomCong_t * p_cong, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
 uint8_t simplerandom_cong_next_uint8(SimpleRandomCong_t * p_cong);
@@ -199,6 +203,8 @@ uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong);
  * as binary vectors, will be linearly independent only
  * about 29% of the time.
  */
+size_t simplerandom_shr3_num_seeds(const SimpleRandomSHR3_t * p_shr3);
+size_t simplerandom_shr3_seed_array(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed);
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
 uint8_t simplerandom_shr3_next_uint8(SimpleRandomSHR3_t * p_shr3);
@@ -227,6 +233,8 @@ uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3);
  * tests in TestU01, and should probably be preferred,
  * unless backwards compatibility is required.
  */
+size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc);
+size_t simplerandom_mwc1_seed_array(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc);
 uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc);
@@ -243,6 +251,8 @@ uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc);
  * L'Ecuyer's TestU01 test suite, so it should probably
  * be preferred.
  */
+size_t simplerandom_mwc2_num_seeds(const SimpleRandomMWC2_t * p_mwc);
+size_t simplerandom_mwc2_seed_array(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc);
 uint8_t simplerandom_mwc2_next_uint8(SimpleRandomMWC2_t * p_mwc);
@@ -261,6 +271,8 @@ uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc);
  * for that reason, we take the opportunity to slightly
  * update the MWC and Cong generators too.
  */
+size_t simplerandom_kiss_num_seeds(const SimpleRandomKISS_t * );
+size_t simplerandom_kiss_seed_array(SimpleRandomKISS_t * p_kiss, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
 uint8_t simplerandom_kiss_next_uint8(SimpleRandomKISS_t * p_kiss);
@@ -278,6 +290,8 @@ uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss);
  * calculation to generate a 32-bit value. The seeds
  * should still be 32-bit values.
  */
+size_t simplerandom_mwc64_num_seeds(const SimpleRandomMWC64_t * p_mwc);
+size_t simplerandom_mwc64_seed_array(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower);
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
 uint8_t simplerandom_mwc64_next_uint8(SimpleRandomMWC64_t * p_mwc);
@@ -294,6 +308,8 @@ uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc);
  * calculations that are combined. The seeds should
  * still be 32-bit values.
  */
+size_t simplerandom_kiss2_num_seeds(const SimpleRandomKISS2_t * p_kiss2);
+size_t simplerandom_kiss2_seed_array(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2);
@@ -314,6 +330,8 @@ uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2);
  * Mathematics of Computation, 68, 225 (1999), 261–269.
 
  */
+size_t simplerandom_lfsr113_num_seeds(const SimpleRandomLFSR113_t * p_lfsr113);
+size_t simplerandom_lfsr113_seed_array(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4);
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
 uint8_t simplerandom_lfsr113_next_uint8(SimpleRandomLFSR113_t * p_lfsr113);
@@ -330,6 +348,8 @@ uint16_t simplerandom_lfsr113_next_uint16(SimpleRandomLFSR113_t * p_lfsr113);
  * P. L'Ecuyer
  * Mathematics of Computation, 65, 213 (1996), 203–213. 
  */
+size_t simplerandom_lfsr88_num_seeds(const SimpleRandomLFSR88_t * p_lfsr88);
+size_t simplerandom_lfsr88_seed_array(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3);
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88);
 uint8_t simplerandom_lfsr88_next_uint8(SimpleRandomLFSR88_t * p_lfsr88);
