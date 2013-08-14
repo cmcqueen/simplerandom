@@ -32,7 +32,7 @@ size_t simplerandom_cong_seed_array(SimpleRandomCong_t * p_cong, const uint32_t 
     uint32_t    seed = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (num_seeds >= 1u && p_seeds != NULL)
     {
         seed = p_seeds[0];
         num_seeds_used = 1u;
@@ -108,7 +108,7 @@ size_t simplerandom_shr3_seed_array(SimpleRandomSHR3_t * p_shr3, const uint32_t 
     uint32_t    seed = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (num_seeds >= 1u && p_seeds != NULL)
     {
         seed = p_seeds[0];
         num_seeds_used = 1u;
@@ -233,14 +233,16 @@ size_t simplerandom_mwc2_seed_array(SimpleRandomMWC2_t * p_mwc, const uint32_t *
     uint32_t    seed_lower = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (p_seeds != NULL)
     {
-        seed_upper = p_seeds[0];
-        num_seeds_used = 1u;
-        if (num_seeds >= 2)
-        {
-            seed_lower = p_seeds[1];
+        if (num_seeds > 2u)
             num_seeds_used = 2u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
+        {
+            case 2:     seed_lower = p_seeds[1];    /* drop through to next case */
+            case 1:     seed_upper = p_seeds[0];
         }
     }
     simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
@@ -370,24 +372,18 @@ size_t simplerandom_kiss_seed_array(SimpleRandomKISS_t * p_kiss, const uint32_t 
     uint32_t    seed_shr3 = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (p_seeds != NULL)
     {
-        seed_mwc_upper = p_seeds[0];
-        num_seeds_used = 1u;
-        if (num_seeds >= 2)
+        if (num_seeds > 4u)
+            num_seeds_used = 4u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
         {
-            seed_mwc_lower = p_seeds[1];
-            num_seeds_used = 2u;
-            if (num_seeds >= 3)
-            {
-                seed_cong = p_seeds[2];
-                num_seeds_used = 3u;
-                if (num_seeds >= 4)
-                {
-                    seed_shr3 = p_seeds[3];
-                    num_seeds_used = 4u;
-                }
-            }
+            case 4:     seed_shr3       = p_seeds[3];   /* drop through to next case */
+            case 3:     seed_cong       = p_seeds[2];   /* drop through to next case */
+            case 2:     seed_mwc_lower  = p_seeds[1];   /* drop through to next case */
+            case 1:     seed_mwc_upper  = p_seeds[0];
         }
     }
     simplerandom_kiss_seed(p_kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
@@ -546,14 +542,17 @@ size_t simplerandom_mwc64_seed_array(SimpleRandomMWC64_t * p_mwc, const uint32_t
     uint32_t    seed_lower = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+
+    if (p_seeds != NULL)
     {
-        seed_upper = p_seeds[0];
-        num_seeds_used = 1u;
-        if (num_seeds >= 2)
-        {
-            seed_lower = p_seeds[1];
+        if (num_seeds > 2u)
             num_seeds_used = 2u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
+        {
+            case 2:     seed_lower = p_seeds[1];    /* drop through to next case */
+            case 1:     seed_upper = p_seeds[0];
         }
     }
     simplerandom_mwc64_seed(p_mwc, seed_upper, seed_lower);
@@ -659,24 +658,18 @@ size_t simplerandom_kiss2_seed_array(SimpleRandomKISS2_t * p_kiss2, const uint32
     uint32_t    seed_shr3 = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (p_seeds != NULL)
     {
-        seed_mwc_upper = p_seeds[0];
-        num_seeds_used = 1u;
-        if (num_seeds >= 2)
+        if (num_seeds > 4u)
+            num_seeds_used = 4u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
         {
-            seed_mwc_lower = p_seeds[1];
-            num_seeds_used = 2u;
-            if (num_seeds >= 3)
-            {
-                seed_cong = p_seeds[2];
-                num_seeds_used = 3u;
-                if (num_seeds >= 4)
-                {
-                    seed_shr3 = p_seeds[3];
-                    num_seeds_used = 4u;
-                }
-            }
+            case 4:     seed_shr3       = p_seeds[3];   /* drop through to next case */
+            case 3:     seed_cong       = p_seeds[2];   /* drop through to next case */
+            case 2:     seed_mwc_lower  = p_seeds[1];   /* drop through to next case */
+            case 1:     seed_mwc_upper  = p_seeds[0];
         }
     }
     simplerandom_kiss2_seed(p_kiss2, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
@@ -774,24 +767,18 @@ size_t simplerandom_lfsr113_seed_array(SimpleRandomLFSR113_t * p_lfsr113, const 
     uint32_t    seed_z4 = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (p_seeds != NULL)
     {
-        seed_z1 = p_seeds[0];
-        num_seeds_used = 1u;
-        if (num_seeds >= 2)
+        if (num_seeds > 4u)
+            num_seeds_used = 4u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
         {
-            seed_z2 = p_seeds[1];
-            num_seeds_used = 2u;
-            if (num_seeds >= 3)
-            {
-                seed_z3 = p_seeds[2];
-                num_seeds_used = 3u;
-                if (num_seeds >= 4)
-                {
-                    seed_z4 = p_seeds[3];
-                    num_seeds_used = 4u;
-                }
-            }
+            case 4:     seed_z4 = p_seeds[3];   /* drop through to next case */
+            case 3:     seed_z3 = p_seeds[2];   /* drop through to next case */
+            case 2:     seed_z2 = p_seeds[1];   /* drop through to next case */
+            case 1:     seed_z1 = p_seeds[0];
         }
     }
     simplerandom_lfsr113_seed(p_lfsr113, seed_z1, seed_z2, seed_z3, seed_z4);
@@ -915,19 +902,17 @@ size_t simplerandom_lfsr88_seed_array(SimpleRandomLFSR88_t * p_lfsr88, const uin
     uint32_t    seed_z3 = 0;
     size_t      num_seeds_used = 0;
 
-    if (num_seeds >= 1 && p_seeds != NULL)
+    if (p_seeds != NULL)
     {
-        seed_z1 = p_seeds[0];
-        num_seeds_used = 1u;
-        if (num_seeds >= 2)
+        if (num_seeds > 3u)
+            num_seeds_used = 3u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
         {
-            seed_z2 = p_seeds[1];
-            num_seeds_used = 2u;
-            if (num_seeds >= 3)
-            {
-                seed_z3 = p_seeds[2];
-                num_seeds_used = 3u;
-            }
+            case 3:     seed_z3 = p_seeds[2];   /* drop through to next case */
+            case 2:     seed_z2 = p_seeds[1];   /* drop through to next case */
+            case 1:     seed_z1 = p_seeds[0];
         }
     }
     simplerandom_lfsr88_seed(p_lfsr88, seed_z1, seed_z2, seed_z3);
