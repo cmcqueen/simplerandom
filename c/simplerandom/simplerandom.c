@@ -312,7 +312,7 @@ void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, 
         while (num_data)
         {
             --num_data;
-            if (current & 0x80000000u)
+            if (current & UINT32_C(0x80000000))
             {
                 p_mwc->mwc_upper ^= *p_data;
                 mwc2_sanitize_upper(p_mwc);
@@ -600,7 +600,7 @@ void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data
         while (num_data)
         {
             --num_data;
-            if (current & 0x80000000u)
+            if (current & UINT32_C(0x80000000))
             {
                 p_mwc->mwc_upper ^= *p_data;
             }
@@ -678,32 +678,85 @@ size_t simplerandom_kiss2_seed_array(SimpleRandomKISS2_t * p_kiss2, const uint32
 
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3)
 {
-    uint64_t    seed_mwc64;
-
-    /* Initialise MWC64 RNG */
-    seed_mwc64 = ((uint64_t)seed_mwc_upper << 32u) + seed_mwc_lower;
-    if ((seed_mwc64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
-    {
-        seed_mwc_upper = UINT32_C(0xFFFFFFFF);
-        seed_mwc_lower = UINT32_C(0xFFFFFFFF);
-    }
     p_kiss2->mwc_upper = seed_mwc_upper;
     p_kiss2->mwc_lower = seed_mwc_lower;
-
-    /* Initialise Cong RNG */
     p_kiss2->cong = seed_cong;
-
-    /* Initialise SHR3 RNG */
-    if (seed_shr3 == 0)
-    {
-        seed_shr3 = UINT32_C(0xFFFFFFFF);
-    }
     p_kiss2->shr3 = seed_shr3;
+    simplerandom_kiss2_sanitize(p_kiss2);
+}
+
+static inline void kiss2_sanitize_mwc64(SimpleRandomKISS2_t * p_kiss2)
+{
+    uint64_t    seed64;
+
+    seed64 = ((uint64_t)p_kiss2->mwc_upper << 32u) + p_kiss2->mwc_lower;
+    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    {
+        /* Invert both upper and lower to get a good seed. */
+        p_kiss2->mwc_upper ^= UINT32_C(0xFFFFFFFF);
+        p_kiss2->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+    }
+}
+
+static inline void kiss2_sanitize_shr3(SimpleRandomKISS2_t * p_kiss2)
+{
+    /* Zero is a bad state value for SHR3. */
+    if (p_kiss2->shr3 == 0)
+    {
+        p_kiss2->shr3 = UINT32_C(0xFFFFFFFF);
+    }
+}
+
+void simplerandom_kiss2_sanitize(SimpleRandomKISS2_t * p_kiss2)
+{
+    kiss2_sanitize_mwc64(p_kiss2);
+    /* No sanitize needed for Cong, because all state values are valid. */
+    kiss2_sanitize_shr3(p_kiss2);
+}
+
+static inline uint32_t kiss2_current(SimpleRandomKISS2_t * p_kiss2)
+{
+    return (p_kiss2->mwc_lower + p_kiss2->cong + p_kiss2->shr3);
+}
+
+void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = kiss2_current(p_kiss2);
+        while (num_data)
+        {
+            --num_data;
+            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            {
+                case 3:
+                    p_kiss2->mwc_upper ^= *p_data;
+                    kiss2_sanitize_mwc64(p_kiss2);
+                    break;
+                case 2:
+                    p_kiss2->mwc_lower ^= *p_data;
+                    kiss2_sanitize_mwc64(p_kiss2);
+                    break;
+                case 1:
+                    p_kiss2->cong ^= *p_data;
+                    break;
+                case 0:
+                    p_kiss2->shr3 ^= *p_data;
+                    kiss2_sanitize_shr3(p_kiss2);
+                    break;
+            }
+            ++p_data;
+            current = simplerandom_kiss2_next(p_kiss2);
+        }
+    }
 }
 
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
 {
     uint64_t    mwc64;
+    uint32_t    cong;
     uint32_t    shr3;
 
 
@@ -713,7 +766,8 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
     p_kiss2->mwc_lower = (uint32_t)mwc64;
 
     /* Calculate next Cong RNG */
-    p_kiss2->cong = UINT32_C(69069) * p_kiss2->cong + 12345u;
+    cong = UINT32_C(69069) * p_kiss2->cong + 12345u;
+    p_kiss2->cong = cong;
 
     /* Calculate next SHR3 RNG */
     shr3 = p_kiss2->shr3;
@@ -722,7 +776,7 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
     shr3 ^= (shr3 << 5);
     p_kiss2->shr3 = shr3;
 
-    return ((uint32_t)mwc64 + p_kiss2->cong + shr3);
+    return ((uint32_t)mwc64 + cong + shr3);
 }
 
 uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2)

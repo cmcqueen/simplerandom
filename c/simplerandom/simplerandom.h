@@ -321,6 +321,8 @@ uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc);
 size_t simplerandom_kiss2_num_seeds(const SimpleRandomKISS2_t * p_kiss2);
 size_t simplerandom_kiss2_seed_array(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras);
 void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_upper, uint32_t seed_mwc_lower, uint32_t seed_cong, uint32_t seed_shr3);
+void simplerandom_kiss2_sanitize(SimpleRandomKISS2_t * p_kiss2);
+void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2);
 uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2);
