@@ -13,6 +13,14 @@
 
 
 /*****************************************************************************
+ * Local function prototypes
+ ****************************************************************************/
+
+static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc);
+static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc);
+
+
+/*****************************************************************************
  * Functions
  ****************************************************************************/
 
@@ -38,6 +46,12 @@ size_t simplerandom_cong_seed_array(SimpleRandomCong_t * p_cong, const uint32_t 
         num_seeds_used = 1u;
     }
     simplerandom_cong_seed(p_cong, seed);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_cong_mix(p_cong, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -114,6 +128,12 @@ size_t simplerandom_shr3_seed_array(SimpleRandomSHR3_t * p_shr3, const uint32_t 
         num_seeds_used = 1u;
     }
     simplerandom_shr3_seed(p_shr3, seed);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_shr3_mix(p_shr3, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -185,7 +205,30 @@ size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
 
 size_t simplerandom_mwc1_seed_array(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
 {
-    return simplerandom_mwc2_seed_array(p_mwc, p_seeds, num_seeds, mix_extras);
+    uint32_t    seed_upper = 0;
+    uint32_t    seed_lower = 0;
+    size_t      num_seeds_used = 0;
+
+    if (p_seeds != NULL)
+    {
+        if (num_seeds > 2u)
+            num_seeds_used = 2u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
+        {
+            case 2:     seed_lower = p_seeds[1];    /* drop through to next case */
+            case 1:     seed_upper = p_seeds[0];
+        }
+    }
+    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_mwc1_mix(p_mwc, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
+    return num_seeds_used;
 }
 
 /*
@@ -196,12 +239,49 @@ void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uin
     simplerandom_mwc2_seed(p_mwc, seed_upper, seed_lower);
 }
 
+void simplerandom_mwc1_sanitize(SimpleRandomMWC1_t * p_mwc)
+{
+    simplerandom_mwc2_sanitize(p_mwc);
+}
+
+static inline uint32_t mwc1_current(SimpleRandomMWC1_t * p_mwc)
+{
+    return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
+}
+
+void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = mwc1_current(p_mwc);
+        while (num_data)
+        {
+            --num_data;
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            {
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    mwc2_sanitize_upper(p_mwc);
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    mwc2_sanitize_lower(p_mwc);
+                    break;
+            }
+            ++p_data;
+            current = simplerandom_mwc1_next(p_mwc);
+        }
+    }
+}
+
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
 {
     p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
     p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
     
-    return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
+    return mwc1_current(p_mwc);
 }
 
 uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc)
@@ -245,7 +325,13 @@ size_t simplerandom_mwc2_seed_array(SimpleRandomMWC2_t * p_mwc, const uint32_t *
             case 1:     seed_upper = p_seeds[0];
         }
     }
-    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
+    simplerandom_mwc2_seed(p_mwc, seed_upper, seed_lower);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_mwc2_mix(p_mwc, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -312,15 +398,16 @@ void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, 
         while (num_data)
         {
             --num_data;
-            if (current & UINT32_C(0x80000000))
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
             {
-                p_mwc->mwc_upper ^= *p_data;
-                mwc2_sanitize_upper(p_mwc);
-            }
-            else
-            {
-                p_mwc->mwc_lower ^= *p_data;
-                mwc2_sanitize_lower(p_mwc);
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    mwc2_sanitize_upper(p_mwc);
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    mwc2_sanitize_lower(p_mwc);
+                    break;
             }
             ++p_data;
             current = simplerandom_mwc2_next(p_mwc);
@@ -387,6 +474,12 @@ size_t simplerandom_kiss_seed_array(SimpleRandomKISS_t * p_kiss, const uint32_t 
         }
     }
     simplerandom_kiss_seed(p_kiss, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_kiss_mix(p_kiss, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -465,18 +558,18 @@ void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data,
             --num_data;
             switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
             {
-                case 3:
+                case 0:
                     p_kiss->mwc_upper ^= *p_data;
                     kiss_sanitize_mwc_upper(p_kiss);
                     break;
-                case 2:
+                case 1:
                     p_kiss->mwc_lower ^= *p_data;
                     kiss_sanitize_mwc_lower(p_kiss);
                     break;
-                case 1:
+                case 2:
                     p_kiss->cong ^= *p_data;
                     break;
-                case 0:
+                case 3:
                     p_kiss->shr3 ^= *p_data;
                     kiss_sanitize_shr3(p_kiss);
                     break;
@@ -556,20 +649,13 @@ size_t simplerandom_mwc64_seed_array(SimpleRandomMWC64_t * p_mwc, const uint32_t
         }
     }
     simplerandom_mwc64_seed(p_mwc, seed_upper, seed_lower);
-    return num_seeds_used;
-}
 
-void simplerandom_mwc64_sanitize(SimpleRandomMWC64_t * p_mwc)
-{
-    uint64_t    seed64;
-
-    seed64 = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
-    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    if (mix_extras && p_seeds != NULL)
     {
-        /* Invert both upper and lower to get a good seed. */
-        p_mwc->mwc_upper ^= UINT32_C(0xFFFFFFFF);
-        p_mwc->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+        simplerandom_mwc64_mix(p_mwc, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
     }
+    return num_seeds_used;
 }
 
 /* There are some bad seed values. See notes for MWC.
@@ -583,6 +669,19 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, u
     p_mwc->mwc_upper = seed_upper;
     p_mwc->mwc_lower = seed_lower;
     simplerandom_mwc64_sanitize(p_mwc);
+}
+
+void simplerandom_mwc64_sanitize(SimpleRandomMWC64_t * p_mwc)
+{
+    uint64_t    seed64;
+
+    seed64 = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
+    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    {
+        /* Invert both upper and lower to get a good seed. */
+        p_mwc->mwc_upper ^= UINT32_C(0xFFFFFFFF);
+        p_mwc->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+    }
 }
 
 static inline uint32_t mwc64_current(SimpleRandomMWC64_t * p_mwc)
@@ -600,13 +699,14 @@ void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data
         while (num_data)
         {
             --num_data;
-            if (current & UINT32_C(0x80000000))
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
             {
-                p_mwc->mwc_upper ^= *p_data;
-            }
-            else
-            {
-                p_mwc->mwc_lower ^= *p_data;
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    break;
             }
             simplerandom_mwc64_sanitize(p_mwc);
             ++p_data;
@@ -673,6 +773,12 @@ size_t simplerandom_kiss2_seed_array(SimpleRandomKISS2_t * p_kiss2, const uint32
         }
     }
     simplerandom_kiss2_seed(p_kiss2, seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_kiss2_mix(p_kiss2, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -731,18 +837,18 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
             --num_data;
             switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
             {
-                case 3:
+                case 0:
                     p_kiss2->mwc_upper ^= *p_data;
                     kiss2_sanitize_mwc64(p_kiss2);
                     break;
-                case 2:
+                case 1:
                     p_kiss2->mwc_lower ^= *p_data;
                     kiss2_sanitize_mwc64(p_kiss2);
                     break;
-                case 1:
+                case 2:
                     p_kiss2->cong ^= *p_data;
                     break;
-                case 0:
+                case 3:
                     p_kiss2->shr3 ^= *p_data;
                     kiss2_sanitize_shr3(p_kiss2);
                     break;
@@ -836,6 +942,12 @@ size_t simplerandom_lfsr113_seed_array(SimpleRandomLFSR113_t * p_lfsr113, const 
         }
     }
     simplerandom_lfsr113_seed(p_lfsr113, seed_z1, seed_z2, seed_z3, seed_z4);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_lfsr113_mix(p_lfsr113, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -890,6 +1002,98 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
         }
     }
     p_lfsr113->z4 = working_seed;
+}
+
+static inline void lfsr113_sanitize_z1(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr113->z1;
+    if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
+    {
+        p_lfsr113->z1 = ~working_seed;
+    }
+}
+
+static inline void lfsr113_sanitize_z2(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr113->z2;
+    if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
+    {
+        p_lfsr113->z2 = ~working_seed;
+    }
+}
+
+static inline void lfsr113_sanitize_z3(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr113->z3;
+    if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
+    {
+        p_lfsr113->z3 = ~working_seed;
+    }
+}
+
+static inline void lfsr113_sanitize_z4(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr113->z4;
+    if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
+    {
+        p_lfsr113->z4 = ~working_seed;
+    }
+}
+
+void simplerandom_lfsr113_sanitize(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    lfsr113_sanitize_z1(p_lfsr113);
+    lfsr113_sanitize_z2(p_lfsr113);
+    lfsr113_sanitize_z3(p_lfsr113);
+    lfsr113_sanitize_z4(p_lfsr113);
+}
+
+static inline uint32_t lfsr113_current(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    return (p_lfsr113->z1 ^ p_lfsr113->z2 ^ p_lfsr113->z3 ^ p_lfsr113->z4);
+}
+
+void simplerandom_lfsr113_mix(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = lfsr113_current(p_lfsr113);
+        while (num_data)
+        {
+            --num_data;
+            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            {
+                case 0:
+                    p_lfsr113->z1 ^= *p_data;
+                    lfsr113_sanitize_z1(p_lfsr113);
+                    break;
+                case 1:
+                    p_lfsr113->z2 ^= *p_data;
+                    lfsr113_sanitize_z2(p_lfsr113);
+                    break;
+                case 2:
+                    p_lfsr113->z3 ^= *p_data;
+                    lfsr113_sanitize_z3(p_lfsr113);
+                    break;
+                case 3:
+                    p_lfsr113->z4 ^= *p_data;
+                    lfsr113_sanitize_z4(p_lfsr113);
+                    break;
+            }
+            ++p_data;
+            current = simplerandom_lfsr113_next(p_lfsr113);
+        }
+    }
 }
 
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
@@ -970,6 +1174,12 @@ size_t simplerandom_lfsr88_seed_array(SimpleRandomLFSR88_t * p_lfsr88, const uin
         }
     }
     simplerandom_lfsr88_seed(p_lfsr88, seed_z1, seed_z2, seed_z3);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_lfsr88_mix(p_lfsr88, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
     return num_seeds_used;
 }
 
@@ -1012,6 +1222,82 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
         }
     }
     p_lfsr88->z3 = working_seed;
+}
+
+static inline void lfsr88_sanitize_z1(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr88->z1;
+    if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
+    {
+        p_lfsr88->z1 = ~working_seed;
+    }
+}
+
+static inline void lfsr88_sanitize_z2(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr88->z2;
+    if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
+    {
+        p_lfsr88->z2 = ~working_seed;
+    }
+}
+
+static inline void lfsr88_sanitize_z3(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    working_seed;
+
+    working_seed = p_lfsr88->z3;
+    if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
+    {
+        p_lfsr88->z3 = ~working_seed;
+    }
+}
+
+void simplerandom_lfsr88_sanitize(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    lfsr88_sanitize_z1(p_lfsr88);
+    lfsr88_sanitize_z2(p_lfsr88);
+    lfsr88_sanitize_z3(p_lfsr88);
+}
+
+static inline uint32_t lfsr88_current(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    return (p_lfsr88->z1 ^ p_lfsr88->z2 ^ p_lfsr88->z3);
+}
+
+void simplerandom_lfsr88_mix(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = lfsr88_current(p_lfsr88);
+        while (num_data)
+        {
+            --num_data;
+            if (current < UINT32_C(1431655765))         /* constant is 2^32 / 3 */
+            {
+                p_lfsr88->z1 ^= *p_data;
+                lfsr88_sanitize_z1(p_lfsr88);
+            }
+            else if (current < UINT32_C(2863311531))    /* constant is 2^32 * 2 / 3 */
+            {
+                p_lfsr88->z2 ^= *p_data;
+                lfsr88_sanitize_z2(p_lfsr88);
+            }
+            else
+            {
+                p_lfsr88->z3 ^= *p_data;
+                lfsr88_sanitize_z3(p_lfsr88);
+            }
+            ++p_data;
+            current = simplerandom_lfsr88_next(p_lfsr88);
+        }
+    }
 }
 
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88)
