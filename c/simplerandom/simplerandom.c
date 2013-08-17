@@ -1400,6 +1400,11 @@ void simplerandom_lfsr88_mix(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p
         while (num_data)
         {
             --num_data;
+            /* Select which of the 3 state variables to modify, with
+             * approximately equal probability. Unlike all other generators, we
+             * don't have a power-of-2 number of state variables, so we have to
+             * do this differently. Avoid using modulo or divide in case it's a
+             * costly operation on target processor (especially embedded). */
             current = lfsr88_current(p_lfsr88);
             if (current < UINT32_C(1431655765))         /* constant is 2^32 / 3 */
             {
