@@ -13,14 +13,6 @@
 
 
 /*****************************************************************************
- * Local function prototypes
- ****************************************************************************/
-
-static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc);
-static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc);
-
-
-/*****************************************************************************
  * Functions
  ****************************************************************************/
 
@@ -193,111 +185,11 @@ uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3)
 }
 
 /*********
- * MWC1
- ********/
-
-size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
-{
-    (const void *)p_mwc;    /* We only use this parameter for type checking. */
-
-    return 2u;
-}
-
-size_t simplerandom_mwc1_seed_array(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
-{
-    uint32_t    seed_upper = 0;
-    uint32_t    seed_lower = 0;
-    size_t      num_seeds_used = 0;
-
-    if (p_seeds != NULL)
-    {
-        if (num_seeds > 2u)
-            num_seeds_used = 2u;
-        else
-            num_seeds_used = num_seeds;
-        switch (num_seeds_used)
-        {
-            case 2:     seed_lower = p_seeds[1];    /* drop through to next case */
-            case 1:     seed_upper = p_seeds[0];
-        }
-    }
-    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
-
-    if (mix_extras && p_seeds != NULL)
-    {
-        simplerandom_mwc1_mix(p_mwc, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
-        num_seeds_used = num_seeds;
-    }
-    return num_seeds_used;
-}
-
-/*
- * See notes for simplerandom_mwc2_seed().
- */
-void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
-{
-    simplerandom_mwc2_seed(p_mwc, seed_upper, seed_lower);
-}
-
-void simplerandom_mwc1_sanitize(SimpleRandomMWC1_t * p_mwc)
-{
-    simplerandom_mwc2_sanitize(p_mwc);
-}
-
-static inline uint32_t mwc1_current(SimpleRandomMWC1_t * p_mwc)
-{
-    return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
-}
-
-void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = mwc1_current(p_mwc);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
-            {
-                case 0:
-                    p_mwc->mwc_upper ^= *p_data;
-                    mwc2_sanitize_upper(p_mwc);
-                    break;
-                case 1:
-                    p_mwc->mwc_lower ^= *p_data;
-                    mwc2_sanitize_lower(p_mwc);
-                    break;
-            }
-            ++p_data;
-            current = simplerandom_mwc1_next(p_mwc);
-        }
-    }
-}
-
-uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
-{
-    p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
-    p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
-    
-    return mwc1_current(p_mwc);
-}
-
-uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_mwc1_next(p_mwc) >> 24u);
-}
-
-uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_mwc1_next(p_mwc) >> 16u);
-}
-
-/*********
  * MWC2
+ *
+ * MWC1 and MWC2 are very similar, apart from state mixing. So they can share
+ * code. MWC2 is preferred, so we put MWC2 first, and then MWC1 can call some
+ * MWC2 functions.
  ********/
 
 size_t simplerandom_mwc2_num_seeds(const SimpleRandomMWC2_t * p_mwc)
@@ -438,6 +330,110 @@ uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_mwc2_next(p_mwc) >> 16u);
+}
+
+/*********
+ * MWC1
+ ********/
+
+size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
+{
+    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+
+    return 2u;
+}
+
+size_t simplerandom_mwc1_seed_array(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
+{
+    uint32_t    seed_upper = 0;
+    uint32_t    seed_lower = 0;
+    size_t      num_seeds_used = 0;
+
+    if (p_seeds != NULL)
+    {
+        if (num_seeds > 2u)
+            num_seeds_used = 2u;
+        else
+            num_seeds_used = num_seeds;
+        switch (num_seeds_used)
+        {
+            case 2:     seed_lower = p_seeds[1];    /* drop through to next case */
+            case 1:     seed_upper = p_seeds[0];
+        }
+    }
+    simplerandom_mwc1_seed(p_mwc, seed_upper, seed_lower);
+
+    if (mix_extras && p_seeds != NULL)
+    {
+        simplerandom_mwc1_mix(p_mwc, p_seeds + num_seeds_used, num_seeds - num_seeds_used);
+        num_seeds_used = num_seeds;
+    }
+    return num_seeds_used;
+}
+
+/*
+ * See notes for simplerandom_mwc2_seed().
+ */
+void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uint32_t seed_lower)
+{
+    simplerandom_mwc2_seed(p_mwc, seed_upper, seed_lower);
+}
+
+void simplerandom_mwc1_sanitize(SimpleRandomMWC1_t * p_mwc)
+{
+    simplerandom_mwc2_sanitize(p_mwc);
+}
+
+static inline uint32_t mwc1_current(SimpleRandomMWC1_t * p_mwc)
+{
+    return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
+}
+
+void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = mwc1_current(p_mwc);
+        while (num_data)
+        {
+            --num_data;
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            {
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    mwc2_sanitize_upper(p_mwc);
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    mwc2_sanitize_lower(p_mwc);
+                    break;
+            }
+            ++p_data;
+            current = simplerandom_mwc1_next(p_mwc);
+        }
+    }
+}
+
+uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
+{
+    p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
+    p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
+
+    return mwc1_current(p_mwc);
+}
+
+uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc)
+{
+    /* Return most-significant 8 bits. */
+    return (simplerandom_mwc1_next(p_mwc) >> 24u);
+}
+
+uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc)
+{
+    /* Return most-significant 16 bits. */
+    return (simplerandom_mwc1_next(p_mwc) >> 16u);
 }
 
 /*********
