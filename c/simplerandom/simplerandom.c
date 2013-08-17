@@ -50,30 +50,13 @@ size_t simplerandom_cong_seed_array(SimpleRandomCong_t * p_cong, const uint32_t 
 void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 {
     p_cong->cong = seed;
-#if 0
-    /* Not needed because for Cong, all state values are valid. */
-    simplerandom_cong_sanitize(p_cong);
-#endif
+    /* No sanitize is needed because for Cong, all state values are valid. */
 }
 
 void simplerandom_cong_sanitize(SimpleRandomCong_t * p_cong)
 {
     /* All state values are valid for Cong. No sanitizing needed. */
     (const void *) p_cong;
-}
-
-void simplerandom_cong_mix(SimpleRandomCong_t * p_cong, const uint32_t * p_data, size_t num_data)
-{
-    if (p_data != NULL)
-    {
-        while (num_data)
-        {
-            --num_data;
-            p_cong->cong ^= *p_data++;
-            simplerandom_cong_sanitize(p_cong);
-            simplerandom_cong_next(p_cong);
-        }
-    }
 }
 
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
@@ -96,6 +79,20 @@ uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_cong_next(p_cong) >> 16u);
+}
+
+void simplerandom_cong_mix(SimpleRandomCong_t * p_cong, const uint32_t * p_data, size_t num_data)
+{
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            p_cong->cong ^= *p_data++;
+            simplerandom_cong_sanitize(p_cong);
+            simplerandom_cong_next(p_cong);
+        }
+    }
 }
 
 /*********
@@ -144,20 +141,6 @@ void simplerandom_shr3_sanitize(SimpleRandomSHR3_t * p_shr3)
     }
 }
 
-void simplerandom_shr3_mix(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_data, size_t num_data)
-{
-    if (p_data != NULL)
-    {
-        while (num_data)
-        {
-            --num_data;
-            p_shr3->shr3 ^= *p_data++;
-            simplerandom_shr3_sanitize(p_shr3);
-            simplerandom_shr3_next(p_shr3);
-        }
-    }
-}
-
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
 {
     uint32_t    shr3;
@@ -184,12 +167,26 @@ uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3)
     return (simplerandom_shr3_next(p_shr3) >> 16u);
 }
 
+void simplerandom_shr3_mix(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_data, size_t num_data)
+{
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            p_shr3->shr3 ^= *p_data++;
+            simplerandom_shr3_sanitize(p_shr3);
+            simplerandom_shr3_next(p_shr3);
+        }
+    }
+}
+
 /*********
  * MWC2
  *
- * MWC1 and MWC2 are very similar, apart from state mixing. So they can share
- * code. MWC2 is preferred, so we put MWC2 first, and then MWC1 can call some
- * MWC2 functions.
+ * MWC1 and MWC2 are very similar, apart from deriving the final random value
+ * from the state. So they can share code. MWC2 is preferred, so we put MWC2
+ * first, and then MWC1 can call some MWC2 functions.
  ********/
 
 size_t simplerandom_mwc2_num_seeds(const SimpleRandomMWC2_t * p_mwc)
@@ -275,36 +272,19 @@ void simplerandom_mwc2_sanitize(SimpleRandomMWC2_t * p_mwc)
     mwc2_sanitize_lower(p_mwc);
 }
 
+static inline void mwc2_next_upper(SimpleRandomMWC2_t * p_mwc)
+{
+    p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
+}
+
+static inline void mwc2_next_lower(SimpleRandomMWC2_t * p_mwc)
+{
+    p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
+}
+
 static inline uint32_t mwc2_current(SimpleRandomMWC2_t * p_mwc)
 {
     return (p_mwc->mwc_upper << 16u) + (p_mwc->mwc_upper >> 16u) + p_mwc->mwc_lower;
-}
-
-void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = mwc2_current(p_mwc);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
-            {
-                case 0:
-                    p_mwc->mwc_upper ^= *p_data;
-                    mwc2_sanitize_upper(p_mwc);
-                    break;
-                case 1:
-                    p_mwc->mwc_lower ^= *p_data;
-                    mwc2_sanitize_lower(p_mwc);
-                    break;
-            }
-            ++p_data;
-            current = simplerandom_mwc2_next(p_mwc);
-        }
-    }
 }
 
 /*
@@ -314,9 +294,8 @@ void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, 
  */
 uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc)
 {
-    p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
-    p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
-
+    mwc2_next_upper(p_mwc);
+    mwc2_next_lower(p_mwc);
     return mwc2_current(p_mwc);
 }
 
@@ -332,8 +311,38 @@ uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc)
     return (simplerandom_mwc2_next(p_mwc) >> 16u);
 }
 
+void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            current = mwc2_current(p_mwc);
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            {
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    mwc2_sanitize_upper(p_mwc);
+                    mwc2_next_upper(p_mwc);
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    mwc2_sanitize_lower(p_mwc);
+                    mwc2_next_lower(p_mwc);
+                    break;
+            }
+            ++p_data;
+        }
+    }
+}
+
 /*********
  * MWC1
+ *
+ * MWC1 is very similar to MWC2, so many functions can be shared.
  ********/
 
 size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
@@ -343,6 +352,10 @@ size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
     return 2u;
 }
 
+/* This is almost identical to simplerandom_mwc2_seed_array(), except the mix
+ * function is slightly different because it depends on random values to decide
+ * which state value to mix into.
+ */
 size_t simplerandom_mwc1_seed_array(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_seeds, size_t num_seeds, bool mix_extras)
 {
     uint32_t    seed_upper = 0;
@@ -389,38 +402,10 @@ static inline uint32_t mwc1_current(SimpleRandomMWC1_t * p_mwc)
     return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
 }
 
-void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = mwc1_current(p_mwc);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
-            {
-                case 0:
-                    p_mwc->mwc_upper ^= *p_data;
-                    mwc2_sanitize_upper(p_mwc);
-                    break;
-                case 1:
-                    p_mwc->mwc_lower ^= *p_data;
-                    mwc2_sanitize_lower(p_mwc);
-                    break;
-            }
-            ++p_data;
-            current = simplerandom_mwc1_next(p_mwc);
-        }
-    }
-}
-
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
 {
-    p_mwc->mwc_upper = 36969u * (p_mwc->mwc_upper & 0xFFFFu) + (p_mwc->mwc_upper >> 16u);
-    p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
-
+    mwc2_next_upper(p_mwc);
+    mwc2_next_lower(p_mwc);
     return mwc1_current(p_mwc);
 }
 
@@ -434,6 +419,37 @@ uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_mwc1_next(p_mwc) >> 16u);
+}
+
+/* This is nearly identical to the MWC2 mix function, except for the call to
+ * mwc1_current() which is the essence of the difference between MWC1 and MWC2.
+ */
+void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            current = mwc1_current(p_mwc);
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            {
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    mwc2_sanitize_upper(p_mwc);
+                    mwc2_next_upper(p_mwc);
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    mwc2_sanitize_lower(p_mwc);
+                    mwc2_next_lower(p_mwc);
+                    break;
+            }
+            ++p_data;
+        }
+    }
 }
 
 /*********
@@ -529,12 +545,37 @@ void simplerandom_kiss_sanitize(SimpleRandomKISS_t * p_kiss)
     kiss_sanitize_shr3(p_kiss);
 }
 
+static inline void kiss_next_mwc_upper(SimpleRandomKISS_t * p_kiss)
+{
+    p_kiss->mwc_upper = 36969u * (p_kiss->mwc_upper & 0xFFFFu) + (p_kiss->mwc_upper >> 16u);
+}
+
+static inline void kiss_next_mwc_lower(SimpleRandomKISS_t * p_kiss)
+{
+    p_kiss->mwc_lower = 18000u * (p_kiss->mwc_lower & 0xFFFFu) + (p_kiss->mwc_lower >> 16u);
+}
+
+static inline void kiss_next_cong(SimpleRandomKISS_t * p_kiss)
+{
+    p_kiss->cong = UINT32_C(69069) * p_kiss->cong + 12345u;
+}
+
+static inline void kiss_next_shr3(SimpleRandomKISS_t * p_kiss)
+{
+    uint32_t    shr3;
+
+    shr3 = p_kiss->shr3;
+    shr3 ^= (shr3 << 13);
+    shr3 ^= (shr3 >> 17);
+    shr3 ^= (shr3 << 5);
+    p_kiss->shr3 = shr3;
+}
+
 static inline uint32_t kiss_current(SimpleRandomKISS_t * p_kiss)
 {
     uint32_t    mwc2;
     uint32_t    cong;
     uint32_t    shr3;
-
 
     mwc2 = (p_kiss->mwc_upper << 16u) + (p_kiss->mwc_upper >> 16u) + p_kiss->mwc_lower;
     cong = p_kiss->cong;
@@ -542,61 +583,12 @@ static inline uint32_t kiss_current(SimpleRandomKISS_t * p_kiss)
     return ((mwc2 ^ cong) + shr3);
 }
 
-void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = kiss_current(p_kiss);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
-            {
-                case 0:
-                    p_kiss->mwc_upper ^= *p_data;
-                    kiss_sanitize_mwc_upper(p_kiss);
-                    break;
-                case 1:
-                    p_kiss->mwc_lower ^= *p_data;
-                    kiss_sanitize_mwc_lower(p_kiss);
-                    break;
-                case 2:
-                    p_kiss->cong ^= *p_data;
-                    break;
-                case 3:
-                    p_kiss->shr3 ^= *p_data;
-                    kiss_sanitize_shr3(p_kiss);
-                    break;
-            }
-            ++p_data;
-            current = simplerandom_kiss_next(p_kiss);
-        }
-    }
-}
-
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
 {
-    uint32_t    cong;
-    uint32_t    shr3;
-
-
-    /* Calculate next MWC2 RNG */
-    p_kiss->mwc_upper = 36969u * (p_kiss->mwc_upper & 0xFFFFu) + (p_kiss->mwc_upper >> 16u);
-    p_kiss->mwc_lower = 18000u * (p_kiss->mwc_lower & 0xFFFFu) + (p_kiss->mwc_lower >> 16u);
-
-    /* Calculate next Cong RNG */
-    cong = UINT32_C(69069) * p_kiss->cong + 12345u;
-    p_kiss->cong = cong;
-
-    /* Calculate next SHR3 RNG */
-    shr3 = p_kiss->shr3;
-    shr3 ^= (shr3 << 13);
-    shr3 ^= (shr3 >> 17);
-    shr3 ^= (shr3 << 5);
-    p_kiss->shr3 = shr3;
-
+    kiss_next_mwc_upper(p_kiss);
+    kiss_next_mwc_lower(p_kiss);
+    kiss_next_cong(p_kiss);
+    kiss_next_shr3(p_kiss);
     return kiss_current(p_kiss);
 }
 
@@ -610,6 +602,43 @@ uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_kiss_next(p_kiss) >> 16u);
+}
+
+void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            current = kiss_current(p_kiss);
+            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            {
+                case 0:
+                    p_kiss->mwc_upper ^= *p_data;
+                    kiss_sanitize_mwc_upper(p_kiss);
+                    kiss_next_mwc_upper(p_kiss);
+                    break;
+                case 1:
+                    p_kiss->mwc_lower ^= *p_data;
+                    kiss_sanitize_mwc_lower(p_kiss);
+                    kiss_next_mwc_lower(p_kiss);
+                    break;
+                case 2:
+                    p_kiss->cong ^= *p_data;
+                    kiss_next_cong(p_kiss);
+                    break;
+                case 3:
+                    p_kiss->shr3 ^= *p_data;
+                    kiss_sanitize_shr3(p_kiss);
+                    kiss_next_shr3(p_kiss);
+                    break;
+            }
+            ++p_data;
+        }
+    }
 }
 
 #ifdef UINT64_C
@@ -685,32 +714,6 @@ static inline uint32_t mwc64_current(SimpleRandomMWC64_t * p_mwc)
     return p_mwc->mwc_lower;
 }
 
-void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = mwc64_current(p_mwc);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
-            {
-                case 0:
-                    p_mwc->mwc_upper ^= *p_data;
-                    break;
-                case 1:
-                    p_mwc->mwc_lower ^= *p_data;
-                    break;
-            }
-            simplerandom_mwc64_sanitize(p_mwc);
-            ++p_data;
-            current = simplerandom_mwc64_next(p_mwc);
-        }
-    }
-}
-
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc)
 {
     uint64_t    mwc64;
@@ -733,6 +736,32 @@ uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_mwc64_next(p_mwc) >> 16u);
+}
+
+void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        current = mwc64_current(p_mwc);
+        while (num_data)
+        {
+            --num_data;
+            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            {
+                case 0:
+                    p_mwc->mwc_upper ^= *p_data;
+                    break;
+                case 1:
+                    p_mwc->mwc_lower ^= *p_data;
+                    break;
+            }
+            ++p_data;
+            simplerandom_mwc64_sanitize(p_mwc);
+            current = simplerandom_mwc64_next(p_mwc);
+        }
+    }
 }
 
 /*********
@@ -816,69 +845,42 @@ void simplerandom_kiss2_sanitize(SimpleRandomKISS2_t * p_kiss2)
     kiss2_sanitize_shr3(p_kiss2);
 }
 
-static inline uint32_t kiss2_current(SimpleRandomKISS2_t * p_kiss2)
-{
-    return (p_kiss2->mwc_lower + p_kiss2->cong + p_kiss2->shr3);
-}
-
-void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = kiss2_current(p_kiss2);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
-            {
-                case 0:
-                    p_kiss2->mwc_upper ^= *p_data;
-                    kiss2_sanitize_mwc64(p_kiss2);
-                    break;
-                case 1:
-                    p_kiss2->mwc_lower ^= *p_data;
-                    kiss2_sanitize_mwc64(p_kiss2);
-                    break;
-                case 2:
-                    p_kiss2->cong ^= *p_data;
-                    break;
-                case 3:
-                    p_kiss2->shr3 ^= *p_data;
-                    kiss2_sanitize_shr3(p_kiss2);
-                    break;
-            }
-            ++p_data;
-            current = simplerandom_kiss2_next(p_kiss2);
-        }
-    }
-}
-
-uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
+static inline void kiss2_next_mwc64(SimpleRandomKISS2_t * p_kiss2)
 {
     uint64_t    mwc64;
-    uint32_t    cong;
-    uint32_t    shr3;
 
-
-    /* Calculate next MWC64 RNG */
     mwc64 = UINT64_C(698769069) * p_kiss2->mwc_lower + p_kiss2->mwc_upper;
     p_kiss2->mwc_upper = (mwc64 >> 32u);
     p_kiss2->mwc_lower = (uint32_t)mwc64;
+}
 
-    /* Calculate next Cong RNG */
-    cong = UINT32_C(69069) * p_kiss2->cong + 12345u;
-    p_kiss2->cong = cong;
+static inline void kiss2_next_cong(SimpleRandomKISS2_t * p_kiss2)
+{
+    p_kiss2->cong = UINT32_C(69069) * p_kiss2->cong + 12345u;
+}
 
-    /* Calculate next SHR3 RNG */
+static inline void kiss2_next_shr3(SimpleRandomKISS2_t * p_kiss2)
+{
+    uint32_t    shr3;
+
     shr3 = p_kiss2->shr3;
     shr3 ^= (shr3 << 13);
     shr3 ^= (shr3 >> 17);
     shr3 ^= (shr3 << 5);
     p_kiss2->shr3 = shr3;
+}
 
-    return ((uint32_t)mwc64 + cong + shr3);
+static inline uint32_t kiss2_current(SimpleRandomKISS2_t * p_kiss2)
+{
+    return (p_kiss2->mwc_lower + p_kiss2->cong + p_kiss2->shr3);
+}
+
+uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
+{
+    kiss2_next_mwc64(p_kiss2);
+    kiss2_next_cong(p_kiss2);
+    kiss2_next_shr3(p_kiss2);
+    return kiss2_current(p_kiss2);
 }
 
 uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2)
@@ -891,6 +893,43 @@ uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_kiss2_next(p_kiss2) >> 16u);
+}
+
+void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            current = kiss2_current(p_kiss2);
+            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            {
+                case 0:
+                    p_kiss2->mwc_upper ^= *p_data;
+                    kiss2_sanitize_mwc64(p_kiss2);
+                    kiss2_next_mwc64(p_kiss2);
+                    break;
+                case 1:
+                    p_kiss2->mwc_lower ^= *p_data;
+                    kiss2_sanitize_mwc64(p_kiss2);
+                    kiss2_next_mwc64(p_kiss2);
+                    break;
+                case 2:
+                    p_kiss2->cong ^= *p_data;
+                    kiss2_next_cong(p_kiss2);
+                    break;
+                case 3:
+                    p_kiss2->shr3 ^= *p_data;
+                    kiss2_sanitize_shr3(p_kiss2);
+                    kiss2_next_shr3(p_kiss2);
+                    break;
+            }
+            ++p_data;
+        }
+    }
 }
 
 #endif /* defined(UINT64_C) */
@@ -947,6 +986,13 @@ size_t simplerandom_lfsr113_seed_array(SimpleRandomLFSR113_t * p_lfsr113, const 
     return num_seeds_used;
 }
 
+/* Use a more complex seed function due to the unique state characteristics of
+ * LFSR generators: some lowest 'n' bits of each state variable are discarded
+ * for each 'next' calc.
+ * We want the lowest bits of the seed values to have some contribution to the
+ * initial state. So do some basic shift & XOR of seed values. Then do some
+ * reasonable sanitising to ensure the state upper '32-n' bits aren't all zero.
+ */
 void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_z1, uint32_t seed_z2, uint32_t seed_z3, uint32_t seed_z4)
 {
     uint32_t    working_seed;
@@ -1000,6 +1046,11 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z4 = working_seed;
 }
 
+/* For most simplerandom generators, sanitise functions are used for both
+ * seeding and for sanitising the mix function results. But for LFSR generators
+ * with a more complex seeding function, the sanitise functions are specified
+ * separately, and are relatively simple compared to the seeding function.
+ */
 static inline void lfsr113_sanitize_z1(SimpleRandomLFSR113_t * p_lfsr113)
 {
     uint32_t    working_seed;
@@ -1052,78 +1103,62 @@ void simplerandom_lfsr113_sanitize(SimpleRandomLFSR113_t * p_lfsr113)
     lfsr113_sanitize_z4(p_lfsr113);
 }
 
+static inline void lfsr113_next_z1(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    b;
+    uint32_t    z1;
+
+    z1 = p_lfsr113->z1;
+    b  = ((z1 << 6) ^ z1) >> 13;
+    z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 18) ^ b;
+    p_lfsr113->z1 = z1;
+}
+
+static inline void lfsr113_next_z2(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    b;
+    uint32_t    z2;
+
+    z2 = p_lfsr113->z2;
+    b  = ((z2 << 2) ^ z2) >> 27;
+    z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 2) ^ b;
+    p_lfsr113->z2 = z2;
+}
+
+static inline void lfsr113_next_z3(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    b;
+    uint32_t    z3;
+
+    z3 = p_lfsr113->z3;
+    b  = ((z3 << 13) ^ z3) >> 21;
+    z3 = ((z3 & UINT32_C(0xFFFFFFF0)) << 7) ^ b;
+    p_lfsr113->z3 = z3;
+}
+
+static inline void lfsr113_next_z4(SimpleRandomLFSR113_t * p_lfsr113)
+{
+    uint32_t    b;
+    uint32_t    z4;
+
+    z4 = p_lfsr113->z4;
+    b  = ((z4 << 3) ^ z4) >> 12;
+    z4 = ((z4 & UINT32_C(0xFFFFFF80)) << 13) ^ b;
+    p_lfsr113->z4 = z4;
+}
+
 static inline uint32_t lfsr113_current(SimpleRandomLFSR113_t * p_lfsr113)
 {
     return (p_lfsr113->z1 ^ p_lfsr113->z2 ^ p_lfsr113->z3 ^ p_lfsr113->z4);
 }
 
-void simplerandom_lfsr113_mix(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = lfsr113_current(p_lfsr113);
-        while (num_data)
-        {
-            --num_data;
-            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
-            {
-                case 0:
-                    p_lfsr113->z1 ^= *p_data;
-                    lfsr113_sanitize_z1(p_lfsr113);
-                    break;
-                case 1:
-                    p_lfsr113->z2 ^= *p_data;
-                    lfsr113_sanitize_z2(p_lfsr113);
-                    break;
-                case 2:
-                    p_lfsr113->z3 ^= *p_data;
-                    lfsr113_sanitize_z3(p_lfsr113);
-                    break;
-                case 3:
-                    p_lfsr113->z4 ^= *p_data;
-                    lfsr113_sanitize_z4(p_lfsr113);
-                    break;
-            }
-            ++p_data;
-            current = simplerandom_lfsr113_next(p_lfsr113);
-        }
-    }
-}
-
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
 {
-    uint32_t    b;
-    uint32_t    z1;
-    uint32_t    z2;
-    uint32_t    z3;
-    uint32_t    z4;
-
-
-    z1 = p_lfsr113->z1;
-    z2 = p_lfsr113->z2;
-    z3 = p_lfsr113->z3;
-    z4 = p_lfsr113->z4;
-
-    b  = ((z1 << 6) ^ z1) >> 13;
-    z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 18) ^ b;
-
-    b  = ((z2 << 2) ^ z2) >> 27;
-    z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 2) ^ b;
-
-    b  = ((z3 << 13) ^ z3) >> 21;
-    z3 = ((z3 & UINT32_C(0xFFFFFFF0)) << 7) ^ b;
-
-    b  = ((z4 << 3) ^ z4) >> 12;
-    z4 = ((z4 & UINT32_C(0xFFFFFF80)) << 13) ^ b;
-
-    p_lfsr113->z1 = z1;
-    p_lfsr113->z2 = z2;
-    p_lfsr113->z3 = z3;
-    p_lfsr113->z4 = z4;
-
-    return (z1 ^ z2 ^ z3 ^ z4);
+    lfsr113_next_z1(p_lfsr113);
+    lfsr113_next_z2(p_lfsr113);
+    lfsr113_next_z3(p_lfsr113);
+    lfsr113_next_z4(p_lfsr113);
+    return lfsr113_current(p_lfsr113);
 }
 
 uint8_t simplerandom_lfsr113_next_uint8(SimpleRandomLFSR113_t * p_lfsr113)
@@ -1136,6 +1171,44 @@ uint16_t simplerandom_lfsr113_next_uint16(SimpleRandomLFSR113_t * p_lfsr113)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_lfsr113_next(p_lfsr113) >> 16u);
+}
+
+void simplerandom_lfsr113_mix(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            current = lfsr113_current(p_lfsr113);
+            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            {
+                case 0:
+                    p_lfsr113->z1 ^= *p_data;
+                    lfsr113_sanitize_z1(p_lfsr113);
+                    lfsr113_next_z1(p_lfsr113);
+                    break;
+                case 1:
+                    p_lfsr113->z2 ^= *p_data;
+                    lfsr113_sanitize_z2(p_lfsr113);
+                    lfsr113_next_z2(p_lfsr113);
+                    break;
+                case 2:
+                    p_lfsr113->z3 ^= *p_data;
+                    lfsr113_sanitize_z3(p_lfsr113);
+                    lfsr113_next_z3(p_lfsr113);
+                    break;
+                case 3:
+                    p_lfsr113->z4 ^= *p_data;
+                    lfsr113_sanitize_z4(p_lfsr113);
+                    lfsr113_next_z4(p_lfsr113);
+                    break;
+            }
+            ++p_data;
+        }
+    }
 }
 
 /*********
@@ -1260,68 +1333,50 @@ void simplerandom_lfsr88_sanitize(SimpleRandomLFSR88_t * p_lfsr88)
     lfsr88_sanitize_z3(p_lfsr88);
 }
 
+static inline void lfsr88_next_z1(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    b;
+    uint32_t    z1;
+
+    z1 = p_lfsr88->z1;
+    b  = ((z1 << 13) ^ z1) >> 19;
+    z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 12) ^ b;
+    p_lfsr88->z1 = z1;
+}
+
+static inline void lfsr88_next_z2(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    b;
+    uint32_t    z2;
+
+    z2 = p_lfsr88->z2;
+    b  = ((z2 << 2) ^ z2) >> 25;
+    z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 4) ^ b;
+    p_lfsr88->z2 = z2;
+}
+
+static inline void lfsr88_next_z3(SimpleRandomLFSR88_t * p_lfsr88)
+{
+    uint32_t    b;
+    uint32_t    z3;
+
+    z3 = p_lfsr88->z3;
+    b  = ((z3 << 3) ^ z3) >> 11;
+    z3 = ((z3 & UINT32_C(0xFFFFFFF0)) << 17) ^ b;
+    p_lfsr88->z3 = z3;
+}
+
 static inline uint32_t lfsr88_current(SimpleRandomLFSR88_t * p_lfsr88)
 {
     return (p_lfsr88->z1 ^ p_lfsr88->z2 ^ p_lfsr88->z3);
 }
 
-void simplerandom_lfsr88_mix(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_data, size_t num_data)
-{
-    uint32_t    current;
-
-    if (p_data != NULL)
-    {
-        current = lfsr88_current(p_lfsr88);
-        while (num_data)
-        {
-            --num_data;
-            if (current < UINT32_C(1431655765))         /* constant is 2^32 / 3 */
-            {
-                p_lfsr88->z1 ^= *p_data;
-                lfsr88_sanitize_z1(p_lfsr88);
-            }
-            else if (current < UINT32_C(2863311531))    /* constant is 2^32 * 2 / 3 */
-            {
-                p_lfsr88->z2 ^= *p_data;
-                lfsr88_sanitize_z2(p_lfsr88);
-            }
-            else
-            {
-                p_lfsr88->z3 ^= *p_data;
-                lfsr88_sanitize_z3(p_lfsr88);
-            }
-            ++p_data;
-            current = simplerandom_lfsr88_next(p_lfsr88);
-        }
-    }
-}
-
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88)
 {
-    uint32_t    b;
-    uint32_t    z1;
-    uint32_t    z2;
-    uint32_t    z3;
-
-
-    z1 = p_lfsr88->z1;
-    z2 = p_lfsr88->z2;
-    z3 = p_lfsr88->z3;
-
-    b  = ((z1 << 13) ^ z1) >> 19;
-    z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 12) ^ b;
-
-    b  = ((z2 << 2) ^ z2) >> 25;
-    z2 = ((z2 & UINT32_C(0xFFFFFFF8)) << 4) ^ b;
-
-    b  = ((z3 << 3) ^ z3) >> 11;
-    z3 = ((z3 & UINT32_C(0xFFFFFFF0)) << 17) ^ b;
-
-    p_lfsr88->z1 = z1;
-    p_lfsr88->z2 = z2;
-    p_lfsr88->z3 = z3;
-
-    return (z1 ^ z2 ^ z3);
+    lfsr88_next_z1(p_lfsr88);
+    lfsr88_next_z2(p_lfsr88);
+    lfsr88_next_z3(p_lfsr88);
+    return lfsr88_current(p_lfsr88);
 }
 
 uint8_t simplerandom_lfsr88_next_uint8(SimpleRandomLFSR88_t * p_lfsr88)
@@ -1334,5 +1389,38 @@ uint16_t simplerandom_lfsr88_next_uint16(SimpleRandomLFSR88_t * p_lfsr88)
 {
     /* Return most-significant 16 bits. */
     return (simplerandom_lfsr88_next(p_lfsr88) >> 16u);
+}
+
+void simplerandom_lfsr88_mix(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_data, size_t num_data)
+{
+    uint32_t    current;
+
+    if (p_data != NULL)
+    {
+        while (num_data)
+        {
+            --num_data;
+            current = lfsr88_current(p_lfsr88);
+            if (current < UINT32_C(1431655765))         /* constant is 2^32 / 3 */
+            {
+                p_lfsr88->z1 ^= *p_data;
+                lfsr88_sanitize_z1(p_lfsr88);
+                lfsr88_next_z1(p_lfsr88);
+            }
+            else if (current < UINT32_C(2863311531))    /* constant is 2^32 * 2 / 3 */
+            {
+                p_lfsr88->z2 ^= *p_data;
+                lfsr88_sanitize_z2(p_lfsr88);
+                lfsr88_next_z2(p_lfsr88);
+            }
+            else
+            {
+                p_lfsr88->z3 ^= *p_data;
+                lfsr88_sanitize_z3(p_lfsr88);
+                lfsr88_next_z3(p_lfsr88);
+            }
+            ++p_data;
+        }
+    }
 }
 
