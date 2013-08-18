@@ -1,4 +1,12 @@
 
+def _traverse(o, tree_types=(list, tuple)):
+    if isinstance(o, tree_types) or getattr(o, '__iter__', False):
+        for value in o:
+            for subvalue in _traverse(value):
+                yield subvalue
+    else:
+        yield o
+
 def _init_default_and_int32(seed, default_value):
     if seed==None:
         return default_value
@@ -6,6 +14,21 @@ def _init_default_and_int32(seed, default_value):
         # Ensure a 32-bit unsigned integer.
         return (int(seed) & 0xFFFFFFFF)
 
+def _pop_seed_int32_or_default(seed_list, default_value):
+    try:
+        seed_item = seed_list.pop(0)
+    except IndexError:
+        return default_value
+    else:
+        return (int(seed_item) & 0xFFFFFFFF)
+
+def _next_seed_int32_or_default(seed_iter, default_value):
+    try:
+        seed_item = next(seed_iter)
+    except StopIteration:
+        return default_value
+    else:
+        return (int(seed_item) & 0xFFFFFFFF)
 
 class Cong(object):
     '''Congruential random number generator
@@ -106,9 +129,21 @@ class MWC2(object):
     be preferred.
     '''
 
-    def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFF)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFF)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.mwc_upper = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        self.mwc_lower = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+#        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFF)
+#        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFF)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
         self._validate_seed()
 
     def seed(self, seed_upper = None, seed_lower = None):
