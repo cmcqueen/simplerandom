@@ -33,6 +33,12 @@ class Marsaglia1999Tests(unittest.TestCase):
             k = cong.next()
         self.assertEqual(k, 2416584377)
 
+    def test_cong_jumpahead_million(self):
+        cong = sri.Cong(2051391225)
+        cong_jumpahead = sri.Cong(2051391225)
+        for i in range(1, 1000000 + 1):
+            self.assertEqual(cong.next(), cong_jumpahead.jumpahead(i))
+
     def test_shr3_million(self):
         shr3 = sri.SHR3(3360276411)
         for i in range(1000000):
