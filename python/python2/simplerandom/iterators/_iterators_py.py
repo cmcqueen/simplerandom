@@ -30,7 +30,7 @@ class Cong(object):
     JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
     JUMPAHEAD_C_DENOM = 17267
     JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * JUMPAHEAD_C_FACTOR
-    JUMPAHEAD_C_DENOM_INVERSE = pow(JUMPAHEAD_C_DENOM, 2**32 - 1, 2**32)
+    JUMPAHEAD_C_DENOM_INVERSE = pow(JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
     def __init__(self, seed = None):
         self.cong = _init_default_and_int32(seed, 0)
@@ -39,7 +39,7 @@ class Cong(object):
         self.__init__(seed)
 
     def next(self):
-        self.cong = (self.CONG_MULT * self.cong + self.CONG_CONST) & 0xFFFFFFFF
+        self.cong = (69069 * self.cong + 12345) & 0xFFFFFFFF
         return self.cong
 
     def __iter__(self):
