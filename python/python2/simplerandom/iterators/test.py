@@ -35,8 +35,8 @@ class Marsaglia1999Tests(unittest.TestCase):
 
     def test_cong_jumpahead_million(self):
         cong = sri.Cong(2051391225)
-        cong_jumpahead = sri.Cong(2051391225)
         for i in range(1, 1000000 + 1):
+            cong_jumpahead = sri.Cong(2051391225)
             self.assertEqual(cong.next(), cong_jumpahead.jumpahead(i))
 
     def test_shr3_million(self):
@@ -57,6 +57,7 @@ class CongTest(unittest.TestCase):
     RNG_SEEDS = 1
     RNG_BITS = 32
     RNG_RANGE = (1 << RNG_BITS)
+    RNG_CYCLE_LEN = 2**32
 
 
     def setUp(self):
@@ -109,14 +110,34 @@ class CongTest(unittest.TestCase):
         """Test that __iter__ member function is present"""
         iter_object = iter(self.rng)
 
+    def test_jumpahead(self):
+        try:
+            self.rng.jumpahead(0)
+        except NotImplementedError:
+            pass
+        else:
+            # Get the state
+            rng_state = self.rng.getstate()
+            # Jump ahead by cycle len
+            self.rng.jumpahead(self.RNG_CYCLE_LEN)
+            # See that state hasn't changed
+            self.assertEqual(rng_state, self.rng.getstate())
+
+            # Jump ahead 1, then back 1
+            self.rng.jumpahead(1)
+            self.rng.jumpahead(-1)
+            # See that state hasn't changed
+            self.assertEqual(rng_state, self.rng.getstate())
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
+    RNG_CYCLE_LEN = 2**32 - 1
 
 
 class MWC1Test(CongTest):
     RNG_CLASS = sri.MWC1
     RNG_SEEDS = 2
+    RNG_CYCLE_LEN = (36969 * 2**16 // 2 - 1) * (18000 * 2**16 // 2 - 1)
 
 
 class KISS2Test(CongTest):
@@ -135,6 +156,7 @@ class MWC2Test(KISS2Test):
     RNG_CLASS = sri.MWC2
     RNG_SEEDS = 2
     MILLION_RESULT = 767834450
+    RNG_CYCLE_LEN = MWC1Test.RNG_CYCLE_LEN
 
 class MWC64Test(KISS2Test):
     RNG_CLASS = sri.MWC64
@@ -154,6 +176,7 @@ class MWC64Test(KISS2Test):
 class KISSTest(CongTest):
     RNG_CLASS = sri.KISS
     RNG_SEEDS = 4
+    RNG_CYCLE_LEN = MWC2Test.RNG_CYCLE_LEN * CongTest.RNG_CYCLE_LEN * SHR3Test.RNG_CYCLE_LEN
 
 
 class LFSR113Test(KISS2Test):

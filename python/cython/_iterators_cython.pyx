@@ -13,6 +13,7 @@ def _init_default_and_int32(seed, default_value):
         return (int(seed) & 0xFFFFFFFFu)
 
 cdef uint64_t SIMPLERANDOM_MOD = 2**32
+cdef uint64_t CONG_CYCLE_LEN = 2**32
 cdef uint32_t CONG_MULT = 69069u
 cdef uint32_t CONG_CONST = 12345u
 cdef uint32_t CONG_JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
@@ -60,17 +61,18 @@ cdef class Cong(object):
         self.cong = int(state[0]) & 0xFFFFFFFFu
 
     def jumpahead(self, n):
-        cdef unsigned n_int
+        cdef uint32_t n_int
         cdef uint32_t mult_exp
         cdef uint64_t add_const_exp
         cdef uint32_t add_const_part
         cdef uint32_t add_const
-        n_int = n
+        n_int = n % CONG_CYCLE_LEN
         mult_exp = CONG_MULT**n_int
         add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
         add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
         add_const = add_const_part * CONG_CONST
-        return mult_exp * self.cong + add_const
+        self.cong = mult_exp * self.cong + add_const
+        return self.cong
 
 
 cdef class SHR3(object):
@@ -122,6 +124,9 @@ cdef class SHR3(object):
     def setstate(self, state):
         self.shr3 = int(state[0]) & 0xFFFFFFFFu
         self._validate_seed()
+
+    def jumpahead(self, n):
+        raise NotImplementedError
 
 
 cdef class MWC1(object):
@@ -196,6 +201,9 @@ cdef class MWC1(object):
         self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
+
 
 cdef class MWC2(object):
     '''"Multiply-with-carry" random number generator
@@ -257,6 +265,9 @@ cdef class MWC2(object):
         self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
+
 
 cdef class MWC64(object):
     '''"Multiply-with-carry" random number generator
@@ -310,6 +321,9 @@ cdef class MWC64(object):
         self.mwc_upper = int(state[0]) & 0xFFFFFFFFu
         self.mwc_lower = int(state[1]) & 0xFFFFFFFFu
         self._validate_seed()
+
+    def jumpahead(self, n):
+        raise NotImplementedError
 
 
 cdef class KISS(object):
@@ -407,6 +421,9 @@ cdef class KISS(object):
         self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
+
 
 cdef class KISS2(object):
     '''"Keep It Simple Stupid" random number generator
@@ -499,6 +516,9 @@ cdef class KISS2(object):
         self.cong = int(cong_state[0]) & 0xFFFFFFFFu
         self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
         self._validate_seed()
+
+    def jumpahead(self, n):
+        raise NotImplementedError
 
 
 def lfsr_init_one_seed(seed, uint32_t min_value_shift):
@@ -610,6 +630,9 @@ cdef class LFSR113(object):
         self.z4 = int(state[3]) & 0xFFFFFFFFu
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
+
 
 cdef class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -666,4 +689,7 @@ cdef class LFSR88(object):
         self.z2 = int(state[1]) & 0xFFFFFFFFu
         self.z3 = int(state[2]) & 0xFFFFFFFFu
         self._validate_seed()
+
+    def jumpahead(self, n):
+        raise NotImplementedError
 

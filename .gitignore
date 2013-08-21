@@ -1,0 +1,44 @@
+# Ignore objects and archives, anywhere in the tree.
+*.[oa]
+*.lo
+*.la
+# Ignore build output files
+build*
+# Ignore timesys build directory
+timesys
+
+# Ignore backup files
+*~
+
+# Ignore autotools files
+.deps
+.libs
+/c/simplerandom/autom4te.cache
+/c/simplerandom/build-aux
+/c/simplerandom/config.h
+/c/simplerandom/config.h.in
+/c/simplerandom/config.log
+/c/simplerandom/config.status
+/c/simplerandom/configure
+/c/simplerandom/libtool
+/c/simplerandom/stamp-h1
+/c/simplerandom/*.pc
+*.m4
+Makefile
+Makefile.in
+
+# Ignore Python files
+*.pyc
+*.pyd
+python/cython/*.c
+python/build
+python/dist
+python/*.egg-info
+
+# Ignore Eclipse project files
+.cproject
+.project
+.autotools
+.settings
+.pydevproject
+

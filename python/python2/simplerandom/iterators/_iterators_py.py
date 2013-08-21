@@ -50,9 +50,10 @@ class Cong(object):
     was incorporated in several popular software packages,
     all seemingly without complaint.
     '''
+    SIMPLERANDOM_MOD = 2**32
+    CONG_CYCLE_LEN = 2**32
     CONG_MULT = 69069
     CONG_CONST = 12345
-    SIMPLERANDOM_MOD = 2**32
     JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
     JUMPAHEAD_C_DENOM = 17267
     JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * JUMPAHEAD_C_FACTOR
@@ -98,9 +99,11 @@ class Cong(object):
         (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
 
     def jumpahead(self, n):
+        n = int(n) % self.CONG_CYCLE_LEN
         mult_exp = pow(self.CONG_MULT, n, self.SIMPLERANDOM_MOD)
         add_const = ((((pow(self.CONG_MULT, n, self.JUMPAHEAD_C_MOD) - 1) // self.JUMPAHEAD_C_FACTOR * self.JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFF) * self.CONG_CONST) & 0xFFFFFFFF
-        return (mult_exp * self.cong + add_const) & 0xFFFFFFFF
+        self.cong = (mult_exp * self.cong + add_const) & 0xFFFFFFFF
+        return self.cong
 
 
 class SHR3(object):
@@ -168,6 +171,8 @@ class SHR3(object):
         (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
         self.sanitise()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
 
 class MWC2(object):
     '''"Multiply-with-carry" random number generator
@@ -260,6 +265,9 @@ class MWC2(object):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
         self.sanitise()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
+
 
 class MWC1(MWC2):
     '''"Multiply-with-carry" random number generator
@@ -343,6 +351,8 @@ class MWC64(object):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
 
 class KISS(object):
     '''"Keep It Simple Stupid" random number generator
@@ -384,6 +394,9 @@ class KISS(object):
         self.random_mwc.setstate(mwc_state)
         self.random_cong.setstate(cong_state)
         self.random_shr3.setstate(shr3_state)
+
+    def jumpahead(self, n):
+        raise NotImplementedError
 
     def _get_mwc_upper(self):
         return self.random_mwc.mwc_upper
@@ -454,6 +467,9 @@ class KISS2(object):
         self.random_mwc.setstate(mwc_state)
         self.random_cong.setstate(cong_state)
         self.random_shr3.setstate(shr3_state)
+
+    def jumpahead(self, n):
+        raise NotImplementedError
 
     def _get_mwc_upper(self):
         return self.random_mwc.mwc_upper
@@ -578,6 +594,9 @@ class LFSR113(object):
         (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
+
 
 class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -627,4 +646,6 @@ class LFSR88(object):
         (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
         self._validate_seed()
 
+    def jumpahead(self, n):
+        raise NotImplementedError
 
