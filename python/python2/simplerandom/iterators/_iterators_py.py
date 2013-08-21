@@ -47,6 +47,13 @@ class Cong(object):
     was incorporated in several popular software packages,
     all seemingly without complaint.
     '''
+    CONG_MULT = 69069
+    CONG_CONST = 12345
+    SIMPLERANDOM_MOD = 2**32
+    JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
+    JUMPAHEAD_C_DENOM = 17267
+    JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * JUMPAHEAD_C_FACTOR
+    JUMPAHEAD_C_DENOM_INVERSE = pow(JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
     def __init__(self, seed = None):
         self.cong = _init_default_and_int32(seed, 0)
@@ -66,6 +73,11 @@ class Cong(object):
 
     def setstate(self, state):
         (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
+
+    def jumpahead(self, n):
+        mult_exp = pow(self.CONG_MULT, n, self.SIMPLERANDOM_MOD)
+        add_const = ((((pow(self.CONG_MULT, n, self.JUMPAHEAD_C_MOD) - 1) // self.JUMPAHEAD_C_FACTOR * self.JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFF) * self.CONG_CONST) & 0xFFFFFFFF
+        return (mult_exp * self.cong + add_const) & 0xFFFFFFFF
 
 
 class SHR3(object):
