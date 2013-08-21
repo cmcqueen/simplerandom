@@ -28,7 +28,10 @@ def _next_seed_int32_or_default(seed_iter, default_value):
     except StopIteration:
         return default_value
     else:
-        return (int(seed_item) & 0xFFFFFFFF)
+        if seed_item is None:
+            return default_value
+        else:
+            return (int(seed_item) & 0xFFFFFFFF)
 
 class Cong(object):
     '''Congruential random number generator
@@ -55,14 +58,34 @@ class Cong(object):
     JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * JUMPAHEAD_C_FACTOR
     JUMPAHEAD_C_DENOM_INVERSE = pow(JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
-    def __init__(self, seed = None):
-        self.cong = _init_default_and_int32(seed, 0)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.cong = _next_seed_int32_or_default(seed_iter, 0)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed = None):
-        self.__init__(seed)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
+
+    def sanitise(self):
+        pass
 
     def next(self):
         self.cong = (69069 * self.cong + 12345) & 0xFFFFFFFF
+        return self.cong
+
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            self.cong ^= value_int
+            self.next()
         return self.cong
 
     def __iter__(self):
@@ -97,14 +120,24 @@ class SHR3(object):
     about 29% of the time.
     '''
 
-    def __init__(self, seed = None):
-        self.shr3 = _init_default_and_int32(seed, 0xFFFFFFFF)
-        self._validate_seed()
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.shr3 = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        self.sanitise()
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed = None):
-        self.__init__(seed)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
-    def _validate_seed(self):
+    def sanitise(self):
         if self.shr3 == 0:
             # 0 is a bad seed. Invert to get a good seed.
             self.shr3 = 0xFFFFFFFF
@@ -117,6 +150,14 @@ class SHR3(object):
         self.shr3 = shr3
         return shr3
 
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            self.shr3 ^= value_int
+            self.sanitise()
+            self.next()
+        return self.shr3
+
     def __iter__(self):
         return self
 
@@ -125,7 +166,7 @@ class SHR3(object):
 
     def setstate(self, state):
         (self.shr3, ) = (int(val) & 0xFFFFFFFF for val in state)
-        self._validate_seed()
+        self.sanitise()
 
 
 class MWC2(object):
@@ -150,29 +191,40 @@ class MWC2(object):
         seed_iter = _traverse(args)
         self.mwc_upper = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
         self.mwc_lower = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
-#        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFF)
-#        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFF)
+        self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
         for key in kwargs:
             raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
-        self._validate_seed()
 
-    def seed(self, seed_upper = None, seed_lower = None):
-        self.__init__(seed_upper, seed_lower)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
-    def _validate_seed(self):
-        # There are a few bad seeds--that is, seeds that are a multiple of
+    def sanitise(self):
+        self._sanitise_upper()
+        self._sanitise_lower()
+
+    def _sanitise_upper(self):
+        # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        if (self.mwc_upper % 0x9068ffff)==0:
+        sanitised_value = self.mwc_upper % 0x9068ffff 
+        if sanitised_value == 0:
             # Invert to get a good seed.
-            self.mwc_upper ^= 0xFFFFFFFF
-        # There are a few bad seeds--that is, seeds that are a multiple of
+            sanitised_value = (self.mwc_upper ^ 0xFFFFFFFF) % 0x9068ffff 
+        self.mwc_upper = sanitised_value
+    def _sanitise_lower(self):
+        # There are a few bad states--that is, any multiple of
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
-        if (self.mwc_lower % 0x464FFFFF)==0:
+        sanitised_value = self.mwc_lower % 0x464FFFFF
+        if sanitised_value == 0:
             # Invert to get a good seed.
-            self.mwc_lower ^= 0xFFFFFFFF
+            sanitised_value = (self.mwc_lower ^ 0xFFFFFFFF) % 0x464FFFFF
+        self.mwc_lower = sanitised_value
 
+    def _next_upper(self):
+        self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
+    def _next_lower(self):
+        self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
     def next(self):
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
@@ -183,6 +235,21 @@ class MWC2(object):
 
     mwc = property(_get_mwc)
 
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            current = self._get_mwc()
+            selector = (current >> 31) & 0x1
+            if selector == 0:
+                self.mwc_upper ^= value_int
+                self._sanitise_upper()
+                self._next_upper()
+            else:
+                self.mwc_lower ^= value_int
+                self._sanitise_lower()
+                self._next_lower()
+        return self._get_mwc()
+
     def __iter__(self):
         return self
 
@@ -191,7 +258,7 @@ class MWC2(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
-        self._validate_seed()
+        self.sanitise()
 
 
 class MWC1(MWC2):
@@ -241,12 +308,19 @@ class MWC64(object):
 
     def _validate_seed(self):
         seed64 = (self.mwc_upper << 32) + self.mwc_lower
+        temp = seed64
+        was_changed = False
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        if seed64 % 0x29A65EACFFFFFFFF == 0:
+        if seed64 >= 0x29A65EACFFFFFFFF:
+            was_changed = True
+        temp = seed64 % 0x29A65EACFFFFFFFF 
+        if temp == 0:
             # Invert to get a good seed.
-            self.mwc_upper ^= 0xFFFFFFFF
-            self.mwc_lower ^= 0xFFFFFFFF
+            temp = (seed64 ^ 0xFFFFFFFFFFFFFFFF) % 0x29A65EACFFFFFFFF
+        if was_changed:
+            self.mwc_upper = temp >> 32
+            self.mwc_lower = temp & 0xFFFFFFFF
 
     def next(self):
         temp64 = 698769069 * self.mwc_lower + self.mwc_upper
