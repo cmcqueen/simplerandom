@@ -12,12 +12,12 @@ def _init_default_and_int32(seed, default_value):
         # Ensure a 32-bit unsigned integer.
         return (int(seed) & 0xFFFFFFFFu)
 
-SIMPLERANDOM_MOD = 2**32
+cdef uint64_t SIMPLERANDOM_MOD = 2**32
 cdef uint32_t CONG_MULT = 69069u
 cdef uint32_t CONG_CONST = 12345u
 cdef uint32_t CONG_JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
 cdef uint32_t CONG_JUMPAHEAD_C_DENOM = 17267
-CONG_JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * CONG_JUMPAHEAD_C_FACTOR
+cdef uint64_t CONG_JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * CONG_JUMPAHEAD_C_FACTOR
 cdef uint32_t CONG_JUMPAHEAD_C_DENOM_INVERSE = pow(CONG_JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
 cdef class Cong(object):
@@ -60,12 +60,14 @@ cdef class Cong(object):
         self.cong = int(state[0]) & 0xFFFFFFFFu
 
     def jumpahead(self, n):
+        cdef unsigned n_int
         cdef uint32_t mult_exp
         cdef uint64_t add_const_exp
         cdef uint32_t add_const_part
         cdef uint32_t add_const
-        mult_exp = pow(CONG_MULT, n, SIMPLERANDOM_MOD)
-        add_const_exp = pow(CONG_MULT, n, CONG_JUMPAHEAD_C_MOD)
+        n_int = n
+        mult_exp = CONG_MULT**n_int
+        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
         add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
         add_const = add_const_part * CONG_CONST
         return mult_exp * self.cong + add_const
