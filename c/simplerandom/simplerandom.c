@@ -247,10 +247,19 @@ static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc)
     uint32_t    temp;
 
     temp = p_mwc->mwc_upper;
-    if ((temp == 0) || (temp == UINT32_C(0x9068FFFF)))
+    for (;;)
     {
-        p_mwc->mwc_upper = temp ^ UINT32_C(0xFFFFFFFF);
+        /* The following is equivalent to % 0x9068FFFF, without using modulo
+         * operation which may be expensive on embedded targets. For
+         * uint32_t and this divisor, we only need 'if' rather than 'while'. */
+        if (temp >= UINT32_C(0x9068FFFF))
+            temp -= UINT32_C(0x9068FFFF);
+        /* This will definitely break out of the loop by the 2nd time around. */
+        if (temp != 0)
+            break;
+        temp = p_mwc->mwc_upper ^ UINT32_C(0xFFFFFFFF);
     }
+    p_mwc->mwc_upper = temp;
 }
 
 static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc)
@@ -258,12 +267,19 @@ static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc)
     uint32_t    temp;
 
     temp = p_mwc->mwc_lower;
-    if ((temp == 0) ||  (temp == UINT32_C(0x464FFFFF) * 1u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 2u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 3u))
+    for (;;)
     {
-        p_mwc->mwc_lower = temp ^ UINT32_C(0xFFFFFFFF);
+        /* The following is equivalent to % 0x464FFFFF, without using modulo
+         * operation which may be expensive on embedded targets. For
+         * uint32_t and this divisor, it may loop up to 3 times. */
+        while (temp >= UINT32_C(0x464FFFFF))
+            temp -= UINT32_C(0x464FFFFF);
+        /* This will definitely break out of the loop by the 2nd time around. */
+        if (temp != 0)
+            break;
+        temp = p_mwc->mwc_lower ^ UINT32_C(0xFFFFFFFF);
     }
+    p_mwc->mwc_lower = temp;
 }
 
 void simplerandom_mwc2_sanitize(SimpleRandomMWC2_t * p_mwc)
@@ -509,10 +525,19 @@ static inline void kiss_sanitize_mwc_upper(SimpleRandomKISS_t * p_kiss)
     uint32_t    temp;
 
     temp = p_kiss->mwc_upper;
-    if ((temp == 0) || (temp == UINT32_C(0x9068FFFF)))
+    for (;;)
     {
-        p_kiss->mwc_upper = temp ^ UINT32_C(0xFFFFFFFF);
+        /* The following is equivalent to % 0x9068FFFF, without using modulo
+         * operation which may be expensive on embedded targets. For
+         * uint32_t and this divisor, we only need 'if' rather than 'while'. */
+        if (temp >= UINT32_C(0x9068FFFF))
+            temp -= UINT32_C(0x9068FFFF);
+        /* This will definitely break out of the loop by the 2nd time around. */
+        if (temp != 0)
+            break;
+        temp = p_kiss->mwc_upper ^ UINT32_C(0xFFFFFFFF);
     }
+    p_kiss->mwc_upper = temp;
 }
 
 static inline void kiss_sanitize_mwc_lower(SimpleRandomKISS_t * p_kiss)
@@ -520,12 +545,19 @@ static inline void kiss_sanitize_mwc_lower(SimpleRandomKISS_t * p_kiss)
     uint32_t    temp;
 
     temp = p_kiss->mwc_lower;
-    if ((temp == 0) ||  (temp == UINT32_C(0x464FFFFF) * 1u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 2u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 3u))
+    for (;;)
     {
-        p_kiss->mwc_lower = temp ^ UINT32_C(0xFFFFFFFF);
+        /* The following is equivalent to % 0x464FFFFF, without using modulo
+         * operation which may be expensive on embedded targets. For
+         * uint32_t and this divisor, it may loop up to 3 times. */
+        while (temp >= UINT32_C(0x464FFFFF))
+            temp -= UINT32_C(0x464FFFFF);
+        /* This will definitely break out of the loop by the 2nd time around. */
+        if (temp != 0)
+            break;
+        temp = p_kiss->mwc_lower ^ UINT32_C(0xFFFFFFFF);
     }
+    p_kiss->mwc_lower = temp;
 }
 
 static inline void kiss_sanitize_shr3(SimpleRandomKISS_t * p_kiss)
@@ -699,13 +731,28 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, u
 void simplerandom_mwc64_sanitize(SimpleRandomMWC64_t * p_mwc)
 {
     uint64_t    seed64;
+    bool        was_changed = false;
 
-    seed64 = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
-    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    for (;;)
     {
+        seed64 = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
+        if (seed64 >= UINT64_C(0x29A65EACFFFFFFFF))
+        {
+            seed64 %= UINT64_C(0x29A65EACFFFFFFFF);
+            was_changed = true;
+        }
+        /* This will definitely break out of the loop by the 2nd time around. */
+        if (seed64 != 0)
+            break;
         /* Invert both upper and lower to get a good seed. */
-        p_mwc->mwc_upper ^= UINT32_C(0xFFFFFFFF);
-        p_mwc->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+        seed64 = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
+        seed64 ^= UINT64_C(0xFFFFFFFFFFFFFFFF);
+        was_changed = true;
+    }
+    if (was_changed)
+    {
+        p_mwc->mwc_upper = (uint32_t)(seed64 >> 32u);
+        p_mwc->mwc_lower = (uint32_t)seed64;
     }
 }
 
@@ -819,13 +866,28 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
 static inline void kiss2_sanitize_mwc64(SimpleRandomKISS2_t * p_kiss2)
 {
     uint64_t    seed64;
+    bool        was_changed = false;
 
-    seed64 = ((uint64_t)p_kiss2->mwc_upper << 32u) + p_kiss2->mwc_lower;
-    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    for (;;)
     {
+        seed64 = ((uint64_t)p_kiss2->mwc_upper << 32u) + p_kiss2->mwc_lower;
+        if (seed64 >= UINT64_C(0x29A65EACFFFFFFFF))
+        {
+            seed64 %= UINT64_C(0x29A65EACFFFFFFFF);
+            was_changed = true;
+        }
+        /* This will definitely break out of the loop by the 2nd time around. */
+        if (seed64 != 0)
+            break;
         /* Invert both upper and lower to get a good seed. */
-        p_kiss2->mwc_upper ^= UINT32_C(0xFFFFFFFF);
-        p_kiss2->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+        seed64 = ((uint64_t)p_kiss2->mwc_upper << 32u) + p_kiss2->mwc_lower;
+        seed64 ^= UINT64_C(0xFFFFFFFFFFFFFFFF);
+        was_changed = true;
+    }
+    if (was_changed)
+    {
+        p_kiss2->mwc_upper = (uint32_t)(seed64 >> 32u);
+        p_kiss2->mwc_lower = (uint32_t)seed64;
     }
 }
 
