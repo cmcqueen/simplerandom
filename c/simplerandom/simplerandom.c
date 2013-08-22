@@ -690,6 +690,7 @@ void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data,
                     break;
                 case 2:
                     p_kiss->cong ^= *p_data;
+                    /* Cong doesn't need sanitise; all states are valid. */
                     kiss_next_cong(p_kiss);
                     break;
                 case 3:
@@ -1011,6 +1012,7 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
                     break;
                 case 2:
                     p_kiss2->cong ^= *p_data;
+                    /* Cong doesn't need sanitise; all states are valid. */
                     kiss2_next_cong(p_kiss2);
                     break;
                 case 3:
