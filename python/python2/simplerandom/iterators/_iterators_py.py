@@ -233,17 +233,17 @@ class MWC2(object):
     def next(self):
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
-        return self._get_mwc()
+        return self.current()
 
-    def _get_mwc(self):
+    def current(self):
         return (((self.mwc_upper & 0xFFFF) << 16) + (self.mwc_upper >> 16) + self.mwc_lower) & 0xFFFFFFFF
 
-    mwc = property(_get_mwc)
+    mwc = property(current)
 
     def mix(self, *args):
         for value in _traverse(args):
             value_int = int(value) & 0xFFFFFFFF
-            current = self._get_mwc()
+            current = self.current()
             selector = (current >> 31) & 0x1
             if selector == 0:
                 self.mwc_upper ^= value_int
@@ -253,7 +253,7 @@ class MWC2(object):
                 self.mwc_lower ^= value_int
                 self._sanitise_lower()
                 self._next_lower()
-        return self._get_mwc()
+        return self.current()
 
     def __iter__(self):
         return self
@@ -294,7 +294,7 @@ class MWC1(MWC2):
     unless backwards compatibility is required.
     '''
 
-    def _get_mwc(self):
+    def current(self):
         return (((self.mwc_upper & 0xFFFF) << 16) + self.mwc_lower) & 0xFFFFFFFF
 
 
@@ -418,7 +418,7 @@ class KISS(object):
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
 
     def current(self):
-        return ((self.random_mwc._get_mwc() ^ self.random_cong.cong) + self.random_shr3.shr3) & 0xFFFFFFFF
+        return ((self.random_mwc.current() ^ self.random_cong.cong) + self.random_shr3.shr3) & 0xFFFFFFFF
 
     def mix(self, *args):
         for value in _traverse(args):
@@ -471,7 +471,7 @@ class KISS(object):
     mwc_lower = property(_get_mwc_lower, _set_mwc_lower)
 
     def _get_mwc(self):
-        return self.random_mwc.mwc
+        return self.random_mwc.current()
     mwc = property(_get_mwc)
 
     def _get_shr3(self):
@@ -623,6 +623,25 @@ def lfsr_init_one_seed(seed, min_value_shift):
                 working_seed ^= 0xFFFFFFFF
     return working_seed
 
+def lfsr_next_one_seed(seed_iter, min_value_shift):
+    try:
+        seed = seed_iter.next()
+    except StopIteration:
+        return 0xFFFFFFFF
+    else:
+        if seed is None:
+            return 0xFFFFFFFF
+        else:
+            seed = int(seed) & 0xFFFFFFFF
+            working_seed = (seed ^ (seed << 16)) & 0xFFFFFFFF
+
+            min_value = 1 << min_value_shift
+            if working_seed < min_value:
+                working_seed = (seed << 24) & 0xFFFFFFFF
+                if working_seed < min_value:
+                    working_seed ^= 0xFFFFFFFF
+            return working_seed
+
 def lfsr_validate_one_seed(seed, min_value_shift):
     '''Validate seeds for LFSR generators
     
@@ -650,21 +669,45 @@ class LFSR113(object):
     Mathematics of Computation, 68, 225 (1999), 261-269.
     '''
 
-    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4)
-        self.z4 = lfsr_init_one_seed(seed_z4, 7)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.z1 = lfsr_next_one_seed(seed_iter, 1)
+        self.z2 = lfsr_next_one_seed(seed_iter, 3)
+        self.z3 = lfsr_next_one_seed(seed_iter, 4)
+        self.z4 = lfsr_next_one_seed(seed_iter, 7)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
-    def _validate_seed(self):
+    def sanitise(self):
         self.z1 = lfsr_validate_one_seed(self.z1, 1)
         self.z2 = lfsr_validate_one_seed(self.z2, 3)
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
         self.z4 = lfsr_validate_one_seed(self.z4, 7)
 
+    def current(self):
+        return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
+    def _next_z1(self):
+        b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
+        self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
+    def _next_z2(self):
+        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 27
+        self.z2 = ((self.z2 & 0x3FFFFFF8) << 2) ^ b
+    def _next_z3(self):
+        b       = (((self.z3 & 0x0007FFFF) << 13) ^ self.z3) >> 21
+        self.z3 = ((self.z3 & 0x01FFFFF0) << 7) ^ b
+    def _next_z4(self):
+        b       = (((self.z4 & 0x1FFFFFFF) << 3) ^ self.z4) >> 12
+        self.z4 = ((self.z4 & 0x0007FF80) << 13) ^ b
     def next(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
         self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
@@ -680,6 +723,25 @@ class LFSR113(object):
 
         return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
 
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            current = self.current()
+            selector = (current >> 30) & 0x3
+            if selector == 0:
+                self.z1 = lfsr_validate_one_seed(self.z1 ^ value_int, 1)
+                self._next_z1()
+            elif selector == 1:
+                self.z2 = lfsr_validate_one_seed(self.z2 ^ value_int, 3)
+                self._next_z2()
+            elif selector == 2:
+                self.z3 = lfsr_validate_one_seed(self.z3 ^ value_int, 4)
+                self._next_z3()
+            else:   # selector == 3
+                self.z4 = lfsr_validate_one_seed(self.z4 ^ value_int, 7)
+                self._next_z4()
+        return self.current()
+
     def __iter__(self):
         return self
 
@@ -688,7 +750,7 @@ class LFSR113(object):
 
     def setstate(self, state):
         (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
@@ -707,19 +769,40 @@ class LFSR88(object):
     Mathematics of Computation, 65, 213 (1996), 203-213. 
     '''
 
-    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.z1 = lfsr_next_one_seed(seed_iter, 1)
+        self.z2 = lfsr_next_one_seed(seed_iter, 3)
+        self.z3 = lfsr_next_one_seed(seed_iter, 4)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.__init__(seed_z1, seed_z2, seed_z3)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
-    def _validate_seed(self):
+    def sanitise(self):
         self.z1 = lfsr_validate_one_seed(self.z1, 1)
         self.z2 = lfsr_validate_one_seed(self.z2, 3)
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
 
+    def current(self):
+        return self.z1 ^ self.z2 ^ self.z3
+    def _next_z1(self):
+        b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
+        self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
+    def _next_z2(self):
+        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 25
+        self.z2 = ((self.z2 & 0x0FFFFFF8) << 4) ^ b
+    def _next_z3(self):
+        b       = (((self.z3 & 0x1FFFFFFF) << 3) ^ self.z3) >> 11
+        self.z3 = ((self.z3 & 0x00007FF0) << 17) ^ b
     def next(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
         self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
@@ -732,6 +815,21 @@ class LFSR88(object):
 
         return self.z1 ^ self.z2 ^ self.z3
 
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            current = self.current()
+            if current < 1431655765:        # constant is 2^32 / 3
+                self.z1 = lfsr_validate_one_seed(self.z1 ^ value_int, 1)
+                self._next_z1()
+            elif current < 2863311531:      # constant is 2^32 * 2 / 3
+                self.z2 = lfsr_validate_one_seed(self.z2 ^ value_int, 3)
+                self._next_z2()
+            else:
+                self.z3 = lfsr_validate_one_seed(self.z3 ^ value_int, 4)
+                self._next_z3()
+        return self.current()
+
     def __iter__(self):
         return self
 
@@ -740,7 +838,7 @@ class LFSR88(object):
 
     def setstate(self, state):
         (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
