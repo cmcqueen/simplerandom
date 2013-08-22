@@ -24,7 +24,7 @@ def _pop_seed_int32_or_default(seed_list, default_value):
 
 def _next_seed_int32_or_default(seed_iter, default_value):
     try:
-        seed_item = next(seed_iter)
+        seed_item = seed_iter.next()
     except StopIteration:
         return default_value
     else:
@@ -306,15 +306,25 @@ class MWC64(object):
     values.
     '''
 
-    def __init__(self, seed_upper = None, seed_lower = None):
-        self.mwc_upper = _init_default_and_int32(seed_upper, 0xFFFFFFFF)
-        self.mwc_lower = _init_default_and_int32(seed_lower, 0xFFFFFFFF)
-        self._validate_seed()
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.mwc_upper = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        self.mwc_lower = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        self.sanitise()
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_upper = None, seed_lower = None):
-        self.__init__(seed_upper, seed_lower)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
-    def _validate_seed(self):
+    def sanitise(self):
         seed64 = (self.mwc_upper << 32) + self.mwc_lower
         temp = seed64
         was_changed = False
@@ -326,6 +336,7 @@ class MWC64(object):
         if temp == 0:
             # Invert to get a good seed.
             temp = (seed64 ^ 0xFFFFFFFFFFFFFFFF) % 0x29A65EACFFFFFFFF
+            was_changed = True
         if was_changed:
             self.mwc_upper = temp >> 32
             self.mwc_lower = temp & 0xFFFFFFFF
@@ -336,10 +347,23 @@ class MWC64(object):
         self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
         return self.mwc_lower
 
-    def mwc(self):
+    def current(self):
         return self.mwc_lower
 
-    mwc = property(mwc)
+    mwc = property(current)
+
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            current = self.current()
+            selector = (current >> 31) & 0x1
+            if selector == 0:
+                self.mwc_upper ^= value_int
+            else:
+                self.mwc_lower ^= value_int
+            self.sanitise()
+            self.next()
+        return self.current()
 
     def __iter__(self):
         return self
@@ -349,7 +373,7 @@ class MWC64(object):
 
     def setstate(self, state):
         (self.mwc_upper, self.mwc_lower) = (int(val) & 0xFFFFFFFF for val in state)
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
@@ -369,19 +393,55 @@ class KISS(object):
     update the MWC and Cong generators too.
     '''
 
-    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = MWC2(seed_mwc_upper, seed_mwc_lower)
-        self.random_cong = Cong(seed_cong)
-        self.random_shr3 = SHR3(seed_shr3)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.random_mwc = MWC2(seed_iter)
+        self.random_cong = Cong(seed_iter)
+        self.random_shr3 = SHR3(seed_iter)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
     def next(self):
         mwc_val = self.random_mwc.next()
         cong_val = self.random_cong.next()
         shr3_val = self.random_shr3.next()
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
+
+    def current(self):
+        return ((self.random_mwc._get_mwc() ^ self.random_cong.cong) + self.random_shr3.shr3) & 0xFFFFFFFF
+
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            current = self.current()
+            selector = (current >> 30) & 0x3
+            if selector == 0:
+                self.random_mwc.mwc_upper ^= value_int
+                self.random_mwc._sanitise_upper()
+                self.random_mwc._next_upper()
+            elif selector == 1:
+                self.random_mwc.mwc_lower ^= value_int
+                self.random_mwc._sanitise_lower()
+                self.random_mwc._next_lower()
+            elif selector == 2:
+                self.random_cong.cong ^= value_int
+                # Cong doesn't need any sanitising
+                self.random_cong.next()
+            else:   # selector == 3
+                self.random_shr3.shr3 ^= value_int
+                self.random_shr3.sanitise()
+                self.random_shr3.next()
+        return self.current()
 
     def __iter__(self):
         return self
@@ -442,19 +502,55 @@ class KISS2(object):
     instead of two 32-bit calculations that are combined.
     '''
 
-    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.random_mwc = MWC64(seed_mwc_upper, seed_mwc_lower)
-        self.random_cong = Cong(seed_cong)
-        self.random_shr3 = SHR3(seed_shr3)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse(args)
+        self.random_mwc = MWC64(seed_iter)
+        self.random_cong = Cong(seed_iter)
+        self.random_shr3 = SHR3(seed_iter)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
     def next(self):
         mwc_val = self.random_mwc.next()
         cong_val = self.random_cong.next()
         shr3_val = self.random_shr3.next()
         return (mwc_val + cong_val + shr3_val) & 0xFFFFFFFF
+
+    def current(self):
+        return (self.random_mwc.current() + self.random_cong.cong + self.random_shr3.shr3) & 0xFFFFFFFF
+
+    def mix(self, *args):
+        for value in _traverse(args):
+            value_int = int(value) & 0xFFFFFFFF
+            current = self.current()
+            selector = (current >> 30) & 0x3
+            if selector == 0:
+                self.random_mwc.mwc_upper ^= value_int
+                self.random_mwc.sanitise()
+                self.random_mwc.next()
+            elif selector == 1:
+                self.random_mwc.mwc_lower ^= value_int
+                self.random_mwc.sanitise()
+                self.random_mwc.next()
+            elif selector == 2:
+                self.random_cong.cong ^= value_int
+                # Cong doesn't need any sanitising
+                self.random_cong.next()
+            else:   # selector == 3
+                self.random_shr3.shr3 ^= value_int
+                self.random_shr3.sanitise()
+                self.random_shr3.next()
+        return self.current()
 
     def __iter__(self):
         return self
