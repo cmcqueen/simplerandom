@@ -61,6 +61,11 @@ cdef class Cong(object):
         self.cong = int(state[0]) & 0xFFFFFFFFu
 
     def jumpahead(self, n):
+        # Cong.jumpahead(n) = r**n * x mod 2**32 + c * (r**n - 1) / (r - 1) mod 2**32
+        # where r = 69069 and c = 12345.
+        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series.
+        # For calculating geometric series mod 2**32, see:
+        # http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
         cdef uint32_t n_int
         cdef uint32_t mult_exp
         cdef uint64_t add_const_exp

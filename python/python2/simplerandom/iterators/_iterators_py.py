@@ -53,6 +53,11 @@ class Cong(object):
         (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
 
     def jumpahead(self, n):
+        # Cong.jumpahead(n) = r**n * x mod 2**32 + c * (r**n - 1) / (r - 1) mod 2**32
+        # where r = 69069 and c = 12345.
+        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series.
+        # For calculating geometric series mod 2**32, see:
+        # http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
         n = int(n) % self.CONG_CYCLE_LEN
         mult_exp = pow(self.CONG_MULT, n, self.SIMPLERANDOM_MOD)
         add_const = ((((pow(self.CONG_MULT, n, self.JUMPAHEAD_C_MOD) - 1) // self.JUMPAHEAD_C_FACTOR * self.JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFF) * self.CONG_CONST) & 0xFFFFFFFF
