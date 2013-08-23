@@ -1,26 +1,36 @@
 
-def _traverse(o, tree_types=(list, tuple)):
+def _traverse_iter(o, tree_types=(list, tuple)):
+    """Iterate over nested containers and/or iterators.
+    This allows generator __init__() functions to be passed seeds either as
+    a series of arguments, or as a list/tuple.
+    """
     if isinstance(o, tree_types) or getattr(o, '__iter__', False):
         for value in o:
-            for subvalue in _traverse(value):
+            for subvalue in _traverse_iter(value):
                 yield subvalue
     else:
         yield o
 
-def _init_default_and_int32(seed, default_value):
-    if seed==None:
-        return default_value
-    else:
-        # Ensure a 32-bit unsigned integer.
-        return (int(seed) & 0xFFFFFFFF)
+def _repeat_iter(input_iter):
+    """Iterate over the input iter values. Then repeat the last value
+    indefinitely. This is useful to repeat seed values when an insufficient
+    number of seeds are provided.
 
-def _pop_seed_int32_or_default(seed_list, default_value):
-    try:
-        seed_item = seed_list.pop(0)
-    except IndexError:
-        return default_value
-    else:
-        return (int(seed_item) & 0xFFFFFFFF)
+    E.g. KISS(1) effectively becomes KISS(1, 1, 1, 1), rather than (if we just
+    used default values) KISS(1, default-value, default-value, default-value)
+
+    It is better to repeat the last seed value, rather than just using default
+    values. Given two generators seeded with an insufficient number of seeds,
+    repeating the last seed value means their states are more different from
+    each other, with less correlation between their generated outputs.
+    """
+    default_value = None
+    for value in input_iter:
+        default_value = value
+        yield value
+    if default_value is not None:
+        while True:
+            yield default_value
 
 def _next_seed_int32_or_default(seed_iter, default_value):
     try:
@@ -65,7 +75,7 @@ class Cong(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
+        seed_iter = _traverse_iter(args)
         self.cong = _next_seed_int32_or_default(seed_iter, 0)
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -82,8 +92,11 @@ class Cong(object):
         self.cong = (69069 * self.cong + 12345) & 0xFFFFFFFF
         return self.cong
 
+    def current(self):
+        return self.cong
+
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             self.cong ^= value_int
             self.next()
@@ -129,7 +142,7 @@ class SHR3(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
+        seed_iter = _traverse_iter(args)
         self.shr3 = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
@@ -153,8 +166,11 @@ class SHR3(object):
         self.shr3 = shr3
         return shr3
 
+    def current(self):
+        return self.shr3
+
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             self.shr3 ^= value_int
             self.sanitise()
@@ -193,9 +209,10 @@ class MWC2(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
-        self.mwc_upper = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
-        self.mwc_lower = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFF)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFF)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -230,18 +247,19 @@ class MWC2(object):
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
     def _next_lower(self):
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
+
     def next(self):
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
-        return self.current()
+        return self.current()       # call self.current() so that MWC1 can over-ride it
 
     def current(self):
         return (((self.mwc_upper & 0xFFFF) << 16) + (self.mwc_upper >> 16) + self.mwc_lower) & 0xFFFFFFFF
 
-    mwc = property(current)
+    mwc = property(current)         # Note that this must be over-ridden again in MWC1
 
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
             selector = (current >> 31) & 0x1
@@ -297,6 +315,8 @@ class MWC1(MWC2):
     def current(self):
         return (((self.mwc_upper & 0xFFFF) << 16) + self.mwc_lower) & 0xFFFFFFFF
 
+    # We have to over-ride this again, because of the way property() works.
+    mwc = property(current)
 
 class MWC64(object):
     '''"Multiply-with-carry" random number generator
@@ -312,9 +332,10 @@ class MWC64(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
-        self.mwc_upper = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
-        self.mwc_lower = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFF)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFF)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -353,7 +374,7 @@ class MWC64(object):
     mwc = property(current)
 
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
             selector = (current >> 31) & 0x1
@@ -399,10 +420,11 @@ class KISS(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
-        self.random_mwc = MWC2(seed_iter)
-        self.random_cong = Cong(seed_iter)
-        self.random_shr3 = SHR3(seed_iter)
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.random_mwc = MWC2(repeat_seed_iter)
+        self.random_cong = Cong(repeat_seed_iter)
+        self.random_shr3 = SHR3(repeat_seed_iter)
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
         for key in kwargs:
@@ -421,7 +443,7 @@ class KISS(object):
         return ((self.random_mwc.current() ^ self.random_cong.cong) + self.random_shr3.shr3) & 0xFFFFFFFF
 
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
             selector = (current >> 30) & 0x3
@@ -508,10 +530,11 @@ class KISS2(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
-        self.random_mwc = MWC64(seed_iter)
-        self.random_cong = Cong(seed_iter)
-        self.random_shr3 = SHR3(seed_iter)
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.random_mwc = MWC64(repeat_seed_iter)
+        self.random_cong = Cong(repeat_seed_iter)
+        self.random_shr3 = SHR3(repeat_seed_iter)
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
         for key in kwargs:
@@ -530,7 +553,7 @@ class KISS2(object):
         return (self.random_mwc.current() + self.random_cong.cong + self.random_shr3.shr3) & 0xFFFFFFFF
 
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
             selector = (current >> 30) & 0x3
@@ -596,7 +619,7 @@ class KISS2(object):
     cong = property(_get_cong, _set_cong)
 
 
-def lfsr_init_one_seed(seed, min_value_shift):
+def lfsr_next_one_seed(seed_iter, min_value_shift):
     """High-quality seeding for LFSR generators.
     
     The LFSR generator components discard a certain number of their lower bits
@@ -609,21 +632,6 @@ def lfsr_init_one_seed(seed, min_value_shift):
     just be discarded. So we do basic manipulation of the seed input value to
     ensure that all bits of the seed input affect the initial state.
     """
-    if seed==None:
-        working_seed = 0xFFFFFFFF
-    else:
-        seed = int(seed) & 0xFFFFFFFF
-
-        working_seed = (seed ^ (seed << 16)) & 0xFFFFFFFF
-
-        min_value = 1 << min_value_shift
-        if working_seed < min_value:
-            working_seed = (seed << 24) & 0xFFFFFFFF
-            if working_seed < min_value:
-                working_seed ^= 0xFFFFFFFF
-    return working_seed
-
-def lfsr_next_one_seed(seed_iter, min_value_shift):
     try:
         seed = seed_iter.next()
     except StopIteration:
@@ -637,7 +645,7 @@ def lfsr_next_one_seed(seed_iter, min_value_shift):
 
             min_value = 1 << min_value_shift
             if working_seed < min_value:
-                working_seed = (seed << 24) & 0xFFFFFFFF
+                working_seed = (seed << 16) & 0xFFFFFFFF
                 if working_seed < min_value:
                     working_seed ^= 0xFFFFFFFF
             return working_seed
@@ -649,7 +657,7 @@ def lfsr_validate_one_seed(seed, min_value_shift):
     when generating each output. The significant bits of their state must not
     all be zero. We must ensure that when seeding the generator.
     
-    This is a light-weight validation of seeds, used from setstate().
+    This is a light-weight validation of state, used from setstate().
     '''
     min_value = 1 << min_value_shift
     if seed < min_value:
@@ -675,11 +683,12 @@ class LFSR113(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
-        self.z1 = lfsr_next_one_seed(seed_iter, 1)
-        self.z2 = lfsr_next_one_seed(seed_iter, 3)
-        self.z3 = lfsr_next_one_seed(seed_iter, 4)
-        self.z4 = lfsr_next_one_seed(seed_iter, 7)
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.z1 = lfsr_next_one_seed(repeat_seed_iter, 1)
+        self.z2 = lfsr_next_one_seed(repeat_seed_iter, 3)
+        self.z3 = lfsr_next_one_seed(repeat_seed_iter, 4)
+        self.z4 = lfsr_next_one_seed(repeat_seed_iter, 7)
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
         for key in kwargs:
@@ -694,8 +703,6 @@ class LFSR113(object):
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
         self.z4 = lfsr_validate_one_seed(self.z4, 7)
 
-    def current(self):
-        return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
     def _next_z1(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
         self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
@@ -708,6 +715,7 @@ class LFSR113(object):
     def _next_z4(self):
         b       = (((self.z4 & 0x1FFFFFFF) << 3) ^ self.z4) >> 12
         self.z4 = ((self.z4 & 0x0007FF80) << 13) ^ b
+
     def next(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
         self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
@@ -723,8 +731,11 @@ class LFSR113(object):
 
         return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
 
+    def current(self):
+        return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
+
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
             selector = (current >> 30) & 0x3
@@ -775,10 +786,11 @@ class LFSR88(object):
             mix_extras=False -- If True, then call mix() to 'mix' extra seed
                                 values into the state.
         '''
-        seed_iter = _traverse(args)
-        self.z1 = lfsr_next_one_seed(seed_iter, 1)
-        self.z2 = lfsr_next_one_seed(seed_iter, 3)
-        self.z3 = lfsr_next_one_seed(seed_iter, 4)
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.z1 = lfsr_next_one_seed(repeat_seed_iter, 1)
+        self.z2 = lfsr_next_one_seed(repeat_seed_iter, 3)
+        self.z3 = lfsr_next_one_seed(repeat_seed_iter, 4)
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
         for key in kwargs:
@@ -792,8 +804,6 @@ class LFSR88(object):
         self.z2 = lfsr_validate_one_seed(self.z2, 3)
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
 
-    def current(self):
-        return self.z1 ^ self.z2 ^ self.z3
     def _next_z1(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
         self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
@@ -803,6 +813,7 @@ class LFSR88(object):
     def _next_z3(self):
         b       = (((self.z3 & 0x1FFFFFFF) << 3) ^ self.z3) >> 11
         self.z3 = ((self.z3 & 0x00007FF0) << 17) ^ b
+
     def next(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
         self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
@@ -815,8 +826,11 @@ class LFSR88(object):
 
         return self.z1 ^ self.z2 ^ self.z3
 
+    def current(self):
+        return self.z1 ^ self.z2 ^ self.z3
+
     def mix(self, *args):
-        for value in _traverse(args):
+        for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
             if current < 1431655765:        # constant is 2^32 / 3

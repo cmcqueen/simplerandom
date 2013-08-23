@@ -1034,7 +1034,8 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
  ********/
 
 #define LFSR_SEED_SHIFT         16u
-#define LFSR_SEED_ALT_SHIFT     24u
+#define LFSR_SEED(X)            ((X) ^ ((X) << LFSR_SEED_SHIFT))
+#define LFSR_ALT_SEED(X)        ((X) << LFSR_SEED_SHIFT)
 
 #define LFSR_SEED_Z1_MIN_VALUE  2u
 #define LFSR_SEED_Z2_MIN_VALUE  8u
@@ -1092,10 +1093,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     uint32_t    working_seed;
 
     /* Seed z1 */
-    working_seed = seed_z1 ^ (seed_z1 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z1);
     if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
     {
-        working_seed = seed_z1 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z1);
         if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1104,10 +1105,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z1 = working_seed;
 
     /* Seed z2 */
-    working_seed = seed_z2 ^ (seed_z2 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z2);
     if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
     {
-        working_seed = seed_z2 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z2);
         if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1116,10 +1117,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z2 = working_seed;
 
     /* Seed z3 */
-    working_seed = seed_z3 ^ (seed_z3 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z3);
     if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
     {
-        working_seed = seed_z3 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z3);
         if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1128,10 +1129,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z3 = working_seed;
 
     /* Seed z4 */
-    working_seed = seed_z4 ^ (seed_z4 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z4);
     if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
     {
-        working_seed = seed_z4 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z4);
         if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1351,10 +1352,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
     uint32_t    working_seed;
 
     /* Seed z1 */
-    working_seed = seed_z1 ^ (seed_z1 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z1);
     if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
     {
-        working_seed = seed_z1 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z1);
         if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1363,10 +1364,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
     p_lfsr88->z1 = working_seed;
 
     /* Seed z2 */
-    working_seed = seed_z2 ^ (seed_z2 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z2);
     if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
     {
-        working_seed = seed_z2 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z2);
         if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1375,10 +1376,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
     p_lfsr88->z2 = working_seed;
 
     /* Seed z3 */
-    working_seed = seed_z3 ^ (seed_z3 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z3);
     if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
     {
-        working_seed = seed_z3 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z3);
         if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
         {
             working_seed = ~working_seed;
