@@ -24,13 +24,13 @@ def _repeat_iter(input_iter):
     repeating the last seed value means their states are more different from
     each other, with less correlation between their generated outputs.
     """
-    default_value = None
+    last_value = None
     for value in input_iter:
-        default_value = value
+        last_value = value
         yield value
-    if default_value is not None:
+    if last_value is not None:
         while True:
-            yield default_value
+            yield last_value
 
 def _next_seed_int32_or_default(seed_iter, default_value):
     try:
@@ -227,20 +227,22 @@ class MWC2(object):
         self._sanitise_lower()
 
     def _sanitise_upper(self):
+        mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = self.mwc_upper % 0x9068ffff 
+        sanitised_value = mwc_upper_orig % 0x9068ffff
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (self.mwc_upper ^ 0xFFFFFFFF) % 0x9068ffff 
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFF) % 0x9068ffff
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
+        mwc_lower_orig = self.mwc_lower
         # There are a few bad states--that is, any multiple of
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
-        sanitised_value = self.mwc_lower % 0x464FFFFF
+        sanitised_value = mwc_lower_orig % 0x464FFFFF
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (self.mwc_lower ^ 0xFFFFFFFF) % 0x464FFFFF
+            sanitised_value = (mwc_lower_orig ^ 0xFFFFFFFF) % 0x464FFFFF
         self.mwc_lower = sanitised_value
 
     def _next_upper(self):
@@ -346,17 +348,17 @@ class MWC64(object):
         self.__init__(*args, **kwargs)
 
     def sanitise(self):
-        seed64 = (self.mwc_upper << 32) + self.mwc_lower
-        temp = seed64
+        state64 = (self.mwc_upper << 32) + self.mwc_lower
+        temp = state64
         was_changed = False
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        if seed64 >= 0x29A65EACFFFFFFFF:
+        if state64 >= 0x29A65EACFFFFFFFF:
             was_changed = True
-        temp = seed64 % 0x29A65EACFFFFFFFF 
+        temp = state64 % 0x29A65EACFFFFFFFF
         if temp == 0:
             # Invert to get a good seed.
-            temp = (seed64 ^ 0xFFFFFFFFFFFFFFFF) % 0x29A65EACFFFFFFFF
+            temp = (state64 ^ 0xFFFFFFFFFFFFFFFF) % 0x29A65EACFFFFFFFF
             was_changed = True
         if was_changed:
             self.mwc_upper = temp >> 32
