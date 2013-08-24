@@ -580,12 +580,12 @@ cdef class KISS(object):
         # Initialise SHR3 RNG
         self.shr3 = _init_default_and_int32(seed_shr3, 0xFFFFFFFFu)
 
-        self._validate_seed()
+        self.sanitise()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
-    def _validate_seed(self):
+    def sanitise(self):
         # Adjust MWC seed
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
@@ -642,7 +642,7 @@ cdef class KISS(object):
         self.mwc_lower = int(mwc_state[1]) & 0xFFFFFFFFu
         self.cong = int(cong_state[0]) & 0xFFFFFFFFu
         self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
@@ -679,12 +679,12 @@ cdef class KISS2(object):
         # Initialise SHR3 RNG
         self.shr3 = _init_default_and_int32(seed_shr3, 0xFFFFFFFFu)
 
-        self._validate_seed()
+        self.sanitise()
 
     def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
         self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
 
-    def _validate_seed(self):
+    def sanitise(self):
         cdef uint64_t mwc64
 
         # Adjust MWC seed
@@ -738,7 +738,7 @@ cdef class KISS2(object):
         self.mwc_lower = int(mwc_state[1]) & 0xFFFFFFFFu
         self.cong = int(cong_state[0]) & 0xFFFFFFFFu
         self.shr3 = int(shr3_state[0]) & 0xFFFFFFFFu
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
@@ -817,7 +817,7 @@ cdef class LFSR113(object):
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
         self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
 
-    def _validate_seed(self):
+    def sanitise(self):
         self.z1 = lfsr_validate_one_seed(self.z1, 1)
         self.z2 = lfsr_validate_one_seed(self.z2, 3)
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
@@ -851,7 +851,7 @@ cdef class LFSR113(object):
         self.z2 = int(state[1]) & 0xFFFFFFFFu
         self.z3 = int(state[2]) & 0xFFFFFFFFu
         self.z4 = int(state[3]) & 0xFFFFFFFFu
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
@@ -882,7 +882,7 @@ cdef class LFSR88(object):
     def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
         self.__init__(seed_z1, seed_z2, seed_z3)
 
-    def _validate_seed(self):
+    def sanitise(self):
         self.z1 = lfsr_validate_one_seed(self.z1, 1)
         self.z2 = lfsr_validate_one_seed(self.z2, 3)
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
@@ -911,7 +911,7 @@ cdef class LFSR88(object):
         self.z1 = int(state[0]) & 0xFFFFFFFFu
         self.z2 = int(state[1]) & 0xFFFFFFFFu
         self.z3 = int(state[2]) & 0xFFFFFFFFu
-        self._validate_seed()
+        self.sanitise()
 
     def jumpahead(self, n):
         raise NotImplementedError
