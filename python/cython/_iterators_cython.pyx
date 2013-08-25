@@ -168,7 +168,7 @@ cdef class SHR3(object):
                                 values into the state.
         '''
         seed_iter = _traverse_iter(args)
-        self.shr3 = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        self.shr3 = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFFu)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -313,6 +313,8 @@ cdef class MWC1(object):
 
     def mix(self, *args):
         cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
@@ -425,6 +427,8 @@ cdef class MWC2(object):
 
     def mix(self, *args):
         cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
@@ -522,6 +526,8 @@ cdef class MWC64(object):
 
     def mix(self, *args):
         cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
@@ -569,39 +575,71 @@ cdef class KISS(object):
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
 
-    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        # Initialise MWC RNG
-        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 0xFFFFFFFFu)
-        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 0xFFFFFFFFu)
-
-        # Initialise Cong RNG
-        self.cong = _init_default_and_int32(seed_cong, 0)
-
-        # Initialise SHR3 RNG
-        self.shr3 = _init_default_and_int32(seed_shr3, 0xFFFFFFFFu)
-
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.cong = _next_seed_int32_or_default(repeat_seed_iter, 0)
+        self.shr3 = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
         self.sanitise()
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
     def sanitise(self):
-        # Adjust MWC seed
-        # There are a few bad seeds--that is, seeds that are a multiple of
-        # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        if (self.mwc_upper % 0x9068FFFFu)==0:
-            # Invert to get a good seed.
-            self.mwc_upper ^= 0xFFFFFFFFu
-        # There are a few bad seeds--that is, seeds that are a multiple of
-        # 0x464FFFFF (which is 18000 * 2**16 - 1).
-        if (self.mwc_lower % 0x464FFFFFu)==0:
-            # Invert to get a good seed.
-            self.mwc_lower ^= 0xFFFFFFFFu
+        self._sanitise_mwc_upper()
+        self._sanitise_mwc_lower()
+        # Cong doesn't need any sanitising
+        self._sanitise_shr3()
 
-        # Adjust SHR3 seed
+    def _sanitise_mwc_upper(self):
+        mwc_upper_orig = self.mwc_upper
+        # There are a few bad states--that is, any multiple of
+        # 0x9068FFFF (which is 36969 * 2**16 - 1).
+        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        if sanitised_value == 0:
+            # Invert to get a good seed.
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+        self.mwc_upper = sanitised_value
+    def _sanitise_mwc_lower(self):
+        mwc_lower_orig = self.mwc_lower
+        # There are a few bad states--that is, any multiple of
+        # 0x464FFFFF (which is 18000 * 2**16 - 1).
+        sanitised_value = mwc_lower_orig % 0x464FFFFFu
+        if sanitised_value == 0:
+            # Invert to get a good seed.
+            sanitised_value = (mwc_lower_orig ^ 0xFFFFFFFFu) % 0x464FFFFFu
+        self.mwc_lower = sanitised_value
+
+    def _sanitise_shr3(self):
         if self.shr3 == 0:
             # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFF
+            self.shr3 = 0xFFFFFFFFu
+
+    def _next_mwc_upper(self):
+        self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
+    def _next_mwc_lower(self):
+        self.mwc_lower = 18000u * (self.mwc_lower & 0xFFFFu) + (self.mwc_lower >> 16u)
+    def _next_cong(self):
+        self.cong = 69069u * self.cong + 12345u
+    def _next_shr3(self):
+        cdef uint32_t shr3
+        shr3 = self.shr3
+        shr3 ^= shr3 << 13u
+        shr3 ^= shr3 >> 17u
+        shr3 ^= shr3 << 5u
+        self.shr3 = shr3
+        return shr3
 
     def __next__(self):
         cdef uint32_t mwc
@@ -629,6 +667,37 @@ cdef class KISS(object):
             cdef uint32_t mwc
             mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
             return mwc
+
+    def current(self):
+        cdef uint32_t mwc
+        mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
+        return (mwc ^ self.random_cong.cong) + self.random_shr3.shr3
+
+    def mix(self, *args):
+        cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
+        for value in _traverse_iter(args):
+            value_int = int(value) & 0xFFFFFFFFu
+            current = self.current()
+            selector = (current >> 30u) & 0x3u
+            if selector == 0:
+                self.mwc_upper ^= value_int
+                self._sanitise_mwc_upper()
+                self._next_mwc_upper()
+            elif selector == 1:
+                self.mwc_lower ^= value_int
+                self._sanitise_mwc_lower()
+                self._next_mwc_lower()
+            elif selector == 2:
+                self.cong ^= value_int
+                # Cong doesn't need any sanitising
+                self._next_cong()
+            else:   # selector == 3
+                self.shr3 ^= value_int
+                self._sanitise_shr3()
+                self._next_shr3()
+        return self.current()
 
     def __iter__(self):
         return self
@@ -668,38 +737,75 @@ cdef class KISS2(object):
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
 
-    def __init__(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        # Initialise MWC64 RNG
-        self.mwc_upper = _init_default_and_int32(seed_mwc_upper, 0xFFFFFFFFu)
-        self.mwc_lower = _init_default_and_int32(seed_mwc_lower, 0xFFFFFFFFu)
-
-        # Initialise Cong RNG
-        self.cong = _init_default_and_int32(seed_cong, 0)
-
-        # Initialise SHR3 RNG
-        self.shr3 = _init_default_and_int32(seed_shr3, 0xFFFFFFFFu)
-
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.cong = _next_seed_int32_or_default(repeat_seed_iter, 0)
+        self.shr3 = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
         self.sanitise()
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_mwc_upper = None, seed_mwc_lower = None, seed_cong = None, seed_shr3 = None):
-        self.__init__(seed_mwc_upper, seed_mwc_lower, seed_cong, seed_shr3)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
     def sanitise(self):
-        cdef uint64_t mwc64
+        self._sanitise_mwc64()
+        # Cong doesn't need any sanitising
+        self._sanitise_shr3()
 
-        # Adjust MWC seed
-        mwc64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+    def _sanitise_mwc64(self):
+        cdef uint64_t state64
+        cdef uint64_t temp
+        cdef bint was_changed
+
+        state64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        temp = state64
+        was_changed = False
         # There are a few bad seeds--that is, seeds that are a multiple of
         # 0x29A65EACFFFFFFFF (which is 698769069 * 2**32 - 1).
-        if mwc64 % 0x29A65EACFFFFFFFFu == 0:
+        if state64 >= 0x29A65EACFFFFFFFFu:
+            was_changed = True
+        temp = state64 % 0x29A65EACFFFFFFFFu
+        if temp == 0:
             # Invert to get a good seed.
-            self.mwc_upper ^= 0xFFFFFFFFu
-            self.mwc_lower ^= 0xFFFFFFFFu
+            temp = (state64 ^ 0xFFFFFFFFFFFFFFFFu) % 0x29A65EACFFFFFFFFu
+            was_changed = True
+        if was_changed:
+            self.mwc_upper = temp >> 32u
+            self.mwc_lower = temp & 0xFFFFFFFFu
 
-        # Adjust SHR3 seed
+    def _sanitise_shr3(self):
         if self.shr3 == 0:
             # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFF
+            self.shr3 = 0xFFFFFFFFu
+
+    def _next_mwc64(self):
+        cdef uint64_t temp64
+
+        temp64 = <uint64_t>698769069u * self.mwc_lower + self.mwc_upper
+        self.mwc_lower = temp64 & 0xFFFFFFFFu
+        self.mwc_upper = temp64 >> 32u
+        return self.mwc_lower
+    def _next_cong(self):
+        self.cong = 69069u * self.cong + 12345u
+    def _next_shr3(self):
+        cdef uint32_t shr3
+        shr3 = self.shr3
+        shr3 ^= shr3 << 13u
+        shr3 ^= shr3 >> 17u
+        shr3 ^= shr3 << 5u
+        self.shr3 = shr3
+        return shr3
 
     def __next__(self):
         cdef uint64_t temp64
@@ -722,9 +828,38 @@ cdef class KISS2(object):
 
         return self.mwc_lower + self.cong + shr3
 
+    def current(self):
+        return self.mwc_lower + self.cong + self.shr3
+
     property mwc:
         def __get__(self):
             return self.mwc_lower
+
+    def mix(self, *args):
+        cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
+        for value in _traverse_iter(args):
+            value_int = int(value) & 0xFFFFFFFFu
+            current = self.current()
+            selector = (current >> 30u) & 0x3u
+            if selector == 0:
+                self.mwc_upper ^= value_int
+                self._sanitise_mwc64()
+                self._next_mwc64()
+            elif selector == 1:
+                self.mwc_lower ^= value_int
+                self._sanitise_mwc64()
+                self._next_mwc64()
+            elif selector == 2:
+                self.cong ^= value_int
+                # Cong doesn't need any sanitising
+                self._next_cong()
+            else:   # selector == 3
+                self.shr3 ^= value_int
+                self._sanitise_shr3()
+                self._next_shr3()
+        return self.current()
 
     def __iter__(self):
         return self
