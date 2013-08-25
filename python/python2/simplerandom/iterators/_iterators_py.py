@@ -202,6 +202,12 @@ class MWC2(object):
     L'Ecuyer's TestU01 test suite, so it should probably
     be preferred.
     '''
+    SIMPLERANDOM_MOD = 2**32
+    MWC_PART_MOD = 2**16
+    MWC_UPPER_MULT = 36969
+    MWC_LOWER_MULT = 18000
+    MWC_UPPER_CYCLE_LEN = (MWC_UPPER_MULT * MWC_PART_MOD // 2 - 1)
+    MWC_LOWER_CYCLE_LEN = (MWC_LOWER_MULT * MWC_PART_MOD // 2 - 1)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -287,6 +293,29 @@ class MWC2(object):
 
     def jumpahead(self, n):
         raise NotImplementedError
+        mwc_upper = self.mwc_upper
+        n_upper = int(n) % self.MWC_UPPER_CYCLE_LEN
+        if n_upper >= 1:
+            mult1_exp = pow(self.MWC_UPPER_MULT, n - 1, self.MWC_PART_MOD)
+            mult1_exp *= mwc_upper
+            if n_upper >= 2:
+                mult2_exp = pow(self.MWC_UPPER_MULT, n - 2, self.SIMPLERANDOM_MOD)
+                mult2_exp *= (n - 1) * mwc_upper
+                mult2_exp >>= 16
+                mult1_exp += mult2_exp
+            mult1_exp %= self.MWC_PART_MOD
+            mult1_exp *= self.MWC_UPPER_MULT
+
+            if n_upper == 1:
+                add_part = mwc_upper
+            else:
+                add_part = pow(self.MWC_UPPER_MULT, n - 2, self.MWC_PART_MOD)
+                add_part *= mwc_upper
+                add_part %= self.MWC_PART_MOD
+            add_part >>= 16
+
+            mwc_upper = mult1_exp + add_part
+        return mwc_upper
 
 
 class MWC1(MWC2):
