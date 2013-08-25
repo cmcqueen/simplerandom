@@ -39,7 +39,7 @@ def _repeat_iter(input_iter):
 
 def _next_seed_int32_or_default(seed_iter, default_value):
     try:
-        seed_item = seed_iter.next()
+        seed_item = next(seed_iter)
     except StopIteration:
         return default_value
     else:
