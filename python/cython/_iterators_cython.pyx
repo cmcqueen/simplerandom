@@ -37,7 +37,7 @@ def _repeat_iter(input_iter):
         while True:
             yield last_value
 
-def _next_seed_int32_or_default(seed_iter, default_value):
+def _next_seed_int32_or_default(seed_iter, uint32_t default_value):
     try:
         seed_item = next(seed_iter)
     except StopIteration:
@@ -47,13 +47,6 @@ def _next_seed_int32_or_default(seed_iter, default_value):
             return default_value
         else:
             return (int(seed_item) & 0xFFFFFFFFu)
-
-def _init_default_and_int32(seed, default_value):
-    if seed==None:
-        return default_value
-    else:
-        # Ensure a 32-bit unsigned integer.
-        return (int(seed) & 0xFFFFFFFFu)
 
 cdef uint64_t SIMPLERANDOM_MOD = 2**32
 cdef uint64_t CONG_CYCLE_LEN = 2**32
@@ -671,7 +664,7 @@ cdef class KISS(object):
     def current(self):
         cdef uint32_t mwc
         mwc = (self.mwc_upper << 16u) + (self.mwc_upper >> 16u) + self.mwc_lower
-        return (mwc ^ self.random_cong.cong) + self.random_shr3.shr3
+        return (mwc ^ self.cong) + self.shr3
 
     def mix(self, *args):
         cdef uint32_t value_int
@@ -879,7 +872,7 @@ cdef class KISS2(object):
         raise NotImplementedError
 
 
-def lfsr_init_one_seed(seed, uint32_t min_value_shift):
+def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
     """High-quality seeding for LFSR generators.
     
     The LFSR generator components discard a certain number of their lower bits
@@ -895,19 +888,23 @@ def lfsr_init_one_seed(seed, uint32_t min_value_shift):
     cdef uint32_t min_value
     cdef uint32_t working_seed
 
-    if seed==None:
-        working_seed = 0xFFFFFFFFu
+    try:
+        seed = next(seed_iter)
+    except StopIteration:
+        return 0xFFFFFFFFu
     else:
-        seed = int(seed) & 0xFFFFFFFFu
+        if seed is None:
+            return 0xFFFFFFFFu
+        else:
+            seed = int(seed) & 0xFFFFFFFFu
+            working_seed = (seed ^ (seed << 16)) & 0xFFFFFFFFu
 
-        working_seed = (seed ^ (seed << 16)) & 0xFFFFFFFFu
-
-        min_value = 1 << min_value_shift
-        if working_seed < min_value:
-            working_seed = (seed << 16) & 0xFFFFFFFFu
+            min_value = 1 << min_value_shift
             if working_seed < min_value:
-                working_seed ^= 0xFFFFFFFFu
-    return working_seed
+                working_seed = (seed << 16) & 0xFFFFFFFFu
+                if working_seed < min_value:
+                    working_seed ^= 0xFFFFFFFFu
+            return working_seed
 
 def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
     '''Validate seeds for LFSR generators
@@ -943,14 +940,25 @@ cdef class LFSR113(object):
     cdef public uint32_t z3
     cdef public uint32_t z4
 
-    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4)
-        self.z4 = lfsr_init_one_seed(seed_z4, 7)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.z1 = lfsr_next_one_seed(repeat_seed_iter, 1)
+        self.z2 = lfsr_next_one_seed(repeat_seed_iter, 3)
+        self.z3 = lfsr_next_one_seed(repeat_seed_iter, 4)
+        self.z4 = lfsr_next_one_seed(repeat_seed_iter, 7)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None, seed_z4 = None):
-        self.__init__(seed_z1, seed_z2, seed_z3, seed_z4)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
     def sanitise(self):
         self.z1 = lfsr_validate_one_seed(self.z1, 1)
@@ -958,22 +966,63 @@ cdef class LFSR113(object):
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
         self.z4 = lfsr_validate_one_seed(self.z4, 7)
 
+    def _next_z1(self):
+        cdef uint32_t b
+        b       = (((self.z1 & 0x03FFFFFFu) << 6) ^ self.z1) >> 13
+        self.z1 = ((self.z1 & 0x00003FFEu) << 18) ^ b
+    def _next_z2(self):
+        cdef uint32_t b
+        b       = (((self.z2 & 0x3FFFFFFFu) << 2) ^ self.z2) >> 27
+        self.z2 = ((self.z2 & 0x3FFFFFF8u) << 2) ^ b
+    def _next_z3(self):
+        cdef uint32_t b
+        b       = (((self.z3 & 0x0007FFFFu) << 13) ^ self.z3) >> 21
+        self.z3 = ((self.z3 & 0x01FFFFF0u) << 7) ^ b
+    def _next_z4(self):
+        cdef uint32_t b
+        b       = (((self.z4 & 0x1FFFFFFFu) << 3) ^ self.z4) >> 12
+        self.z4 = ((self.z4 & 0x0007FF80u) << 13) ^ b
     def __next__(self):
         cdef uint32_t b
 
-        b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
-        self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
+        b       = (((self.z1 & 0x03FFFFFFu) << 6) ^ self.z1) >> 13
+        self.z1 = ((self.z1 & 0x00003FFEu) << 18) ^ b
 
-        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 27
-        self.z2 = ((self.z2 & 0x3FFFFFF8) << 2) ^ b
+        b       = (((self.z2 & 0x3FFFFFFFu) << 2) ^ self.z2) >> 27
+        self.z2 = ((self.z2 & 0x3FFFFFF8u) << 2) ^ b
 
-        b       = (((self.z3 & 0x0007FFFF) << 13) ^ self.z3) >> 21
-        self.z3 = ((self.z3 & 0x01FFFFF0) << 7) ^ b
+        b       = (((self.z3 & 0x0007FFFFu) << 13) ^ self.z3) >> 21
+        self.z3 = ((self.z3 & 0x01FFFFF0u) << 7) ^ b
 
-        b       = (((self.z4 & 0x1FFFFFFF) << 3) ^ self.z4) >> 12
-        self.z4 = ((self.z4 & 0x0007FF80) << 13) ^ b
+        b       = (((self.z4 & 0x1FFFFFFFu) << 3) ^ self.z4) >> 12
+        self.z4 = ((self.z4 & 0x0007FF80u) << 13) ^ b
 
         return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
+
+    def current(self):
+        return self.z1 ^ self.z2 ^ self.z3 ^ self.z4
+
+    def mix(self, *args):
+        cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
+        for value in _traverse_iter(args):
+            value_int = int(value) & 0xFFFFFFFFu
+            current = self.current()
+            selector = (current >> 30) & 0x3
+            if selector == 0:
+                self.z1 = lfsr_validate_one_seed(self.z1 ^ value_int, 1)
+                self._next_z1()
+            elif selector == 1:
+                self.z2 = lfsr_validate_one_seed(self.z2 ^ value_int, 3)
+                self._next_z2()
+            elif selector == 2:
+                self.z3 = lfsr_validate_one_seed(self.z3 ^ value_int, 4)
+                self._next_z3()
+            else:   # selector == 3
+                self.z4 = lfsr_validate_one_seed(self.z4 ^ value_int, 7)
+                self._next_z4()
+        return self.current()
 
     def __iter__(self):
         return self
@@ -1009,32 +1058,76 @@ cdef class LFSR88(object):
     cdef public uint32_t z2
     cdef public uint32_t z3
 
-    def __init__(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.z1 = lfsr_init_one_seed(seed_z1, 1)
-        self.z2 = lfsr_init_one_seed(seed_z2, 3)
-        self.z3 = lfsr_init_one_seed(seed_z3, 4)
+    def __init__(self, *args, **kwargs):
+        '''Positional arguments are seed values
+        Keyword-only arguments:
+            mix_extras=False -- If True, then call mix() to 'mix' extra seed
+                                values into the state.
+        '''
+        seed_iter = _traverse_iter(args)
+        repeat_seed_iter = _repeat_iter(seed_iter)
+        self.z1 = lfsr_next_one_seed(repeat_seed_iter, 1)
+        self.z2 = lfsr_next_one_seed(repeat_seed_iter, 3)
+        self.z3 = lfsr_next_one_seed(repeat_seed_iter, 4)
+        if kwargs.pop('mix_extras', False):
+            self.mix(seed_iter)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
 
-    def seed(self, seed_z1 = None, seed_z2 = None, seed_z3 = None):
-        self.__init__(seed_z1, seed_z2, seed_z3)
+    def seed(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
 
     def sanitise(self):
         self.z1 = lfsr_validate_one_seed(self.z1, 1)
         self.z2 = lfsr_validate_one_seed(self.z2, 3)
         self.z3 = lfsr_validate_one_seed(self.z3, 4)
 
+    def _next_z1(self):
+        cdef uint32_t b
+        b       = (((self.z1 & 0x0007FFFFu) << 13) ^ self.z1) >> 19
+        self.z1 = ((self.z1 & 0x000FFFFEu) << 12) ^ b
+    def _next_z2(self):
+        cdef uint32_t b
+        b       = (((self.z2 & 0x3FFFFFFFu) << 2) ^ self.z2) >> 25
+        self.z2 = ((self.z2 & 0x0FFFFFF8u) << 4) ^ b
+    def _next_z3(self):
+        cdef uint32_t b
+        b       = (((self.z3 & 0x1FFFFFFFu) << 3) ^ self.z3) >> 11
+        self.z3 = ((self.z3 & 0x00007FF0u) << 17) ^ b
     def __next__(self):
         cdef uint32_t b
 
-        b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
-        self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
+        b       = (((self.z1 & 0x0007FFFFu) << 13) ^ self.z1) >> 19
+        self.z1 = ((self.z1 & 0x000FFFFEu) << 12) ^ b
 
-        b       = (((self.z2 & 0x3FFFFFFF) << 2) ^ self.z2) >> 25
-        self.z2 = ((self.z2 & 0x0FFFFFF8) << 4) ^ b
+        b       = (((self.z2 & 0x3FFFFFFFu) << 2) ^ self.z2) >> 25
+        self.z2 = ((self.z2 & 0x0FFFFFF8u) << 4) ^ b
 
-        b       = (((self.z3 & 0x1FFFFFFF) << 3) ^ self.z3) >> 11
-        self.z3 = ((self.z3 & 0x00007FF0) << 17) ^ b
+        b       = (((self.z3 & 0x1FFFFFFFu) << 3) ^ self.z3) >> 11
+        self.z3 = ((self.z3 & 0x00007FF0u) << 17) ^ b
 
         return self.z1 ^ self.z2 ^ self.z3
+
+    def current(self):
+        return self.z1 ^ self.z2 ^ self.z3
+
+    def mix(self, *args):
+        cdef uint32_t value_int
+        cdef uint32_t current
+        cdef uint32_t selector
+        for value in _traverse_iter(args):
+            value_int = int(value) & 0xFFFFFFFFu
+            current = self.current()
+            if current < 1431655765u:       # constant is 2^32 / 3
+                self.z1 = lfsr_validate_one_seed(self.z1 ^ value_int, 1)
+                self._next_z1()
+            elif current < 2863311531u:     # constant is 2^32 * 2 / 3
+                self.z2 = lfsr_validate_one_seed(self.z2 ^ value_int, 3)
+                self._next_z2()
+            else:
+                self.z3 = lfsr_validate_one_seed(self.z3 ^ value_int, 4)
+                self._next_z3()
+        return self.current()
 
     def __iter__(self):
         return self
