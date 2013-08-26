@@ -242,28 +242,59 @@ void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uin
     simplerandom_mwc2_sanitize(p_mwc);
 }
 
+/* The good state values are all modulo 0x9068FFFF. Values above that would
+ * jump to a corresponding good state value on the first "next" operation.
+ * Any integer multiple of 0x9068FFFF, including 0, is a bad state.
+ */
 static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc)
 {
+    uint32_t    state_orig;
     uint32_t    temp;
 
-    temp = p_mwc->mwc_upper;
-    if ((temp == 0) || (temp == UINT32_C(0x9068FFFF)))
+    state_orig = p_mwc->mwc_upper;
+    temp = state_orig;
+    /* The following is equivalent to % 0x9068FFFF, without using modulo
+     * operation which may be expensive on embedded targets. For
+     * uint32_t and this divisor, we only need 'if' rather than 'while'. */
+    if (temp >= UINT32_C(0x9068FFFF))
+        temp -= UINT32_C(0x9068FFFF);
+    if (temp == 0)
     {
-        p_mwc->mwc_upper = temp ^ UINT32_C(0xFFFFFFFF);
+        /* Any integer multiple of 0x9068FFFF, including 0, is a bad state.
+         * Use an alternate state value by inverting the original value. */
+        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
+        if (temp >= UINT32_C(0x9068FFFF))
+            temp -= UINT32_C(0x9068FFFF);
     }
+    p_mwc->mwc_upper = temp;
 }
 
+/* The good state values are all modulo 0x9068FFFF. Values above that would
+ * jump to a corresponding good state value on the first "next" operation.
+ * Any integer multiple of 0x464FFFFF, including 0, is a bad state.
+ */
 static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc)
 {
+    uint32_t    state_orig;
     uint32_t    temp;
 
-    temp = p_mwc->mwc_lower;
-    if ((temp == 0) ||  (temp == UINT32_C(0x464FFFFF) * 1u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 2u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 3u))
+    state_orig = p_mwc->mwc_lower;
+    temp = state_orig;
+    /* The following is equivalent to % 0x464FFFFF, without using modulo
+     * operation which may be expensive on embedded targets. For
+     * uint32_t and this divisor, it may loop up to 3 times. */
+    while (temp >= UINT32_C(0x464FFFFF))
+        temp -= UINT32_C(0x464FFFFF);
+    if (temp == 0)
     {
-        p_mwc->mwc_lower = temp ^ UINT32_C(0xFFFFFFFF);
+        /* Any integer multiple of 0x464FFFFF, including 0, is a bad state.
+         * Use an alternate state value by inverting the original value. */
+        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
+        while (temp >= UINT32_C(0x464FFFFF))
+            temp -= UINT32_C(0x464FFFFF);
     }
+
+    p_mwc->mwc_lower = temp;
 }
 
 void simplerandom_mwc2_sanitize(SimpleRandomMWC2_t * p_mwc)
@@ -504,28 +535,59 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
     simplerandom_kiss_sanitize(p_kiss);
 }
 
+/* The good state values are all modulo 0x9068FFFF. Values above that would
+ * jump to a corresponding good state value on the first "next" operation.
+ * Any integer multiple of 0x9068FFFF, including 0, is a bad state.
+ */
 static inline void kiss_sanitize_mwc_upper(SimpleRandomKISS_t * p_kiss)
 {
+    uint32_t    state_orig;
     uint32_t    temp;
 
-    temp = p_kiss->mwc_upper;
-    if ((temp == 0) || (temp == UINT32_C(0x9068FFFF)))
+    state_orig = p_kiss->mwc_upper;
+    temp = state_orig;
+    /* The following is equivalent to % 0x9068FFFF, without using modulo
+     * operation which may be expensive on embedded targets. For
+     * uint32_t and this divisor, we only need 'if' rather than 'while'. */
+    if (temp >= UINT32_C(0x9068FFFF))
+        temp -= UINT32_C(0x9068FFFF);
+    if (temp == 0)
     {
-        p_kiss->mwc_upper = temp ^ UINT32_C(0xFFFFFFFF);
+        /* Any integer multiple of 0x9068FFFF, including 0, is a bad state.
+         * Use an alternate state value by inverting the original value. */
+        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
+        if (temp >= UINT32_C(0x9068FFFF))
+            temp -= UINT32_C(0x9068FFFF);
     }
+    p_kiss->mwc_upper = temp;
 }
 
+/* The good state values are all modulo 0x9068FFFF. Values above that would
+ * jump to a corresponding good state value on the first "next" operation.
+ * Any integer multiple of 0x464FFFFF, including 0, is a bad state.
+ */
 static inline void kiss_sanitize_mwc_lower(SimpleRandomKISS_t * p_kiss)
 {
+    uint32_t    state_orig;
     uint32_t    temp;
 
-    temp = p_kiss->mwc_lower;
-    if ((temp == 0) ||  (temp == UINT32_C(0x464FFFFF) * 1u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 2u) ||
-                        (temp == UINT32_C(0x464FFFFF) * 3u))
+    state_orig = p_kiss->mwc_lower;
+    temp = state_orig;
+    /* The following is equivalent to % 0x464FFFFF, without using modulo
+     * operation which may be expensive on embedded targets. For
+     * uint32_t and this divisor, it may loop up to 3 times. */
+    while (temp >= UINT32_C(0x464FFFFF))
+        temp -= UINT32_C(0x464FFFFF);
+    if (temp == 0)
     {
-        p_kiss->mwc_lower = temp ^ UINT32_C(0xFFFFFFFF);
+        /* Any integer multiple of 0x464FFFFF, including 0, is a bad state.
+         * Use an alternate state value by inverting the original value. */
+        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
+        while (temp >= UINT32_C(0x464FFFFF))
+            temp -= UINT32_C(0x464FFFFF);
     }
+
+    p_kiss->mwc_lower = temp;
 }
 
 static inline void kiss_sanitize_shr3(SimpleRandomKISS_t * p_kiss)
@@ -628,6 +690,7 @@ void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data,
                     break;
                 case 2:
                     p_kiss->cong ^= *p_data;
+                    /* Cong doesn't need sanitise; all states are valid. */
                     kiss_next_cong(p_kiss);
                     break;
                 case 3:
@@ -698,14 +761,29 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, u
 
 void simplerandom_mwc64_sanitize(SimpleRandomMWC64_t * p_mwc)
 {
-    uint64_t    seed64;
+    uint64_t    state64_orig;
+    uint64_t    temp64;
+    bool        was_changed = false;
 
-    seed64 = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
-    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    state64_orig = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
+    temp64 = state64_orig;
+    if (temp64 >= UINT64_C(0x29A65EACFFFFFFFF))
+    {
+        temp64 %= UINT64_C(0x29A65EACFFFFFFFF);
+        was_changed = true;
+    }
+    if (temp64 == 0)
     {
         /* Invert both upper and lower to get a good seed. */
-        p_mwc->mwc_upper ^= UINT32_C(0xFFFFFFFF);
-        p_mwc->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+        temp64 = state64_orig;
+        temp64 ^= UINT64_C(0xFFFFFFFFFFFFFFFF);
+        temp64 %= UINT64_C(0x29A65EACFFFFFFFF);
+        was_changed = true;
+    }
+    if (was_changed)
+    {
+        p_mwc->mwc_upper = (uint32_t)(temp64 >> 32u);
+        p_mwc->mwc_lower = (uint32_t)temp64;
     }
 }
 
@@ -818,14 +896,29 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
 
 static inline void kiss2_sanitize_mwc64(SimpleRandomKISS2_t * p_kiss2)
 {
-    uint64_t    seed64;
+    uint64_t    state64_orig;
+    uint64_t    temp64;
+    bool        was_changed = false;
 
-    seed64 = ((uint64_t)p_kiss2->mwc_upper << 32u) + p_kiss2->mwc_lower;
-    if ((seed64 % UINT64_C(0x29A65EACFFFFFFFF)) == 0)
+    state64_orig = ((uint64_t)p_kiss2->mwc_upper << 32u) + p_kiss2->mwc_lower;
+    temp64 = state64_orig;
+    if (temp64 >= UINT64_C(0x29A65EACFFFFFFFF))
+    {
+        temp64 %= UINT64_C(0x29A65EACFFFFFFFF);
+        was_changed = true;
+    }
+    if (temp64 == 0)
     {
         /* Invert both upper and lower to get a good seed. */
-        p_kiss2->mwc_upper ^= UINT32_C(0xFFFFFFFF);
-        p_kiss2->mwc_lower ^= UINT32_C(0xFFFFFFFF);
+        temp64 = state64_orig;
+        temp64 ^= UINT64_C(0xFFFFFFFFFFFFFFFF);
+        temp64 %= UINT64_C(0x29A65EACFFFFFFFF);
+        was_changed = true;
+    }
+    if (was_changed)
+    {
+        p_kiss2->mwc_upper = (uint32_t)(temp64 >> 32u);
+        p_kiss2->mwc_lower = (uint32_t)temp64;
     }
 }
 
@@ -919,6 +1012,7 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
                     break;
                 case 2:
                     p_kiss2->cong ^= *p_data;
+                    /* Cong doesn't need sanitise; all states are valid. */
                     kiss2_next_cong(p_kiss2);
                     break;
                 case 3:
@@ -940,7 +1034,8 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
  ********/
 
 #define LFSR_SEED_SHIFT         16u
-#define LFSR_SEED_ALT_SHIFT     24u
+#define LFSR_SEED(X)            ((X) ^ ((X) << LFSR_SEED_SHIFT))
+#define LFSR_ALT_SEED(X)        ((X) << LFSR_SEED_SHIFT)
 
 #define LFSR_SEED_Z1_MIN_VALUE  2u
 #define LFSR_SEED_Z2_MIN_VALUE  8u
@@ -998,10 +1093,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     uint32_t    working_seed;
 
     /* Seed z1 */
-    working_seed = seed_z1 ^ (seed_z1 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z1);
     if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
     {
-        working_seed = seed_z1 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z1);
         if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1010,10 +1105,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z1 = working_seed;
 
     /* Seed z2 */
-    working_seed = seed_z2 ^ (seed_z2 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z2);
     if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
     {
-        working_seed = seed_z2 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z2);
         if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1022,10 +1117,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z2 = working_seed;
 
     /* Seed z3 */
-    working_seed = seed_z3 ^ (seed_z3 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z3);
     if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
     {
-        working_seed = seed_z3 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z3);
         if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1034,10 +1129,10 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
     p_lfsr113->z3 = working_seed;
 
     /* Seed z4 */
-    working_seed = seed_z4 ^ (seed_z4 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z4);
     if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
     {
-        working_seed = seed_z4 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z4);
         if (working_seed < LFSR_SEED_Z4_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1257,10 +1352,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
     uint32_t    working_seed;
 
     /* Seed z1 */
-    working_seed = seed_z1 ^ (seed_z1 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z1);
     if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
     {
-        working_seed = seed_z1 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z1);
         if (working_seed < LFSR_SEED_Z1_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1269,10 +1364,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
     p_lfsr88->z1 = working_seed;
 
     /* Seed z2 */
-    working_seed = seed_z2 ^ (seed_z2 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z2);
     if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
     {
-        working_seed = seed_z2 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z2);
         if (working_seed < LFSR_SEED_Z2_MIN_VALUE)
         {
             working_seed = ~working_seed;
@@ -1281,10 +1376,10 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
     p_lfsr88->z2 = working_seed;
 
     /* Seed z3 */
-    working_seed = seed_z3 ^ (seed_z3 << LFSR_SEED_SHIFT);
+    working_seed = LFSR_SEED(seed_z3);
     if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
     {
-        working_seed = seed_z3 << LFSR_SEED_ALT_SHIFT;
+        working_seed = LFSR_ALT_SEED(seed_z3);
         if (working_seed < LFSR_SEED_Z3_MIN_VALUE)
         {
             working_seed = ~working_seed;

@@ -110,6 +110,22 @@ class CongTest(unittest.TestCase):
         """Test that __iter__ member function is present"""
         iter_object = iter(self.rng)
 
+    def test_init(self):
+        rng1 = self.RNG_CLASS(self.rng_seeds)
+        rng2 = self.RNG_CLASS(*self.rng_seeds)
+        self.assertEqual(rng1.getstate(), rng2.getstate())
+        rng3 = self.RNG_CLASS(self.rng_seeds, 12345)
+        self.assertEqual(rng1.getstate(), rng3.getstate())
+        rng4 = self.RNG_CLASS(self.rng_seeds, 12345, mix_extras=True)
+        self.assertNotEqual(rng1.getstate(), rng4.getstate())
+
+    def test_mix(self):
+        self.mix_values = [ random.randrange(self.RNG_RANGE) for _i in range(10001) ]
+        rng1 = self.RNG_CLASS(self.rng_seeds)
+        rng1.mix(self.mix_values)
+        rng2 = self.RNG_CLASS(self.rng_seeds + self.mix_values, mix_extras=True)
+        self.assertEqual(rng1.getstate(), rng2.getstate())
+
     def test_jumpahead(self):
         try:
             self.rng.jumpahead(0)
