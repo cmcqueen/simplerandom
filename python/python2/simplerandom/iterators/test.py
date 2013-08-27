@@ -45,6 +45,12 @@ class Marsaglia1999Tests(unittest.TestCase):
             k = shr3.next()
         self.assertEqual(k, 1153302609)
 
+    def test_shr3_jumpahead_thousands(self):
+        shr3 = sri.SHR3(3360276411)
+        for i in range(1, 10000 + 1):
+            shr3_jumpahead = sri.SHR3(3360276411)
+            self.assertEqual(shr3.next(), shr3_jumpahead.jumpahead(i))
+
     def test_mwc1_million(self):
         mwc = sri.MWC1(2374144069, 1046675282)
         for i in range(1000000):
