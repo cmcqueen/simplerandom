@@ -1,4 +1,6 @@
 
+from _bitcolumnmatrix import BitColumnMatrix
+
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.
     This allows generator __init__() functions to be passed seeds either as
@@ -124,99 +126,6 @@ class Cong(object):
         return self.cong
 
 
-class Galois2ColumnMatrix(object):
-    @staticmethod
-    def unity(n):
-        columns = []
-        value = 1
-        for _i in range(n):
-            columns.append(value)
-            value <<= 1
-        return Galois2ColumnMatrix(columns)
-
-    def __init__(self, columns, do_copy=True):
-        if do_copy:
-            self.columns = list(columns)
-        else:
-            self.columns = columns
-
-    def __add__(self, other):
-        if len(self.columns) != len(other):
-            raise IndexError("Matrices are not of same width")
-        result_columns = []
-        for i, column in enumerate(other):
-            result_columns.append(self.columns[i] ^ int(column))
-        return Galois2ColumnMatrix(result_columns, do_copy=False)
-
-    def __len__(self):
-        return len(self.columns)
-
-    def __iter__(self):
-        return iter(self.columns)
-
-    def __sub__(self, other):
-        return self.__add__(other)
-
-    def __mul__(self, other):
-        try:
-            other_len = len(other)
-        except TypeError:
-            # Single value
-            x = int(other)
-            value = 0
-            for column in self.columns:
-                if (x & 1):
-                    value ^= column
-                x >>= 1
-            return value
-        else:
-            # Matrix multiplication
-            if len(self.columns) != other_len:
-                raise IndexError("Matrices are not of same width")
-            result_columns = []
-            for other_column in other:
-                x = int(other_column)
-                value = 0
-                for column in self.columns:
-                    if (x & 1):
-                        value ^= column
-                    x >>= 1
-                result_columns.append(value)
-            return Galois2ColumnMatrix(result_columns, do_copy=False)
-
-    def __imul__(self, other):
-        try:
-            other_len = len(other)
-        except TypeError:
-            # Single value. Not suitable for __imul__.
-            return NotImplemented
-        else:
-            # Matrix multiplication
-            if len(self.columns) != other_len:
-                raise IndexError("Matrices are not of same width")
-            result_columns = []
-            for other_column in other:
-                x = int(other_column)
-                value = 0
-                for column in self.columns:
-                    if (x & 1):
-                        value ^= column
-                    x >>= 1
-                result_columns.append(value)
-            self.columns = result_columns
-            return self
-
-    def __pow__(self, other):
-        n = int(other)
-        result = Galois2ColumnMatrix.unity(len(self))
-        self_exp = Galois2ColumnMatrix(self.columns)
-        while n != 0:
-            if n & 1:
-                result = self_exp * result
-            self_exp *= self_exp
-            n >>= 1
-        return result
-
 class SHR3(object):
     '''3-shift-register random number generator
 
@@ -236,14 +145,11 @@ class SHR3(object):
 
     SIMPLERANDOM_MOD = 2**32
     SHR3_CYCLE_LEN = 2**32 - 1
-    _SHR3_MATRIX_COLUMNS = [
-        0x00042021, 0x00084042, 0x00108084, 0x00210108, 0x00420231, 0x00840462, 0x010808C4, 0x02101188,
-        0x04202310, 0x08404620, 0x10808C40, 0x21011880, 0x42023100, 0x84046200, 0x0808C400, 0x10118800,
-        0x20231000, 0x40462021, 0x808C4042, 0x01080084, 0x02100108, 0x04200210, 0x08400420, 0x10800840,
-        0x21001080, 0x42002100, 0x84004200, 0x08008400, 0x10010800, 0x20021000, 0x40042000, 0x80084000,
-    ]
 
-    _SHR3_MATRIX = Galois2ColumnMatrix(_SHR3_MATRIX_COLUMNS)
+    _SHR3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
+    _SHR3_MATRIX_b = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,-17)
+    _SHR3_MATRIX_c = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,5)
+    _SHR3_MATRIX = _SHR3_MATRIX_c + _SHR3_MATRIX_b * _SHR3_MATRIX_a
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -790,6 +696,33 @@ class LFSR113(object):
     P. L'Ecuyer
     Mathematics of Computation, 68, 225 (1999), 261-269.
     '''
+    _LFSR113_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,6)
+    _LFSR113_1_MATRIX_b = BitColumnMatrix.shift(32,-13)
+    _LFSR113_1_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR113_1_MATRIX_c.columns[0] = 0
+    _LFSR113_1_MATRIX_d = BitColumnMatrix.shift(32,18)
+    _LFSR113_1_MATRIX = _LFSR113_1_MATRIX_d * _LFSR113_1_MATRIX_c + _LFSR113_1_MATRIX_b * _LFSR113_1_MATRIX_a
+
+    _LFSR113_2_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,2)
+    _LFSR113_2_MATRIX_b = BitColumnMatrix.shift(32,-27)
+    _LFSR113_2_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR113_2_MATRIX_c.columns[0:3] = [ 0, 0, 0 ]
+    _LFSR113_2_MATRIX_d = BitColumnMatrix.shift(32,2)
+    _LFSR113_2_MATRIX = _LFSR113_2_MATRIX_d * _LFSR113_2_MATRIX_c + _LFSR113_2_MATRIX_b * _LFSR113_2_MATRIX_a
+
+    _LFSR113_3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
+    _LFSR113_3_MATRIX_b = BitColumnMatrix.shift(32,-21)
+    _LFSR113_3_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR113_3_MATRIX_c.columns[0:4] = [ 0, 0, 0, 0 ]
+    _LFSR113_3_MATRIX_d = BitColumnMatrix.shift(32,7)
+    _LFSR113_3_MATRIX = _LFSR113_3_MATRIX_d * _LFSR113_3_MATRIX_c + _LFSR113_3_MATRIX_b * _LFSR113_3_MATRIX_a
+
+    _LFSR113_4_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,3)
+    _LFSR113_4_MATRIX_b = BitColumnMatrix.shift(32,-12)
+    _LFSR113_4_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR113_4_MATRIX_c.columns[0:7] = [ 0, 0, 0, 0, 0, 0, 0 ]
+    _LFSR113_4_MATRIX_d = BitColumnMatrix.shift(32,13)
+    _LFSR113_4_MATRIX = _LFSR113_4_MATRIX_d * _LFSR113_4_MATRIX_c + _LFSR113_4_MATRIX_b * _LFSR113_4_MATRIX_a
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
