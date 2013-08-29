@@ -1,4 +1,7 @@
 
+from cython cimport view
+import numbers
+
 cdef extern from "types.h":
     ctypedef unsigned long uint64_t
     ctypedef unsigned int uint32_t
@@ -6,8 +9,9 @@ cdef extern from "types.h":
 
 cdef class BitColumnMatrix(object):
 
-    cdef public list columns
-
+    #cdef public array columns
+    cdef public view.array columns  # = view.array(shape=(32,), itemsize=sizeof(unsigned long), format="L")
+    
     @staticmethod
     def unity(n):
         columns = []
@@ -36,66 +40,75 @@ cdef class BitColumnMatrix(object):
                     value = 0
         return BitColumnMatrix(columns)
 
-    def __init__(self, columns, do_copy=True):
-        if do_copy:
-            self.columns = list(columns)
+    def __init__(self, columns=None, do_copy=True):
+        if isinstance(columns, BitColumnMatrix):
+            self.columns[:] = columns.columns[:]
+        elif isinstance(columns, numbers.Integral):
+            if columns > 32:
+                raise NotImplementedError
+            self.columns = view.array(shape=(columns,), itemsize=sizeof(unsigned long), format="L")
         else:
-            self.columns = columns
+            columns_len = len(columns)
+            if columns_len > 32:
+                raise NotImplementedError
+            self.columns = view.array(shape=(columns_len,), itemsize=sizeof(unsigned long), format="L")
+            for i, column in enumerate(columns):
+                self.columns[i] = int(column)
 
     def __len__(self):
-        return len(self.columns)
+        return self.columns.shape[0]
 
     def __iter__(self):
         return iter(self.columns)
 
     def __add__(x, y):
-        if not isinstance(x, BitColumnMatrix):
+        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
             return NotImplemented
-        if len(x.columns) != len(y):
+        if len(x) != len(y):
             raise IndexError("Matrices are not of same width")
-        result_columns = []
-        for i, column in enumerate(y):
-            result_columns.append(x.columns[i] ^ int(column))
-        return BitColumnMatrix(result_columns, do_copy=False)
+        result = BitColumnMatrix(len(x))
+        for i in range(len(x)):
+            result.columns[i] = x.columns[i] ^ y.columns[i]
+        return result
 
     def __sub__(x, y):
-        if not isinstance(x, BitColumnMatrix):
+        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
             return NotImplemented
-        if len(x.columns) != len(y):
+        if len(x) != len(y):
             raise IndexError("Matrices are not of same width")
-        result_columns = []
-        for i, column in enumerate(y):
-            result_columns.append(x.columns[i] ^ int(column))
-        return BitColumnMatrix(result_columns, do_copy=False)
+        result = BitColumnMatrix(len(x))
+        for i in range(len(x)):
+            result.columns[i] = x.columns[i] ^ y.columns[i]
+        return result
 
     def __mul__(x, y):
+        cdef uint32_t yy
+        cdef uint32_t value
         if not isinstance(x, BitColumnMatrix):
             return NotImplemented
-        try:
-            y_len = len(y)
-        except TypeError:
+        if isinstance(y, numbers.Integral):
             # Single value
             yy = int(y)
             value = 0
-            for column in x.columns:
+            for i in range(len(x)):
                 if (yy & 1):
-                    value ^= column
+                    value ^= x.column[i]
                 yy >>= 1
             return value
         else:
             # Matrix multiplication
-            if len(x.columns) != y_len:
+            if len(x) != len(y):
                 raise IndexError("Matrices are not of same width")
-            result_columns = []
-            for y_column in y:
-                yy = int(y_column)
+            result = BitColumnMatrix(len(x))
+            for j in range(len(y)):
+                yy = int(y.columns[j])
                 value = 0
-                for column in x.columns:
+                for i in range(len(x)):
                     if (yy & 1):
-                        value ^= column
+                        value ^= x.column[i]
                     yy >>= 1
-                result_columns.append(value)
-            return BitColumnMatrix(result_columns, do_copy=False)
+                result.columns[j] = value
+            return result
 
     def __imul__(self, other):
         try:
@@ -126,7 +139,7 @@ cdef class BitColumnMatrix(object):
             return NotImplemented
         n = int(y)
         result = BitColumnMatrix.unity(len(x))
-        x_exp = BitColumnMatrix(x.columns)
+        x_exp = BitColumnMatrix(x)
         while n != 0:
             if n & 1:
                 result = x_exp * result
