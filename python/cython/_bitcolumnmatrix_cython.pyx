@@ -37,9 +37,10 @@ cdef class BitColumnMatrix(object):
         return BitColumnMatrix(columns)
 
     def __init__(self, columns, do_copy=True):
-        self.columns = [ 0 ] * len(columns)
-        for i, column in enumerate(columns):
-            self.columns[i] = column
+        if do_copy:
+            self.columns = list(columns)
+        else:
+            self.columns = columns
 
     def __len__(self):
         return len(self.columns)
