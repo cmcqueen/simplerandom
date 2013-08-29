@@ -4,6 +4,8 @@ cdef extern from "types.h":
     ctypedef unsigned int uint32_t
     ctypedef unsigned char uint8_t
 
+from simplerandom._bitcolumnmatrix import BitColumnMatrix
+
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.
     This allows generator __init__() functions to be passed seeds either as
@@ -139,6 +141,15 @@ cdef class Cong(object):
         self.cong = mult_exp * self.cong + add_const
         return self.cong
 
+SHR3_CYCLE_LEN = 2**32 - 1
+_SHR3_MATRIX_COLUMNS = [
+    0x00042021, 0x00084042, 0x00108084, 0x00210108, 0x00420231, 0x00840462, 0x010808C4, 0x02101188,
+    0x04202310, 0x08404620, 0x10808C40, 0x21011880, 0x42023100, 0x84046200, 0x0808C400, 0x10118800,
+    0x20231000, 0x40462021, 0x808C4042, 0x01080084, 0x02100108, 0x04200210, 0x08400420, 0x10800840,
+    0x21001080, 0x42002100, 0x84004200, 0x08008400, 0x10010800, 0x20021000, 0x40042000, 0x80084000,
+]
+
+_SHR3_MATRIX = BitColumnMatrix(_SHR3_MATRIX_COLUMNS)
 
 cdef class SHR3(object):
     '''3-shift-register random number generator
@@ -213,7 +224,10 @@ cdef class SHR3(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        n = int(n) % SHR3_CYCLE_LEN
+        shr3 = pow(_SHR3_MATRIX, n) * self.shr3
+        self.shr3 = shr3
+        return shr3
 
 
 cdef class MWC1(object):

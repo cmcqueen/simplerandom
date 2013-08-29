@@ -1,5 +1,5 @@
 
-from _bitcolumnmatrix import BitColumnMatrix
+from simplerandom._bitcolumnmatrix import BitColumnMatrix
 
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.

@@ -38,11 +38,13 @@ elif sys.version_info[0] == 3:
 if USE_CYTHON:
     ext_modules += [
         Extension("simplerandom.iterators._iterators_cython", [ "cython/_iterators_cython.pyx" ]),
+        Extension("simplerandom._bitcolumnmatrix._bitcolumnmatrix_cython", [ "cython/_bitcolumnmatrix_cython.pyx" ]),
     ]
     cmdclass.update({ 'build_ext': build_ext })
 else:
     ext_modules += [
         Extension("simplerandom.iterators._iterators_cython", [ "cython/_iterators_cython.c" ]),
+        Extension("simplerandom._bitcolumnmatrix._bitcolumnmatrix_cython", [ "cython/_bitcolumnmatrix_cython.c" ]),
     ]
 
 setup(
@@ -52,7 +54,7 @@ setup(
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
     url='http://bitbucket.org/cmcqueen1975/simplerandom/',
-    packages=[ 'simplerandom', 'simplerandom.iterators', 'simplerandom.random', 'simplerandom._version', ],
+    packages=[ 'simplerandom', 'simplerandom.iterators', 'simplerandom.random', 'simplerandom._bitcolumnmatrix', 'simplerandom._version', ],
     package_dir={
         'simplerandom' : base_dir + '/simplerandom',
         'simplerandom._version' : '_version',
