@@ -9,7 +9,8 @@ cdef class BitColumnMatrix(object):
     cdef public list columns
 
     @staticmethod
-    def unity(n):
+    def unity(uint32_t n):
+        cdef uint32_t value
         columns = []
         value = 1
         for _i in range(n):
@@ -18,7 +19,8 @@ cdef class BitColumnMatrix(object):
         return BitColumnMatrix(columns)
 
     @staticmethod
-    def shift(n, shift_value):
+    def shift(n, uint32_t shift_value):
+        cdef uint32_t value
         columns = []
         if shift_value >= 0:
             value = 1 << shift_value
@@ -49,7 +51,8 @@ cdef class BitColumnMatrix(object):
         return iter(self.columns)
 
     def __add__(x, y):
-        if not isinstance(x, BitColumnMatrix):
+        cdef uint32_t column
+        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
             return NotImplemented
         if len(x.columns) != len(y):
             raise IndexError("Matrices are not of same width")
@@ -59,7 +62,8 @@ cdef class BitColumnMatrix(object):
         return BitColumnMatrix(result_columns, do_copy=False)
 
     def __sub__(x, y):
-        if not isinstance(x, BitColumnMatrix):
+        cdef uint32_t column
+        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
             return NotImplemented
         if len(x.columns) != len(y):
             raise IndexError("Matrices are not of same width")
@@ -69,6 +73,8 @@ cdef class BitColumnMatrix(object):
         return BitColumnMatrix(result_columns, do_copy=False)
 
     def __mul__(x, y):
+        cdef uint32_t value
+        cdef uint32_t yy
         if not isinstance(x, BitColumnMatrix):
             return NotImplemented
         try:
@@ -98,6 +104,8 @@ cdef class BitColumnMatrix(object):
             return BitColumnMatrix(result_columns, do_copy=False)
 
     def __imul__(self, other):
+        cdef uint32_t value
+        cdef uint32_t yy
         try:
             other_len = len(other)
         except TypeError:
