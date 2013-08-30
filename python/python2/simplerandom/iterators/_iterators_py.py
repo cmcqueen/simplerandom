@@ -702,6 +702,7 @@ class LFSR113(object):
     _LFSR113_1_MATRIX_c.columns[0] = 0
     _LFSR113_1_MATRIX_d = BitColumnMatrix.shift(32,18)
     _LFSR113_1_MATRIX = _LFSR113_1_MATRIX_d * _LFSR113_1_MATRIX_c + _LFSR113_1_MATRIX_b * _LFSR113_1_MATRIX_a
+    _LFSR113_1_CYCLE_LEN = 2**(32 - 1) - 1
 
     _LFSR113_2_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,2)
     _LFSR113_2_MATRIX_b = BitColumnMatrix.shift(32,-27)
@@ -709,6 +710,7 @@ class LFSR113(object):
     _LFSR113_2_MATRIX_c.columns[0:3] = [ 0, 0, 0 ]
     _LFSR113_2_MATRIX_d = BitColumnMatrix.shift(32,2)
     _LFSR113_2_MATRIX = _LFSR113_2_MATRIX_d * _LFSR113_2_MATRIX_c + _LFSR113_2_MATRIX_b * _LFSR113_2_MATRIX_a
+    _LFSR113_2_CYCLE_LEN = 2**(32 - 3) - 1
 
     _LFSR113_3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _LFSR113_3_MATRIX_b = BitColumnMatrix.shift(32,-21)
@@ -716,6 +718,7 @@ class LFSR113(object):
     _LFSR113_3_MATRIX_c.columns[0:4] = [ 0, 0, 0, 0 ]
     _LFSR113_3_MATRIX_d = BitColumnMatrix.shift(32,7)
     _LFSR113_3_MATRIX = _LFSR113_3_MATRIX_d * _LFSR113_3_MATRIX_c + _LFSR113_3_MATRIX_b * _LFSR113_3_MATRIX_a
+    _LFSR113_3_CYCLE_LEN = 2**(32 - 4) - 1
 
     _LFSR113_4_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,3)
     _LFSR113_4_MATRIX_b = BitColumnMatrix.shift(32,-12)
@@ -723,6 +726,7 @@ class LFSR113(object):
     _LFSR113_4_MATRIX_c.columns[0:7] = [ 0, 0, 0, 0, 0, 0, 0 ]
     _LFSR113_4_MATRIX_d = BitColumnMatrix.shift(32,13)
     _LFSR113_4_MATRIX = _LFSR113_4_MATRIX_d * _LFSR113_4_MATRIX_c + _LFSR113_4_MATRIX_b * _LFSR113_4_MATRIX_a
+    _LFSR113_4_CYCLE_LEN = 2**(32 - 7) - 1
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -811,7 +815,21 @@ class LFSR113(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        n_1 = int(n) % self._LFSR113_1_CYCLE_LEN
+        n_2 = int(n) % self._LFSR113_2_CYCLE_LEN
+        n_3 = int(n) % self._LFSR113_3_CYCLE_LEN
+        n_4 = int(n) % self._LFSR113_4_CYCLE_LEN
+
+        z1 = pow(self._LFSR113_1_MATRIX, n_1) * self.z1
+        self.z1 = z1
+        z2 = pow(self._LFSR113_2_MATRIX, n_2) * self.z2
+        self.z2 = z2
+        z3 = pow(self._LFSR113_3_MATRIX, n_3) * self.z3
+        self.z3 = z3
+        z4 = pow(self._LFSR113_4_MATRIX, n_4) * self.z4
+        self.z4 = z4
+
+        return self.current()
 
 
 class LFSR88(object):
@@ -826,6 +844,29 @@ class LFSR88(object):
     P. L'Ecuyer
     Mathematics of Computation, 65, 213 (1996), 203-213. 
     '''
+    _LFSR88_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
+    _LFSR88_1_MATRIX_b = BitColumnMatrix.shift(32,-19)
+    _LFSR88_1_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR88_1_MATRIX_c.columns[0] = 0
+    _LFSR88_1_MATRIX_d = BitColumnMatrix.shift(32,12)
+    _LFSR88_1_MATRIX = _LFSR88_1_MATRIX_d * _LFSR88_1_MATRIX_c + _LFSR88_1_MATRIX_b * _LFSR88_1_MATRIX_a
+    _LFSR88_1_CYCLE_LEN = 2**(32 - 1) - 1
+
+    _LFSR88_2_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,2)
+    _LFSR88_2_MATRIX_b = BitColumnMatrix.shift(32,-25)
+    _LFSR88_2_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR88_2_MATRIX_c.columns[0:3] = [ 0, 0, 0 ]
+    _LFSR88_2_MATRIX_d = BitColumnMatrix.shift(32,4)
+    _LFSR88_2_MATRIX = _LFSR88_2_MATRIX_d * _LFSR88_2_MATRIX_c + _LFSR88_2_MATRIX_b * _LFSR88_2_MATRIX_a
+    _LFSR88_2_CYCLE_LEN = 2**(32 - 3) - 1
+
+    _LFSR88_3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,3)
+    _LFSR88_3_MATRIX_b = BitColumnMatrix.shift(32,-11)
+    _LFSR88_3_MATRIX_c = BitColumnMatrix.unity(32)
+    _LFSR88_3_MATRIX_c.columns[0:4] = [ 0, 0, 0, 0 ]
+    _LFSR88_3_MATRIX_d = BitColumnMatrix.shift(32,17)
+    _LFSR88_3_MATRIX = _LFSR88_3_MATRIX_d * _LFSR88_3_MATRIX_c + _LFSR88_3_MATRIX_b * _LFSR88_3_MATRIX_a
+    _LFSR88_3_CYCLE_LEN = 2**(32 - 4) - 1
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -902,5 +943,15 @@ class LFSR88(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        n_1 = int(n) % self._LFSR88_1_CYCLE_LEN
+        n_2 = int(n) % self._LFSR88_2_CYCLE_LEN
+        n_3 = int(n) % self._LFSR88_3_CYCLE_LEN
 
+        z1 = pow(self._LFSR88_1_MATRIX, n_1) * self.z1
+        self.z1 = z1
+        z2 = pow(self._LFSR88_2_MATRIX, n_2) * self.z2
+        self.z2 = z2
+        z3 = pow(self._LFSR88_3_MATRIX, n_3) * self.z3
+        self.z3 = z3
+
+        return self.current()
