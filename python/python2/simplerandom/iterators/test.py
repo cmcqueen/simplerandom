@@ -138,6 +138,8 @@ class CongTest(unittest.TestCase):
         except NotImplementedError:
             pass
         else:
+            # Do one 'next', to get past any unusual initial state.
+            self.rng.next()
             # Get the state
             rng_state = self.rng.getstate()
             # Jump ahead by cycle len
@@ -184,6 +186,7 @@ class MWC64Test(KISS2Test):
     RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
     MILLION_RESULT = 2191957470
+    RNG_CYCLE_LEN = 698769069 * 2**32 // 2 - 1
 
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.

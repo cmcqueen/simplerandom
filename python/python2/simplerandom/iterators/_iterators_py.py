@@ -220,6 +220,12 @@ class MWC2(object):
     L'Ecuyer's TestU01 test suite, so it should probably
     be preferred.
     '''
+    _MWC_UPPER_MULT = 36969
+    _MWC_LOWER_MULT = 18000
+    _MWC_UPPER_MODULO = _MWC_UPPER_MULT * 2**16 - 1
+    _MWC_LOWER_MODULO = _MWC_LOWER_MULT * 2**16 - 1
+    _MWC_UPPER_CYCLE_LEN = _MWC_UPPER_MULT * 2**16 // 2 - 1
+    _MWC_LOWER_CYCLE_LEN = _MWC_LOWER_MULT * 2**16 // 2 - 1
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -247,16 +253,16 @@ class MWC2(object):
     def _sanitise_upper(self):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
-        # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffff
+        # _MWC_UPPER_MODULO -- that is 0x9068FFFF (which is 36969 * 2**16 - 1).
+        sanitised_value = mwc_upper_orig % 0x9068FFFF
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFF) % 0x9068ffff
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFF) % 0x9068FFFF
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
         # There are a few bad states--that is, any multiple of
-        # 0x464FFFFF (which is 18000 * 2**16 - 1).
+        # _MWC_LOWER_MODULO -- that is 0x464FFFFF (which is 18000 * 2**16 - 1).
         sanitised_value = mwc_lower_orig % 0x464FFFFF
         if sanitised_value == 0:
             # Invert to get a good seed.
@@ -269,6 +275,11 @@ class MWC2(object):
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
 
     def next(self):
+        # Note: this is apparently equivalent to:
+        # self.mwc_upper = (36969 * self.mwc_upper) % 0x9068FFFF
+        # self.mwc_lower = (18000 * self.mwc_lower) % 0x464FFFFF
+        # See Random Number Generation, Pierre L’Ecuyer, section 3.6 Linear Recurrences With Carry
+        # http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.136.6898&rep=rep1&type=pdf
         self.mwc_upper = 36969 * (self.mwc_upper & 0xFFFF) + (self.mwc_upper >> 16)
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
         return self.current()       # call self.current() so that MWC1 can over-ride it
@@ -304,7 +315,12 @@ class MWC2(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        # See next() note on functional equivalence.
+        n_upper = int(n) % self._MWC_UPPER_CYCLE_LEN
+        self.mwc_upper = pow(self._MWC_UPPER_MULT, n_upper, self._MWC_UPPER_MODULO) * self.mwc_upper % self._MWC_UPPER_MODULO
+        n_lower = int(n) % self._MWC_LOWER_CYCLE_LEN
+        self.mwc_lower = pow(self._MWC_LOWER_MULT, n_lower, self._MWC_LOWER_MODULO) * self.mwc_lower % self._MWC_LOWER_MODULO
+        return self.current()
 
 
 class MWC1(MWC2):
@@ -338,6 +354,7 @@ class MWC1(MWC2):
     # We have to over-ride this again, because of the way property() works.
     mwc = property(current)
 
+
 class MWC64(object):
     '''"Multiply-with-carry" random number generator
 
@@ -345,6 +362,9 @@ class MWC64(object):
     generate a 32-bit value. The seeds should be 32-bit
     values.
     '''
+    _MWC64_MULT = 698769069
+    _MWC64_MODULO = _MWC64_MULT * 2**32 - 1
+    _MWC64_CYCLE_LEN = _MWC64_MULT * 2**32 // 2 - 1
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -383,6 +403,10 @@ class MWC64(object):
             self.mwc_lower = temp & 0xFFFFFFFF
 
     def next(self):
+        # Note: this is apparently equivalent to:
+        # temp64 = (self.mwc_upper << 32) + self.mwc_lower
+        # temp64 = (698769069 * temp64) % 0x29A65EACFFFFFFFF
+        # See reference in MWC2.next().
         temp64 = 698769069 * self.mwc_lower + self.mwc_upper
         self.mwc_lower = temp64 & 0xFFFFFFFF
         self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
@@ -417,7 +441,14 @@ class MWC64(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        # See MWC2.next() note on functional equivalence.
+        n = int(n) % self._MWC64_CYCLE_LEN
+        temp64 = (self.mwc_upper << 32) + self.mwc_lower
+        temp64 = pow(self._MWC64_MULT, n, self._MWC64_MODULO) * temp64 % self._MWC64_MODULO
+        self.mwc_lower = temp64 & 0xFFFFFFFF
+        self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
+        return self.mwc_lower
+
 
 class KISS(object):
     '''"Keep It Simple Stupid" random number generator
