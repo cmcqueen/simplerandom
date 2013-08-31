@@ -285,10 +285,10 @@ cdef class MWC1(object):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -399,10 +399,10 @@ cdef class MWC2(object):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -618,10 +618,10 @@ cdef class KISS(object):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
         self.mwc_upper = sanitised_value
     def _sanitise_mwc_lower(self):
         mwc_lower_orig = self.mwc_lower
