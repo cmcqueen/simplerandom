@@ -149,7 +149,7 @@ class SHR3(object):
     _SHR3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _SHR3_MATRIX_b = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,-17)
     _SHR3_MATRIX_c = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,5)
-    _SHR3_MATRIX = _SHR3_MATRIX_c + _SHR3_MATRIX_b * _SHR3_MATRIX_a
+    _SHR3_MATRIX = _SHR3_MATRIX_c * _SHR3_MATRIX_b * _SHR3_MATRIX_a
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
