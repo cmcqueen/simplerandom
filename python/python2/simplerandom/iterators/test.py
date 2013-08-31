@@ -205,12 +205,14 @@ class LFSR113Test(KISS2Test):
     RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
     MILLION_RESULT = 300959510
+    RNG_CYCLE_LEN = (2**(32 - 1) - 1) * (2**(32 - 3) - 1) * (2**(32 - 4) - 1) * (2**(32 - 7) - 1)
 
 
 class LFSR88Test(KISS2Test):
     RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
     MILLION_RESULT = 3774296834
+    RNG_CYCLE_LEN = (2**(32 - 1) - 1) * (2**(32 - 3) - 1) * (2**(32 - 4) - 1)
 
 
 def runtests():
