@@ -33,23 +33,11 @@ class Marsaglia1999Tests(unittest.TestCase):
             k = cong.next()
         self.assertEqual(k, 2416584377)
 
-    def test_cong_jumpahead_million(self):
-        cong = sri.Cong(2051391225)
-        for i in range(1, 1000000 + 1):
-            cong_jumpahead = sri.Cong(2051391225)
-            self.assertEqual(cong.next(), cong_jumpahead.jumpahead(i))
-
     def test_shr3_million(self):
         shr3 = sri.SHR3(3360276411)
         for i in range(1000000):
             k = shr3.next()
         self.assertEqual(k, 1153302609)
-
-    def test_shr3_jumpahead_thousands(self):
-        shr3 = sri.SHR3(3360276411)
-        for i in range(1, 10000 + 1):
-            shr3_jumpahead = sri.SHR3(3360276411)
-            self.assertEqual(shr3.next(), shr3_jumpahead.jumpahead(i))
 
     def test_mwc1_million(self):
         mwc = sri.MWC1(2374144069, 1046675282)
@@ -133,23 +121,26 @@ class CongTest(unittest.TestCase):
         self.assertEqual(rng1.getstate(), rng2.getstate())
 
     def test_jumpahead(self):
-        try:
-            self.rng.jumpahead(0)
-        except NotImplementedError:
-            pass
-        else:
-            # Get the state
-            rng_state = self.rng.getstate()
-            # Jump ahead by cycle len
-            self.rng.jumpahead(self.RNG_CYCLE_LEN)
-            # See that state hasn't changed
-            self.assertEqual(rng_state, self.rng.getstate())
-
-            # Jump ahead 1, then back 1
-            self.rng.jumpahead(1)
-            self.rng.jumpahead(-1)
-            # See that state hasn't changed
-            self.assertEqual(rng_state, self.rng.getstate())
+        # Do one 'next', to get past any unusual initial state.
+        self.rng.next()
+        # Get the state
+        rng_state = self.rng.getstate()
+        # Jump ahead by cycle len
+        self.rng.jumpahead(self.RNG_CYCLE_LEN)
+        # See that state hasn't changed
+        self.assertEqual(rng_state, self.rng.getstate())
+    
+        # Jump ahead 1, then back 1
+        self.rng.jumpahead(1)
+        self.rng.jumpahead(-1)
+        # See that state hasn't changed
+        self.assertEqual(rng_state, self.rng.getstate())
+    
+        jumpahead_rng = self.RNG_CLASS()
+        jumpahead_rng_start_state = self.rng.getstate()
+        for i in range(1, 10000 + 1):
+            jumpahead_rng.setstate(jumpahead_rng_start_state)
+            self.assertEqual(self.rng.next(), jumpahead_rng.jumpahead(i))
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
@@ -166,6 +157,8 @@ class KISS2Test(CongTest):
     RNG_CLASS = sri.KISS2
     RNG_SEEDS = 4
     MILLION_RESULT = 4044786495
+    MWC64_CYCLE_LEN = 698769069 * 2**32 // 2 - 1
+    RNG_CYCLE_LEN = MWC64_CYCLE_LEN * CongTest.RNG_CYCLE_LEN * SHR3Test.RNG_CYCLE_LEN
 
     def test_million(self):
         rng = self.RNG_CLASS()
@@ -184,6 +177,7 @@ class MWC64Test(KISS2Test):
     RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
     MILLION_RESULT = 2191957470
+    RNG_CYCLE_LEN = 698769069 * 2**32 // 2 - 1
 
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.
@@ -205,12 +199,14 @@ class LFSR113Test(KISS2Test):
     RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
     MILLION_RESULT = 300959510
+    RNG_CYCLE_LEN = (2**(32 - 1) - 1) * (2**(32 - 3) - 1) * (2**(32 - 4) - 1) * (2**(32 - 7) - 1)
 
 
 class LFSR88Test(KISS2Test):
     RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
     MILLION_RESULT = 3774296834
+    RNG_CYCLE_LEN = (2**(32 - 1) - 1) * (2**(32 - 3) - 1) * (2**(32 - 4) - 1)
 
 
 def runtests():

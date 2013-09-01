@@ -141,7 +141,7 @@ cdef class Cong(object):
         self.cong = mult_exp * self.cong + add_const
         return self.cong
 
-SHR3_CYCLE_LEN = 2**32 - 1
+cdef uint32_t SHR3_CYCLE_LEN = 2u**32u - 1u
 _SHR3_MATRIX_COLUMNS = [
     0x00042021, 0x00084042, 0x00108084, 0x00210108, 0x00420231, 0x00840462, 0x010808C4, 0x02101188,
     0x04202310, 0x08404620, 0x10808C40, 0x21011880, 0x42023100, 0x84046200, 0x0808C400, 0x10118800,
@@ -224,11 +224,19 @@ cdef class SHR3(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        n = int(n) % SHR3_CYCLE_LEN
-        shr3 = pow(_SHR3_MATRIX, n) * self.shr3
+        cdef uint32_t n_shr3
+        n_shr3 = n % SHR3_CYCLE_LEN
+        shr3 = pow(_SHR3_MATRIX, n_shr3) * self.shr3
         self.shr3 = shr3
         return shr3
 
+
+cdef uint32_t _MWC_UPPER_MULT = 36969u
+cdef uint32_t _MWC_LOWER_MULT = 18000u
+cdef uint32_t _MWC_UPPER_MODULO = _MWC_UPPER_MULT * 2u**16u - 1u
+cdef uint32_t _MWC_LOWER_MODULO = _MWC_LOWER_MULT * 2u**16u - 1u
+cdef uint32_t _MWC_UPPER_CYCLE_LEN = _MWC_UPPER_MULT * 2u**16u // 2u - 1u
+cdef uint32_t _MWC_LOWER_CYCLE_LEN = _MWC_LOWER_MULT * 2u**16u // 2u - 1u
 
 cdef class MWC1(object):
     '''"Multiply-with-carry" random number generator
@@ -285,10 +293,10 @@ cdef class MWC1(object):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -353,7 +361,14 @@ cdef class MWC1(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        cdef uint64_t n_int
+        n_int = n % _MWC_UPPER_CYCLE_LEN
+        # The following calculation needs to be done in greater than 32-bit.
+        self.mwc_upper = pow(<uint64_t>_MWC_UPPER_MULT, n_int, <uint64_t>_MWC_UPPER_MODULO) * self.mwc_upper % _MWC_UPPER_MODULO
+        n_int = n % _MWC_LOWER_CYCLE_LEN
+        # The following calculation needs to be done in greater than 32-bit.
+        self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
+        return self.current()
 
 
 cdef class MWC2(object):
@@ -399,10 +414,10 @@ cdef class MWC2(object):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -467,8 +482,19 @@ cdef class MWC2(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        cdef uint64_t n_int
+        n_int = n % _MWC_UPPER_CYCLE_LEN
+        # The following calculation needs to be done in greater than 32-bit.
+        self.mwc_upper = pow(<uint64_t>_MWC_UPPER_MULT, n_int, <uint64_t>_MWC_UPPER_MODULO) * self.mwc_upper % _MWC_UPPER_MODULO
+        n_int = n % _MWC_LOWER_CYCLE_LEN
+        # The following calculation needs to be done in greater than 32-bit.
+        self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
+        return self.current()
 
+
+cdef uint64_t _MWC64_MULT = 698769069u
+cdef uint64_t _MWC64_MODULO = _MWC64_MULT * 2u**32u - 1u
+cdef uint64_t _MWC64_CYCLE_LEN = _MWC64_MULT * 2u**32u // 2u - 1u
 
 cdef class MWC64(object):
     '''"Multiply-with-carry" random number generator
@@ -564,7 +590,13 @@ cdef class MWC64(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        n = n % _MWC64_CYCLE_LEN
+        temp64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        # The following calculation needs to be done in greater than 64-bit.
+        temp64 = pow(int(_MWC64_MULT), n, int(_MWC64_MODULO)) * temp64 % _MWC64_MODULO
+        self.mwc_lower = temp64 & 0xFFFFFFFFu
+        self.mwc_upper = (temp64 >> 32u) & 0xFFFFFFFFu
+        return self.mwc_lower
 
 
 cdef class KISS(object):
@@ -618,10 +650,10 @@ cdef class KISS(object):
         mwc_upper_orig = self.mwc_upper
         # There are a few bad states--that is, any multiple of
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
-        sanitised_value = mwc_upper_orig % 0x9068ffffu
+        sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
             # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068ffffu
+            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
         self.mwc_upper = sanitised_value
     def _sanitise_mwc_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -726,7 +758,35 @@ cdef class KISS(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        # Cong variables
+        cdef uint32_t n_int
+        cdef uint32_t mult_exp
+        cdef uint64_t add_const_exp
+        cdef uint32_t add_const_part
+        cdef uint32_t add_const
+
+        # MWC2
+        n_int = n % _MWC_UPPER_CYCLE_LEN
+        # The following calculation needs to be done in greater than 32-bit.
+        self.mwc_upper = pow(<uint64_t>_MWC_UPPER_MULT, n_int, <uint64_t>_MWC_UPPER_MODULO) * self.mwc_upper % _MWC_UPPER_MODULO
+        n_int = n % _MWC_LOWER_CYCLE_LEN
+        # The following calculation needs to be done in greater than 32-bit.
+        self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
+
+        # Cong
+        n_int = n % CONG_CYCLE_LEN
+        mult_exp = CONG_MULT**n_int
+        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
+        add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
+        add_const = add_const_part * CONG_CONST
+        self.cong = mult_exp * self.cong + add_const
+
+        # SHR3
+        n_int = n % SHR3_CYCLE_LEN
+        shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
+        self.shr3 = shr3
+
+        return self.current()
 
 
 cdef class KISS2(object):
@@ -888,7 +948,35 @@ cdef class KISS2(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        # Cong variables
+        cdef uint32_t n_int
+        cdef uint32_t mult_exp
+        cdef uint64_t add_const_exp
+        cdef uint32_t add_const_part
+        cdef uint32_t add_const
+
+        # MWC64
+        n_mwc = n % _MWC64_CYCLE_LEN
+        temp64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        # The following calculation needs to be done in greater than 64-bit.
+        temp64 = pow(int(_MWC64_MULT), n_mwc, int(_MWC64_MODULO)) * temp64 % _MWC64_MODULO
+        self.mwc_lower = temp64 & 0xFFFFFFFFu
+        self.mwc_upper = (temp64 >> 32u) & 0xFFFFFFFFu
+
+        # Cong
+        n_int = n % CONG_CYCLE_LEN
+        mult_exp = CONG_MULT**n_int
+        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
+        add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
+        add_const = add_const_part * CONG_CONST
+        self.cong = mult_exp * self.cong + add_const
+
+        # SHR3
+        n_int = n % SHR3_CYCLE_LEN
+        shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
+        self.shr3 = shr3
+
+        return self.current()
 
 
 def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
@@ -941,6 +1029,39 @@ def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
         seed ^= 0xFFFFFFFFu
     return seed
 
+
+_LFSR113_1_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000001,
+    0x04000002, 0x08000004, 0x10000008, 0x20000010, 0x40000020, 0x80000041, 0x00000082, 0x00000104,
+    0x00000208, 0x00000410, 0x00000820, 0x00001040, 0x00002080, 0x00004100, 0x00008200, 0x00010400,
+    0x00020800, 0x00041000, 0x00002000, 0x00004000, 0x00008000, 0x00010000, 0x00020000, 0x00040000
+])
+_LFSR113_1_CYCLE_LEN = 2**(32 - 1) - 1
+
+_LFSR113_2_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000040, 0x00000080, 0x00000100, 0x00000200,
+    0x00000400, 0x00000800, 0x00001000, 0x00002000, 0x00004000, 0x00008000, 0x00010000, 0x00020000,
+    0x00040000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000000,
+    0x04000000, 0x08000001, 0x10000002, 0x20000005, 0x4000000A, 0x80000014, 0x00000008, 0x00000010
+])
+_LFSR113_2_CYCLE_LEN = 2**(32 - 3) - 1
+
+_LFSR113_3_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000800, 0x00001000, 0x00002000, 0x00004000,
+    0x00008001, 0x00010002, 0x00020004, 0x00040008, 0x00080010, 0x00100020, 0x00200040, 0x00400080,
+    0x00800100, 0x01000200, 0x02000400, 0x04000000, 0x08000000, 0x10000001, 0x20000002, 0x40000004,
+    0x80000008, 0x00000010, 0x00000020, 0x00000040, 0x00000080, 0x00000100, 0x00000200, 0x00000400
+])
+_LFSR113_3_CYCLE_LEN = 2**(32 - 4) - 1
+
+_LFSR113_4_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00100000,
+    0x00200000, 0x00400001, 0x00800002, 0x01000004, 0x02000009, 0x04000012, 0x08000024, 0x10000048,
+    0x20000090, 0x40000120, 0x80000240, 0x00000480, 0x00000900, 0x00001200, 0x00002400, 0x00004800,
+    0x00009000, 0x00012000, 0x00024000, 0x00048000, 0x00090000, 0x00020000, 0x00040000, 0x00080000
+])
+_LFSR113_4_CYCLE_LEN = 2**(32 - 7) - 1
+
 cdef class LFSR113(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
@@ -953,7 +1074,6 @@ cdef class LFSR113(object):
     P. L'Ecuyer
     Mathematics of Computation, 68, 225 (1999), 261–269.
     '''
-
     cdef public uint32_t z1
     cdef public uint32_t z2
     cdef public uint32_t z3
@@ -1057,8 +1177,46 @@ cdef class LFSR113(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        n_1 = int(n) % _LFSR113_1_CYCLE_LEN
+        n_2 = int(n) % _LFSR113_2_CYCLE_LEN
+        n_3 = int(n) % _LFSR113_3_CYCLE_LEN
+        n_4 = int(n) % _LFSR113_4_CYCLE_LEN
 
+        z1 = pow(_LFSR113_1_MATRIX, n_1) * self.z1
+        self.z1 = z1
+        z2 = pow(_LFSR113_2_MATRIX, n_2) * self.z2
+        self.z2 = z2
+        z3 = pow(_LFSR113_3_MATRIX, n_3) * self.z3
+        self.z3 = z3
+        z4 = pow(_LFSR113_4_MATRIX, n_4) * self.z4
+        self.z4 = z4
+
+        return self.current()
+
+
+_LFSR88_1_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00002000, 0x00004000, 0x00008000, 0x00010000, 0x00020000, 0x00040001, 0x00080002,
+    0x00100004, 0x00200008, 0x00400010, 0x00800020, 0x01000040, 0x02000080, 0x04000100, 0x08000200,
+    0x10000400, 0x20000800, 0x40001000, 0x80000001, 0x00000002, 0x00000004, 0x00000008, 0x00000010,
+    0x00000020, 0x00000040, 0x00000080, 0x00000100, 0x00000200, 0x00000400, 0x00000800, 0x00001000
+])
+_LFSR88_1_CYCLE_LEN = 2**(32 - 1) - 1
+
+_LFSR88_2_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000100, 0x00000200, 0x00000400, 0x00000800,
+    0x00001000, 0x00002000, 0x00004000, 0x00008000, 0x00010000, 0x00020000, 0x00040000, 0x00080000,
+    0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000000, 0x04000000, 0x08000001,
+    0x10000002, 0x20000005, 0x4000000A, 0x80000014, 0x00000028, 0x00000050, 0x00000020, 0x00000040
+])
+_LFSR88_2_CYCLE_LEN = 2**(32 - 3) - 1
+
+_LFSR88_3_MATRIX = BitColumnMatrix([
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00200000, 0x00400000, 0x00800000, 0x01000000,
+    0x02000001, 0x04000002, 0x08000004, 0x10000009, 0x20000012, 0x40000024, 0x80000048, 0x00000090,
+    0x00000120, 0x00000240, 0x00000480, 0x00000900, 0x00001200, 0x00002400, 0x00004800, 0x00009000,
+    0x00012000, 0x00024000, 0x00048000, 0x00090000, 0x00120000, 0x00040000, 0x00080000, 0x00100000
+])
+_LFSR88_3_CYCLE_LEN = 2**(32 - 4) - 1
 
 cdef class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -1161,5 +1319,16 @@ cdef class LFSR88(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        n_1 = int(n) % _LFSR88_1_CYCLE_LEN
+        n_2 = int(n) % _LFSR88_2_CYCLE_LEN
+        n_3 = int(n) % _LFSR88_3_CYCLE_LEN
+
+        z1 = pow(_LFSR88_1_MATRIX, n_1) * self.z1
+        self.z1 = z1
+        z2 = pow(_LFSR88_2_MATRIX, n_2) * self.z2
+        self.z2 = z2
+        z3 = pow(_LFSR88_3_MATRIX, n_3) * self.z3
+        self.z3 = z3
+
+        return self.current()
 
