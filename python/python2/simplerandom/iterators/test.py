@@ -121,31 +121,26 @@ class CongTest(unittest.TestCase):
         self.assertEqual(rng1.getstate(), rng2.getstate())
 
     def test_jumpahead(self):
-        try:
-            self.rng.jumpahead(0)
-        except NotImplementedError:
-            pass
-        else:
-            # Do one 'next', to get past any unusual initial state.
-            self.rng.next()
-            # Get the state
-            rng_state = self.rng.getstate()
-            # Jump ahead by cycle len
-            self.rng.jumpahead(self.RNG_CYCLE_LEN)
-            # See that state hasn't changed
-            self.assertEqual(rng_state, self.rng.getstate())
-
-            # Jump ahead 1, then back 1
-            self.rng.jumpahead(1)
-            self.rng.jumpahead(-1)
-            # See that state hasn't changed
-            self.assertEqual(rng_state, self.rng.getstate())
-
-            jumpahead_rng = self.RNG_CLASS()
-            jumpahead_rng_start_state = self.rng.getstate()
-            for i in range(1, 10000 + 1):
-                jumpahead_rng.setstate(jumpahead_rng_start_state)
-                self.assertEqual(self.rng.next(), jumpahead_rng.jumpahead(i))
+        # Do one 'next', to get past any unusual initial state.
+        self.rng.next()
+        # Get the state
+        rng_state = self.rng.getstate()
+        # Jump ahead by cycle len
+        self.rng.jumpahead(self.RNG_CYCLE_LEN)
+        # See that state hasn't changed
+        self.assertEqual(rng_state, self.rng.getstate())
+    
+        # Jump ahead 1, then back 1
+        self.rng.jumpahead(1)
+        self.rng.jumpahead(-1)
+        # See that state hasn't changed
+        self.assertEqual(rng_state, self.rng.getstate())
+    
+        jumpahead_rng = self.RNG_CLASS()
+        jumpahead_rng_start_state = self.rng.getstate()
+        for i in range(1, 10000 + 1):
+            jumpahead_rng.setstate(jumpahead_rng_start_state)
+            self.assertEqual(self.rng.next(), jumpahead_rng.jumpahead(i))
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
@@ -162,6 +157,8 @@ class KISS2Test(CongTest):
     RNG_CLASS = sri.KISS2
     RNG_SEEDS = 4
     MILLION_RESULT = 4044786495
+    MWC64_CYCLE_LEN = 698769069 * 2**32 // 2 - 1
+    RNG_CYCLE_LEN = MWC64_CYCLE_LEN * CongTest.RNG_CYCLE_LEN * SHR3Test.RNG_CYCLE_LEN
 
     def test_million(self):
         rng = self.RNG_CLASS()

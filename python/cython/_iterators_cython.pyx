@@ -590,8 +590,8 @@ cdef class MWC64(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        n = int(n) % _MWC64_CYCLE_LEN
-        temp64 = (<uint64_t>self.mwc_upper << 32) + self.mwc_lower
+        n = n % _MWC64_CYCLE_LEN
+        temp64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
         # The following calculation needs to be done in greater than 64-bit.
         temp64 = pow(int(_MWC64_MULT), n, int(_MWC64_MODULO)) * temp64 % _MWC64_MODULO
         self.mwc_lower = temp64 & 0xFFFFFFFFu
@@ -948,7 +948,35 @@ cdef class KISS2(object):
         self.sanitise()
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        # Cong variables
+        cdef uint32_t n_int
+        cdef uint32_t mult_exp
+        cdef uint64_t add_const_exp
+        cdef uint32_t add_const_part
+        cdef uint32_t add_const
+
+        # MWC64
+        n_mwc = n % _MWC64_CYCLE_LEN
+        temp64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
+        # The following calculation needs to be done in greater than 64-bit.
+        temp64 = pow(int(_MWC64_MULT), n_mwc, int(_MWC64_MODULO)) * temp64 % _MWC64_MODULO
+        self.mwc_lower = temp64 & 0xFFFFFFFFu
+        self.mwc_upper = (temp64 >> 32u) & 0xFFFFFFFFu
+
+        # Cong
+        n_int = n % CONG_CYCLE_LEN
+        mult_exp = CONG_MULT**n_int
+        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
+        add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
+        add_const = add_const_part * CONG_CONST
+        self.cong = mult_exp * self.cong + add_const
+
+        # SHR3
+        n_int = n % SHR3_CYCLE_LEN
+        shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
+        self.shr3 = shr3
+
+        return self.current()
 
 
 def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):

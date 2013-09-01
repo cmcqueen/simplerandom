@@ -529,7 +529,10 @@ class KISS(object):
         self.random_shr3.setstate(shr3_state)
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        self.random_mwc.jumpahead(n)
+        self.random_cong.jumpahead(n)
+        self.random_shr3.jumpahead(n)
+        return self.current()
 
     def _get_mwc_upper(self):
         return self.random_mwc.mwc_upper
@@ -639,7 +642,10 @@ class KISS2(object):
         self.random_shr3.setstate(shr3_state)
 
     def jumpahead(self, n):
-        raise NotImplementedError
+        self.random_mwc.jumpahead(n)
+        self.random_cong.jumpahead(n)
+        self.random_shr3.jumpahead(n)
+        return self.current()
 
     def _get_mwc_upper(self):
         return self.random_mwc.mwc_upper
