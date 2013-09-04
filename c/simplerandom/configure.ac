@@ -3,6 +3,8 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.68)
 AC_INIT([simplerandom], [0.6.0]) #set project name and version
 AC_PROG_CC
+# C++ used for testing with cxxtest
+AC_PROG_CXX
 
 #AC_CANONICAL_SYSTEM
 
@@ -31,6 +33,18 @@ LT_INIT
 dnl Check if Libtool is present
 dnl Libtool is used for building share libraries 
 AC_PROG_LIBTOOL
+
+AC_ARG_WITH([cxxtest], AS_HELP_STRING([--with-cxxtest], [Build with cxxtest library]))
+AS_IF([test "x$with_cxxtest" = "xyes"], [
+    AC_DEFINE([WITH_CXXTEST], [1], [Enable cxxtest for testing])
+	AC_LANG_PUSH([C++])
+	AC_CHECK_HEADERS([cxxtest/TestSuite.h], [],
+		[AC_MSG_ERROR(You need the cxxtest library.)])
+	AC_LANG_POP([C++])
+	AC_PATH_PROG([CXXTESTGEN], [cxxtestgen], [no])
+	AS_IF([test "${CXXTESTGEN}" == "no"], [AC_MSG_ERROR([cxxtest compiler "cxxtestgen" not found.])])
+])
+AM_CONDITIONAL([WITH_CXXTEST], [test "x$with_cxxtest" = "xyes"])
 
 AC_OUTPUT
 
