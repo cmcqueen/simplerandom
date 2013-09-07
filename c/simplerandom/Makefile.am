@@ -14,7 +14,7 @@ lib_LTLIBRARIES = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
 library_include_simplerandomdir=$(includedir)/@PACKAGE_NAME@-@PACKAGE_VERSION@
 library_include_simplerandom_HEADERS = simplerandom.h
-lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = simplerandom.c
+lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = simplerandom.c simplerandom-jumpahead.c bitcolumnmatrix.c bitcolumnmatrix.h pow.c pow.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = @PACKAGE_NAME@.pc

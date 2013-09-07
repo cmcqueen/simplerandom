@@ -3,6 +3,7 @@
 
 #include <time.h>
 
+#define CXXTEST_HAVE_EH
 #include <cxxtest/TestSuite.h>
 #include <iostream>
 
@@ -12,6 +13,7 @@ public:
     virtual size_t num_seeds() = 0;
     virtual uint32_t get_million_result() = 0;
     virtual uint32_t next() = 0;
+    virtual uint32_t jumpahead(uintmax_t n) = 0;
 };
 
 class SimpleRandomWrapperCong : public SimpleRandomWrapper
@@ -25,6 +27,7 @@ public:
     uint32_t get_million_result() { return 2416584377u; }
 
     uint32_t next() { return simplerandom_cong_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_cong_jumpahead(&rng, n); }
 };
 
 class SimpleRandomWrapperSHR3 : public SimpleRandomWrapper
@@ -38,6 +41,7 @@ public:
     uint32_t get_million_result() { return 1153302609u; }
 
     uint32_t next() { return simplerandom_shr3_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_shr3_jumpahead(&rng, n); }
 };
 
 class SimpleRandomWrapperMWC1 : public SimpleRandomWrapper
@@ -51,6 +55,7 @@ public:
     uint32_t get_million_result() { return 904977562u; }
 
     uint32_t next() { return simplerandom_mwc1_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc1_jumpahead(&rng, n); }
 };
 
 class SimpleRandomWrapperMWC2 : public SimpleRandomWrapper
@@ -64,6 +69,41 @@ public:
     uint32_t get_million_result() { return 767834450u; }
 
     uint32_t next() { return simplerandom_mwc2_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc2_jumpahead(&rng, n); }
+};
+
+class SimpleRandomWrapperLFSR113 : public SimpleRandomWrapper
+{
+private:
+    SimpleRandomLFSR113_t  rng;
+public:
+    SimpleRandomWrapperLFSR113() { simplerandom_lfsr113_seed(&rng, 0, 0, 0, 0); }
+    SimpleRandomWrapperLFSR113(uint32_t seed1, uint32_t seed2, uint32_t seed3, uint32_t seed4)
+    {
+        simplerandom_lfsr113_seed(&rng, seed1, seed2, seed3, seed4);
+    }
+    size_t num_seeds() { return 4; }
+    uint32_t get_million_result() { return 300959510; }
+
+    uint32_t next() { return simplerandom_lfsr113_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_lfsr113_jumpahead(&rng, n); }
+};
+
+class SimpleRandomWrapperLFSR88 : public SimpleRandomWrapper
+{
+private:
+    SimpleRandomLFSR88_t  rng;
+public:
+    SimpleRandomWrapperLFSR88() { simplerandom_lfsr88_seed(&rng, 0, 0, 0); }
+    SimpleRandomWrapperLFSR88(uint32_t seed1, uint32_t seed2, uint32_t seed3)
+    {
+        simplerandom_lfsr88_seed(&rng, seed1, seed2, seed3);
+    }
+    size_t num_seeds() { return 3; }
+    uint32_t get_million_result() { return 3774296834; }
+
+    uint32_t next() { return simplerandom_lfsr88_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_lfsr88_jumpahead(&rng, n); }
 };
 
 
@@ -88,6 +128,10 @@ public:
     {
         rng = factory((uint32_t)time(NULL));
     }
+    void tearDown()
+    {
+        delete rng;
+    }
     void testMillion()
     {
         SimpleRandomWrapper * million_rng;
@@ -100,6 +144,32 @@ public:
         }
         TS_ASSERT_EQUALS(result, million_rng->get_million_result());
         delete million_rng;
+    }
+    void testJumpahead()
+    {
+        SimpleRandomWrapper * jumpahead_rng;
+        SimpleRandomWrapper * thousand_rng;
+        uint32_t result_jumpahead;
+        uint32_t result_thousand;
+
+        CxxTest::setAbortTestOnFail(true);
+        thousand_rng = factory();
+        for (uint32_t i = 1; i < 10001; i++)
+        {
+            result_thousand = thousand_rng->next();
+            jumpahead_rng = factory();
+            result_jumpahead = jumpahead_rng->jumpahead(i);
+            TS_ASSERT_EQUALS(result_jumpahead, result_thousand);
+            if (result_jumpahead != result_thousand)
+            {
+                std::ostringstream out_temp;
+                out_temp << "failed at i = " << i;
+                TS_TRACE(out_temp.str().c_str());
+                break;
+            }
+            delete jumpahead_rng;
+        }
+        delete thousand_rng;
     }
 };
 
@@ -153,5 +223,44 @@ public:
     SimpleRandomWrapper * factory()
     {
         return new SimpleRandomWrapperMWC2();
+    }
+};
+
+class SimplerandomLFSR113Test : public SimplerandomCongTest
+{
+public:
+    SimpleRandomWrapper * factory(uint32_t single_seed)
+    {
+        SimpleRandomCong_t  seed_rng;
+
+        simplerandom_cong_seed(&seed_rng, single_seed);
+
+        return new SimpleRandomWrapperLFSR113(simplerandom_cong_next(&seed_rng),
+                                                simplerandom_cong_next(&seed_rng),
+                                                simplerandom_cong_next(&seed_rng),
+                                                simplerandom_cong_next(&seed_rng));
+    }
+    SimpleRandomWrapper * factory()
+    {
+        return new SimpleRandomWrapperLFSR113();
+    }
+};
+
+class SimplerandomLFSR88Test : public SimplerandomCongTest
+{
+public:
+    SimpleRandomWrapper * factory(uint32_t single_seed)
+    {
+        SimpleRandomCong_t  seed_rng;
+
+        simplerandom_cong_seed(&seed_rng, single_seed);
+
+        return new SimpleRandomWrapperLFSR88(simplerandom_cong_next(&seed_rng),
+                                                simplerandom_cong_next(&seed_rng),
+                                                simplerandom_cong_next(&seed_rng));
+    }
+    SimpleRandomWrapper * factory()
+    {
+        return new SimpleRandomWrapperLFSR88();
     }
 };

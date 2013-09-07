@@ -313,11 +313,6 @@ static inline void mwc2_next_lower(SimpleRandomMWC2_t * p_mwc)
     p_mwc->mwc_lower = 18000u * (p_mwc->mwc_lower & 0xFFFFu) + (p_mwc->mwc_lower >> 16u);
 }
 
-static inline uint32_t mwc2_current(SimpleRandomMWC2_t * p_mwc)
-{
-    return (p_mwc->mwc_upper << 16u) + (p_mwc->mwc_upper >> 16u) + p_mwc->mwc_lower;
-}
-
 /*
  * This is almost identical to simplerandom_mwc1_next(), except that when
  * combining the upper and lower values in the last step, the upper 16 bits of
@@ -426,11 +421,6 @@ void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uin
 void simplerandom_mwc1_sanitize(SimpleRandomMWC1_t * p_mwc)
 {
     simplerandom_mwc2_sanitize(p_mwc);
-}
-
-static inline uint32_t mwc1_current(SimpleRandomMWC1_t * p_mwc)
-{
-    return (p_mwc->mwc_upper << 16u) + p_mwc->mwc_lower;
 }
 
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
