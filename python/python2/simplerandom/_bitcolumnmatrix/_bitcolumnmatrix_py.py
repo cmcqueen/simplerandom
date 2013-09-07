@@ -104,9 +104,11 @@ class BitColumnMatrix(object):
         n = int(other)
         result = BitColumnMatrix.unity(len(self))
         self_exp = BitColumnMatrix(self.columns)
-        while n != 0:
+        while True:
             if n & 1:
                 result = self_exp * result
-            self_exp *= self_exp
             n >>= 1
+            if n == 0:
+                break
+            self_exp *= self_exp
         return result

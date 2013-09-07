@@ -23,7 +23,7 @@ cdef class BitColumnMatrix(object):
         return result
 
     @staticmethod
-    def shift(uint32_t n, uint32_t shift_value):
+    def shift(uint32_t n, int shift_value):
         cdef uint32_t value
         cdef BitColumnMatrix result = BitColumnMatrix(int(n))
         if shift_value >= 0:
@@ -67,7 +67,7 @@ cdef class BitColumnMatrix(object):
 #     def __iter__(self):
 #         return iter(self.columns)
 
-    def __add__(x, y):
+    def __add__(BitColumnMatrix x, BitColumnMatrix y):
         cdef BitColumnMatrix result
         if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
             return NotImplemented
@@ -78,7 +78,7 @@ cdef class BitColumnMatrix(object):
             result.columns[i] = x.columns[i] ^ y.columns[i]
         return result
 
-    def __sub__(x, y):
+    def __sub__(BitColumnMatrix x, BitColumnMatrix y):
         cdef BitColumnMatrix result
         if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
             return NotImplemented
