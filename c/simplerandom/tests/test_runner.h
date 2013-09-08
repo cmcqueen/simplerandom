@@ -1,4 +1,5 @@
 
+#define __STDC_CONSTANT_MACROS
 #include "simplerandom.h"
 
 #include <time.h>
@@ -71,6 +72,24 @@ public:
     uint32_t next() { return simplerandom_mwc2_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc2_jumpahead(&rng, n); }
 };
+
+#ifdef UINT64_C
+
+class SimpleRandomWrapperMWC64 : public SimpleRandomWrapper
+{
+private:
+    SimpleRandomMWC64_t  rng;
+public:
+    SimpleRandomWrapperMWC64() { simplerandom_mwc64_seed(&rng, 0, 0); }
+    SimpleRandomWrapperMWC64(uint32_t seed1, uint32_t seed2) { simplerandom_mwc64_seed(&rng, seed1, seed2); }
+    size_t num_seeds() { return 2; }
+    uint32_t get_million_result() { return 2191957470u; }
+
+    uint32_t next() { return simplerandom_mwc64_next(&rng); }
+    uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc64_jumpahead(&rng, n); }
+};
+
+#endif
 
 class SimpleRandomWrapperLFSR113 : public SimpleRandomWrapper
 {
@@ -225,6 +244,28 @@ public:
         return new SimpleRandomWrapperMWC2();
     }
 };
+
+#ifdef UINT64_C
+
+class SimplerandomMWC64Test : public SimplerandomCongTest
+{
+public:
+    SimpleRandomWrapper * factory(uint32_t single_seed)
+    {
+        SimpleRandomCong_t  seed_rng;
+
+        simplerandom_cong_seed(&seed_rng, single_seed);
+
+        return new SimpleRandomWrapperMWC64(simplerandom_cong_next(&seed_rng),
+                                            simplerandom_cong_next(&seed_rng));
+    }
+    SimpleRandomWrapper * factory()
+    {
+        return new SimpleRandomWrapperMWC64();
+    }
+};
+
+#endif
 
 class SimplerandomLFSR113Test : public SimplerandomCongTest
 {

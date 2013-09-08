@@ -120,6 +120,55 @@ uint32_t simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
 }
 
 
+/*********
+ * MWC2
+ *
+ * MWC1 and MWC2 are very similar, apart from deriving the final random value
+ * from the state. So they can share code. MWC2 is preferred, so we put MWC2
+ * first, and then MWC1 can call some MWC2 functions.
+ ********/
+
+#define _MWC_UPPER_MULT         36969u
+#define _MWC_LOWER_MULT         18000u
+#define _MWC_UPPER_MODULO       (_MWC_UPPER_MULT * (UINT32_C(1) << 16u) - 1u)
+#define _MWC_LOWER_MODULO       (_MWC_LOWER_MULT * (UINT32_C(1) << 16u) - 1u)
+#define _MWC_UPPER_CYCLE_LEN    (_MWC_UPPER_MULT * (UINT32_C(1) << 16u) / 2u - 1u)
+#define _MWC_LOWER_CYCLE_LEN    (_MWC_LOWER_MULT * (UINT32_C(1) << 16u) / 2u - 1u)
+
+/*
+ * This is almost identical to simplerandom_mwc1_jumpahead(), except that when
+ * combining the upper and lower values in the last step, the upper 16 bits of
+ * mwc_upper are added in too, instead of just being discarded.
+ */
+uint32_t simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
+{
+    uint32_t    mwc;
+
+    mwc = p_mwc->mwc_upper;
+    mwc = mul_mod_uint32(pow_mod_uint32(_MWC_UPPER_MULT, n, _MWC_UPPER_MODULO), mwc, _MWC_UPPER_MODULO);
+    p_mwc->mwc_upper = mwc;
+
+    mwc = p_mwc->mwc_lower;
+    mwc = mul_mod_uint32(pow_mod_uint32(_MWC_LOWER_MULT, n, _MWC_LOWER_MODULO), mwc, _MWC_LOWER_MODULO);
+    p_mwc->mwc_lower = mwc;
+
+    return mwc2_current(p_mwc);
+}
+
+
+/*********
+ * MWC1
+ *
+ * MWC1 is very similar to MWC2, so many functions can be shared.
+ ********/
+
+uint32_t simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
+{
+    simplerandom_mwc2_jumpahead(p_mwc, n);
+    return mwc1_current(p_mwc);
+}
+
+
 #ifdef UINT64_C
 
 /*********
@@ -157,54 +206,6 @@ uint32_t simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
 
 
 /*********
- * MWC2
- *
- * MWC1 and MWC2 are very similar, apart from deriving the final random value
- * from the state. So they can share code. MWC2 is preferred, so we put MWC2
- * first, and then MWC1 can call some MWC2 functions.
- ********/
-
-#define _MWC_UPPER_MULT         36969u
-#define _MWC_LOWER_MULT         18000u
-#define _MWC_UPPER_MODULO       (_MWC_UPPER_MULT * (UINT32_C(1) << 16u) - 1u)
-#define _MWC_LOWER_MODULO       (_MWC_LOWER_MULT * (UINT32_C(1) << 16u) - 1u)
-#define _MWC_UPPER_CYCLE_LEN    (_MWC_UPPER_MULT * (UINT32_C(1) << 16u) / 2u - 1u)
-#define _MWC_LOWER_CYCLE_LEN    (_MWC_LOWER_MULT * (UINT32_C(1) << 16u) / 2u - 1u)
-
-/*
- * This is almost identical to simplerandom_mwc1_jumpahead(), except that when
- * combining the upper and lower values in the last step, the upper 16 bits of
- * mwc_upper are added in too, instead of just being discarded.
- */
-uint32_t simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
-{
-    uint32_t    mwc;
-
-    mwc = p_mwc->mwc_upper;
-    mwc = (uint64_t)pow_mod_uint32(_MWC_UPPER_MULT, n, _MWC_UPPER_MODULO) * mwc % _MWC_UPPER_MODULO;
-    p_mwc->mwc_upper = mwc;
-
-    mwc = p_mwc->mwc_lower;
-    mwc = (uint64_t)pow_mod_uint32(_MWC_LOWER_MULT, n, _MWC_LOWER_MODULO) * mwc % _MWC_LOWER_MODULO;
-    p_mwc->mwc_lower = mwc;
-
-    return mwc2_current(p_mwc);
-}
-
-/*********
- * MWC1
- *
- * MWC1 is very similar to MWC2, so many functions can be shared.
- ********/
-
-uint32_t simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
-{
-    simplerandom_mwc2_jumpahead(p_mwc, n);
-    return mwc1_current(p_mwc);
-}
-
-
-/*********
  * KISS
  ********/
 
@@ -222,9 +223,20 @@ uint32_t simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
  * MWC64
  ********/
 
+#define _MWC64_MULT         UINT64_C(698769069)
+#define _MWC64_MODULO       (_MWC64_MULT * (UINT64_C(1) << 32u) - 1u)
+#define _MWC64_CYCLE_LEN    (_MWC64_MULT * (UINT64_C(1) << 32u) / 2u - 1u)
+
 uint32_t simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
 {
-    return 0;
+    uint64_t    mwc;
+
+    mwc = ((uint64_t)p_mwc->mwc_upper << 32u) + p_mwc->mwc_lower;
+    mwc = mul_mod_uint64(pow_mod_uint64(_MWC64_MULT, n, _MWC64_MODULO), mwc, _MWC64_MODULO);
+    p_mwc->mwc_upper = (uint32_t)(mwc >> 32u);
+    p_mwc->mwc_lower = (uint32_t)mwc;
+
+    return (uint32_t)mwc;
 }
 
 

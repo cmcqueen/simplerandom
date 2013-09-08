@@ -323,6 +323,7 @@ void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
 uint8_t simplerandom_mwc64_next_uint8(SimpleRandomMWC64_t * p_mwc);
 uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc);
+uint32_t simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n);
 
 /* KISS2 -- "Keep It Simple Stupid" random number generator
  *
