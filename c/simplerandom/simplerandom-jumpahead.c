@@ -211,11 +211,25 @@ uint32_t simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
 
 uint32_t simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
 {
-#if 0
+    SimpleRandomMWC2_t  rng_mwc;
+    SimpleRandomCong_t  rng_cong;
+    SimpleRandomSHR3_t  rng_shr3;
+
+    rng_mwc.mwc_upper   = p_kiss->mwc_upper;
+    rng_mwc.mwc_lower   = p_kiss->mwc_lower;
+    rng_cong.cong       = p_kiss->cong;
+    rng_shr3.shr3       = p_kiss->shr3;
+
+    simplerandom_mwc2_jumpahead(&rng_mwc, n);
+    simplerandom_cong_jumpahead(&rng_cong, n);
+    simplerandom_shr3_jumpahead(&rng_shr3, n);
+
+    p_kiss->mwc_upper   = rng_mwc.mwc_upper;
+    p_kiss->mwc_lower   = rng_mwc.mwc_lower;
+    p_kiss->cong        = rng_cong.cong;
+    p_kiss->shr3        = rng_shr3.shr3;
+
     return kiss_current(p_kiss);
-#else
-    return 0;
-#endif
 }
 
 
@@ -246,14 +260,25 @@ uint32_t simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
 
 uint32_t simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
 {
-#if 0
-    kiss2_jumpahead_mwc64(p_kiss2);
-    kiss2_jumpahead_cong(p_kiss2);
-    kiss2_jumpahead_shr3(p_kiss2);
+    SimpleRandomMWC64_t rng_mwc;
+    SimpleRandomCong_t  rng_cong;
+    SimpleRandomSHR3_t  rng_shr3;
+
+    rng_mwc.mwc_upper   = p_kiss2->mwc_upper;
+    rng_mwc.mwc_lower   = p_kiss2->mwc_lower;
+    rng_cong.cong       = p_kiss2->cong;
+    rng_shr3.shr3       = p_kiss2->shr3;
+
+    simplerandom_mwc64_jumpahead(&rng_mwc, n);
+    simplerandom_cong_jumpahead(&rng_cong, n);
+    simplerandom_shr3_jumpahead(&rng_shr3, n);
+
+    p_kiss2->mwc_upper  = rng_mwc.mwc_upper;
+    p_kiss2->mwc_lower  = rng_mwc.mwc_lower;
+    p_kiss2->cong       = rng_cong.cong;
+    p_kiss2->shr3       = rng_shr3.shr3;
+
     return kiss2_current(p_kiss2);
-#else
-    return 0;
-#endif
 }
 
 #endif /* defined(UINT64_C) */

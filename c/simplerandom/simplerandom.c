@@ -623,18 +623,6 @@ static inline void kiss_next_shr3(SimpleRandomKISS_t * p_kiss)
     p_kiss->shr3 = shr3;
 }
 
-static inline uint32_t kiss_current(SimpleRandomKISS_t * p_kiss)
-{
-    uint32_t    mwc2;
-    uint32_t    cong;
-    uint32_t    shr3;
-
-    mwc2 = (p_kiss->mwc_upper << 16u) + (p_kiss->mwc_upper >> 16u) + p_kiss->mwc_lower;
-    cong = p_kiss->cong;
-    shr3 = p_kiss->shr3;
-    return ((mwc2 ^ cong) + shr3);
-}
-
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
 {
     kiss_next_mwc_upper(p_kiss);
@@ -951,11 +939,6 @@ static inline void kiss2_next_shr3(SimpleRandomKISS2_t * p_kiss2)
     shr3 ^= (shr3 >> 17);
     shr3 ^= (shr3 << 5);
     p_kiss2->shr3 = shr3;
-}
-
-static inline uint32_t kiss2_current(SimpleRandomKISS2_t * p_kiss2)
-{
-    return (p_kiss2->mwc_lower + p_kiss2->cong + p_kiss2->shr3);
 }
 
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)

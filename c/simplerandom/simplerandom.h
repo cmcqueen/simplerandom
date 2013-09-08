@@ -302,6 +302,19 @@ void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data,
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
 uint8_t simplerandom_kiss_next_uint8(SimpleRandomKISS_t * p_kiss);
 uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss);
+uint32_t simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n);
+
+static inline uint32_t kiss_current(SimpleRandomKISS_t * p_kiss)
+{
+    uint32_t    mwc2;
+    uint32_t    cong;
+    uint32_t    shr3;
+
+    mwc2 = (p_kiss->mwc_upper << 16u) + (p_kiss->mwc_upper >> 16u) + p_kiss->mwc_lower;
+    cong = p_kiss->cong;
+    shr3 = p_kiss->shr3;
+    return ((mwc2 ^ cong) + shr3);
+}
 
 
 #ifdef UINT64_C
@@ -344,6 +357,12 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
 uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2);
 uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2);
+uint32_t simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n);
+
+static inline uint32_t kiss2_current(SimpleRandomKISS2_t * p_kiss2)
+{
+    return (p_kiss2->mwc_lower + p_kiss2->cong + p_kiss2->shr3);
+}
 
 #endif /* defined(UINT64_C) */
 
