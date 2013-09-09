@@ -12,15 +12,20 @@ class _StandardRandomTemplate(random.Random):
     RNG_RANGE = (1 << RNG_BITS)
     RNG_SEEDS = 1
 
-    def __init__(self, x = None):
+    def __init__(self, x=None):
         self.rng_iterator = self.RNG_CLASS()
         self.seed(x)
 
     def seed(self, seed=None):
-        seeder = random.Random(seed)
-        # Make some random seed values
-        seeds = [ seeder.randrange(self.RNG_RANGE) for _i in range(self.RNG_SEEDS) ]
-        self.rng_iterator.seed(*seeds)
+        seeds = []
+        if seed is None:
+            seed = 0
+        while True:
+            seeds.append(seed & 0xFFFFFFFF)
+            seed >>= self.RNG_BITS
+            if seed == 0:
+                break
+        self.rng_iterator.seed(seeds, mix_extras=True)
         self.f = 0
         self.bits = 0
 
