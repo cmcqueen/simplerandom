@@ -47,6 +47,9 @@ class _StandardRandomTemplate(random.Random):
                 recip_bpf = 1./(1 << bpf)
         return self.getrandbits(bpf) * recip_bpf
 
+    def jumpahead(self, n):
+        self.rng_iterator.jumpahead(n)
+
     def getstate(self):
         return self.f, self.bits, self.rng_iterator.getstate()
 
