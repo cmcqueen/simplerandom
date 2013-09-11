@@ -48,7 +48,16 @@ class _StandardRandomTemplate(random.Random):
         return self.getrandbits(bpf) * recip_bpf
 
     def jumpahead(self, n):
-        self.rng_iterator.jumpahead(n)
+        n_bits = n * self.BPF
+        if n_bits < self.bits:
+            self.bits -= n_bits
+        else:
+            n_more_bits = n_bits - self.bits
+            n_rng_words = n_more_bits // self.RNG_BITS
+            remove_bits = n_more_bits % self.RNG_BITS
+            self.f = self.rng_iterator.jumpahead(n_rng_words + 1)
+            self.bits = self.RNG_BITS - remove_bits
+            self.f &= ((1 << self.bits) - 1)
 
     def getstate(self):
         return self.f, self.bits, self.rng_iterator.getstate()
