@@ -2,6 +2,7 @@
 # Standard Python library
 import random
 import numbers
+import sys
 
 import simplerandom.iterators as sri
 
@@ -26,9 +27,16 @@ class _StandardRandomTemplate(random.Random):
         self.seed(x)
 
     def seed(self, seed=None):
-        seeds = []
         if seed is None:
             seed = 0
+        elif isinstance(seed, numbers.Integral):
+            if seed < 0:
+                seed = -seed
+        else:
+            seed = hash(seed)
+            if seed < 0:
+                seed %= ((sys.maxsize + 1) * 2)
+        seeds = []
         while True:
             seeds.append(seed & self.RNG_BITS_MASK)
             seed >>= self.RNG_BITS
