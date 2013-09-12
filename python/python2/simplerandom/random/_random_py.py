@@ -1,6 +1,7 @@
 
 # Standard Python library
 import random
+import numbers
 
 import simplerandom.iterators as sri
 
@@ -10,9 +11,17 @@ class _StandardRandomTemplate(random.Random):
     RECIP_BPF = random.RECIP_BPF
     RNG_BITS = 32
     RNG_RANGE = (1 << RNG_BITS)
+    RNG_BITS_MASK = RNG_RANGE - 1
     RNG_SEEDS = 1
 
-    def __init__(self, x=None):
+    def __init__(self, x=None, bpf=None):
+        if not bpf:
+            self.bpf = self.BPF
+            self.recip_bpf = self.RECIP_BPF
+        else:
+            self.bpf = bpf
+            self.recip_bpf = 1./(1 << bpf)
+
         self.rng_iterator = self.RNG_CLASS()
         self.seed(x)
 
@@ -21,7 +30,7 @@ class _StandardRandomTemplate(random.Random):
         if seed is None:
             seed = 0
         while True:
-            seeds.append(seed & 0xFFFFFFFF)
+            seeds.append(seed & self.RNG_BITS_MASK)
             seed >>= self.RNG_BITS
             if seed == 0:
                 break
@@ -38,17 +47,11 @@ class _StandardRandomTemplate(random.Random):
         self.f &= ((1 << self.bits) - 1)
         return x
 
-    def random(self, bpf=None, recip_bpf=None):
-        if not bpf:
-            bpf = self.BPF
-            recip_bpf = self.RECIP_BPF
-        else:
-            if not recip_bpf:
-                recip_bpf = 1./(1 << bpf)
-        return self.getrandbits(bpf) * recip_bpf
+    def random(self):
+        return self.getrandbits(self.bpf) * self.recip_bpf
 
     def jumpahead(self, n):
-        n_bits = n * self.BPF
+        n_bits = n * self.bpf
         if n_bits < self.bits:
             self.bits -= n_bits
         else:
