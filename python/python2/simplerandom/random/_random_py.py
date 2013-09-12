@@ -29,10 +29,7 @@ class _StandardRandomTemplate(random.Random):
     def seed(self, seed=None):
         if seed is None:
             seed = 0
-        elif isinstance(seed, numbers.Integral):
-            if seed < 0:
-                seed = -seed
-        else:
+        elif not isinstance(seed, numbers.Integral):
             seed = hash(seed)
             if seed < 0:
                 seed %= ((sys.maxsize + 1) * 2)
@@ -40,7 +37,7 @@ class _StandardRandomTemplate(random.Random):
         while True:
             seeds.append(seed & self.RNG_BITS_MASK)
             seed >>= self.RNG_BITS
-            if seed == 0:
+            if seed == 0 or seed == -1:
                 break
         self.rng_iterator.seed(seeds, mix_extras=True)
         self.f = 0
