@@ -1,11 +1,11 @@
 
 # Standard Python library
 import random
-import numbers
-import sys
+from numbers import Integral as _Integral
+from os import urandom as _urandom
+from binascii import hexlify as _hexlify
 
 import simplerandom.iterators as sri
-
 
 class _StandardRandomTemplate(random.Random):
     BPF = random.BPF
@@ -16,32 +16,59 @@ class _StandardRandomTemplate(random.Random):
     RNG_SEEDS = 1
 
     def __init__(self, x=None, bpf=None):
-        if not bpf:
-            self.bpf = self.BPF
-            self.recip_bpf = self.RECIP_BPF
-        else:
-            self.bpf = bpf
-            self.recip_bpf = 1./(1 << bpf)
-
+        """x is a seed. For consistent cross-platform seeding, provide
+        an integer seed.
+        bpf is "bits per float", the number of bits of random data used
+        to generate each output of random().
+        """
         self.rng_iterator = self.RNG_CLASS()
         self.seed(x)
 
+        if not bpf:
+            self._bpf = self.BPF
+            self._recip_bpf = self.RECIP_BPF
+        else:
+            self.setbpf(bpf)
+
     def seed(self, seed=None):
+        """For consistent cross-platform seeding, provide an integer seed.
+        """
         if seed is None:
-            seed = 0
-        elif not isinstance(seed, numbers.Integral):
+            # Use same random seed code copied from Python's random.Random
+            try:
+                seed = long(_hexlify(_urandom(16)), 16)
+            except NotImplementedError:
+                import time
+                seed = long(time.time() * 256) # use fractional seconds
+        elif not isinstance(seed, _Integral):
+            # Use the hash of the input seed object. Note this does not give
+            # consistent results cross-platform--between Python versions or
+            # between 32-bit and 64-bit systems.
             seed = hash(seed)
-            if seed < 0:
-                seed %= ((sys.maxsize + 1) * 2)
         seeds = []
         while True:
             seeds.append(seed & self.RNG_BITS_MASK)
             seed >>= self.RNG_BITS
+            # If seed is negative, then it effectively has infinitely extending
+            # '1' bits (modelled as a 2's complement representation). So when
+            # right-shifting it, it will eventually get to -1, and any further
+            # right-shifting will not change it.
             if seed == 0 or seed == -1:
                 break
         self.rng_iterator.seed(seeds, mix_extras=True)
         self.f = 0
         self.bits = 0
+
+    def getbpf(self):
+        """Get number of bits per float output"""
+        return self._bpf
+
+    def setbpf(self, bpf):
+        """Set number of bits per float output"""
+        self._bpf = bpf
+        self._recip_bpf = 1./(1 << bpf)
+
+    bpf = property(getbpf, setbpf, doc="bits per float")
 
     def getrandbits(self, k):
         while self.bits < k:
@@ -53,10 +80,17 @@ class _StandardRandomTemplate(random.Random):
         return x
 
     def random(self):
-        return self.getrandbits(self.bpf) * self.recip_bpf
+        return self.getrandbits(self._bpf) * self._recip_bpf
 
     def jumpahead(self, n):
-        n_bits = n * self.bpf
+        """Jump the random number generator ahead 'n' values of the
+        random() function.
+        This is a genuine jumpahead operation (unlike Python's standard
+        library Mersene Twister implementation), implemented for all
+        simplerandom generators. It is implemented in both Python 2
+        and Python 3.
+        """
+        n_bits = n * self._bpf
         if n_bits < self.bits:
             self.bits -= n_bits
         else:
