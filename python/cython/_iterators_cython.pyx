@@ -590,6 +590,8 @@ cdef class MWC64(object):
         self.sanitise()
 
     def jumpahead(self, n):
+        cdef uint64_t temp64
+
         n = n % _MWC64_CYCLE_LEN
         temp64 = (<uint64_t>self.mwc_upper << 32u) + self.mwc_lower
         # The following calculation needs to be done in greater than 64-bit.
@@ -954,6 +956,7 @@ cdef class KISS2(object):
         cdef uint64_t add_const_exp
         cdef uint32_t add_const_part
         cdef uint32_t add_const
+        cdef uint64_t temp64
 
         # MWC64
         n_mwc = n % _MWC64_CYCLE_LEN
