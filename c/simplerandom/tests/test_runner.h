@@ -13,7 +13,7 @@ class SimpleRandomWrapper
 public:
     virtual size_t num_seeds() = 0;
     virtual uint32_t get_million_result() = 0;
-    virtual uint32_t next() = 0;
+    virtual uint32_t operator()() = 0;
     virtual uint32_t jumpahead(uintmax_t n) = 0;
 };
 
@@ -27,7 +27,7 @@ public:
     size_t num_seeds() { return 1; }
     uint32_t get_million_result() { return 2416584377u; }
 
-    uint32_t next() { return simplerandom_cong_next(&rng); }
+    uint32_t operator()() { return simplerandom_cong_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_cong_jumpahead(&rng, n); }
 };
 
@@ -41,7 +41,7 @@ public:
     size_t num_seeds() { return 1; }
     uint32_t get_million_result() { return 1153302609u; }
 
-    uint32_t next() { return simplerandom_shr3_next(&rng); }
+    uint32_t operator()() { return simplerandom_shr3_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_shr3_jumpahead(&rng, n); }
 };
 
@@ -55,7 +55,7 @@ public:
     size_t num_seeds() { return 2; }
     uint32_t get_million_result() { return 904977562u; }
 
-    uint32_t next() { return simplerandom_mwc1_next(&rng); }
+    uint32_t operator()() { return simplerandom_mwc1_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc1_jumpahead(&rng, n); }
 };
 
@@ -69,7 +69,7 @@ public:
     size_t num_seeds() { return 2; }
     uint32_t get_million_result() { return 767834450u; }
 
-    uint32_t next() { return simplerandom_mwc2_next(&rng); }
+    uint32_t operator()() { return simplerandom_mwc2_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc2_jumpahead(&rng, n); }
 };
 
@@ -86,7 +86,7 @@ public:
     size_t num_seeds() { return 4; }
     uint32_t get_million_result() { return 2100752872u; }
 
-    uint32_t next() { return simplerandom_kiss_next(&rng); }
+    uint32_t operator()() { return simplerandom_kiss_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_kiss_jumpahead(&rng, n); }
 };
 
@@ -102,7 +102,7 @@ public:
     size_t num_seeds() { return 2; }
     uint32_t get_million_result() { return 2191957470u; }
 
-    uint32_t next() { return simplerandom_mwc64_next(&rng); }
+    uint32_t operator()() { return simplerandom_mwc64_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_mwc64_jumpahead(&rng, n); }
 };
 
@@ -119,7 +119,7 @@ public:
     size_t num_seeds() { return 4; }
     uint32_t get_million_result() { return 4044786495u; }
 
-    uint32_t next() { return simplerandom_kiss2_next(&rng); }
+    uint32_t operator()() { return simplerandom_kiss2_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_kiss2_jumpahead(&rng, n); }
 };
 
@@ -138,7 +138,7 @@ public:
     size_t num_seeds() { return 4; }
     uint32_t get_million_result() { return 300959510; }
 
-    uint32_t next() { return simplerandom_lfsr113_next(&rng); }
+    uint32_t operator()() { return simplerandom_lfsr113_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_lfsr113_jumpahead(&rng, n); }
 };
 
@@ -155,7 +155,7 @@ public:
     size_t num_seeds() { return 3; }
     uint32_t get_million_result() { return 3774296834; }
 
-    uint32_t next() { return simplerandom_lfsr88_next(&rng); }
+    uint32_t operator()() { return simplerandom_lfsr88_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_lfsr88_jumpahead(&rng, n); }
 };
 
@@ -193,7 +193,7 @@ public:
         million_rng = factory();
         for (uint32_t i = 0; i < 1000000; i++)
         {
-            result = million_rng->next();
+            result = (*million_rng)();
         }
         TS_ASSERT_EQUALS(result, million_rng->get_million_result());
         delete million_rng;
@@ -209,7 +209,7 @@ public:
         thousand_rng = factory();
         for (uint32_t i = 1; i < 10001; i++)
         {
-            result_thousand = thousand_rng->next();
+            result_thousand = (*thousand_rng)();
             jumpahead_rng = factory();
             result_jumpahead = jumpahead_rng->jumpahead(i);
             TS_ASSERT_EQUALS(result_jumpahead, result_thousand);
