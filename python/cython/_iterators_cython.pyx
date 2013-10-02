@@ -2,7 +2,6 @@
 cdef extern from "types.h":
     ctypedef unsigned long uint64_t
     ctypedef unsigned int uint32_t
-    ctypedef unsigned char uint8_t
 
 from simplerandom._bitcolumnmatrix import BitColumnMatrix
 
