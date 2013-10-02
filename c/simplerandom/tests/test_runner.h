@@ -236,6 +236,22 @@ public:
         TS_ASSERT_EQUALS(result, get_million_result());
         delete million_rng;
     }
+    void testJumpaheadMillion()
+    {
+        SimpleRandomWrapper * jumpahead_rng;
+        uint32_t result_jumpahead;
+
+        jumpahead_rng = factory();
+        result_jumpahead = jumpahead_rng->jumpahead(1000000);
+        TS_ASSERT_EQUALS(result_jumpahead, get_million_result());
+        delete jumpahead_rng;
+
+        jumpahead_rng = factory();
+        result_jumpahead = jumpahead_rng->jumpahead(999999);
+        result_jumpahead = (*jumpahead_rng)();
+        TS_ASSERT_EQUALS(result_jumpahead, get_million_result());
+        delete jumpahead_rng;
+    }
     void testJumpahead()
     {
         SimpleRandomWrapper * jumpahead_rng;
