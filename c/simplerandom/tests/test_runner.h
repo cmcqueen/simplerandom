@@ -220,6 +220,8 @@ public:
         array_seed_rng = factory(seeds, rng->num_seeds(), false);
         param_seed_rng = factory(0);
         TS_ASSERT_EQUALS((*array_seed_rng)(), (*param_seed_rng)());
+        delete array_seed_rng;
+        delete param_seed_rng;
     }
     void testMillion()
     {
@@ -237,19 +239,19 @@ public:
     void testJumpahead()
     {
         SimpleRandomWrapper * jumpahead_rng;
-        SimpleRandomWrapper * thousand_rng;
+        SimpleRandomWrapper * next_rng;
         uint32_t result_jumpahead;
-        uint32_t result_thousand;
+        uint32_t result_next;
 
         CxxTest::setAbortTestOnFail(true);
-        thousand_rng = factory();
+        next_rng = factory();
         for (uint32_t i = 1; i < 10001; i++)
         {
-            result_thousand = (*thousand_rng)();
+            result_next = (*next_rng)();
             jumpahead_rng = factory();
             result_jumpahead = jumpahead_rng->jumpahead(i);
-            TS_ASSERT_EQUALS(result_jumpahead, result_thousand);
-            if (result_jumpahead != result_thousand)
+            TS_ASSERT_EQUALS(result_jumpahead, result_next);
+            if (result_jumpahead != result_next)
             {
                 std::ostringstream out_temp;
                 out_temp << "failed at i = " << i;
@@ -258,7 +260,7 @@ public:
             }
             delete jumpahead_rng;
         }
-        delete thousand_rng;
+        delete next_rng;
     }
 };
 
