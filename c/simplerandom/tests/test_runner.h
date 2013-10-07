@@ -7,13 +7,29 @@
 #define CXXTEST_HAVE_EH
 #include <cxxtest/TestSuite.h>
 #include <iostream>
+#include <limits>
 
 class SimpleRandomWrapper
 {
 public:
+    // Non-standard API
     virtual size_t num_seeds() = 0;
-    virtual uint32_t operator()() = 0;
     virtual uint32_t jumpahead(uintmax_t n) = 0;
+
+    // Standard C++ random API
+    virtual uint32_t operator()() = 0;
+    virtual uint32_t min()
+    {
+        return 0;
+    }
+    virtual uint32_t max()
+    {
+        return std::numeric_limits<uint32_t>::max();
+    }
+    void discard(uintmax_t n)
+    {
+        (void) jumpahead(n);
+    }
 };
 
 class SimpleRandomWrapperCong : public SimpleRandomWrapper
@@ -48,6 +64,11 @@ public:
 
     uint32_t operator()() { return simplerandom_shr3_next(&rng); }
     uint32_t jumpahead(uintmax_t n) { return simplerandom_shr3_jumpahead(&rng, n); }
+    uint32_t min()
+    {
+        // SHR3 is exceptional in that it doesn't ever return 0.
+        return 1;
+    }
 };
 
 class SimpleRandomWrapperMWC1 : public SimpleRandomWrapper
@@ -245,12 +266,17 @@ public:
         result_jumpahead = jumpahead_rng->jumpahead(1000000);
         TS_ASSERT_EQUALS(result_jumpahead, get_million_result());
         delete jumpahead_rng;
+    }
+    void testDiscardMillion()
+    {
+        SimpleRandomWrapper * discard_rng;
+        uint32_t result_discard;
 
-        jumpahead_rng = factory();
-        result_jumpahead = jumpahead_rng->jumpahead(999999);
-        result_jumpahead = (*jumpahead_rng)();
-        TS_ASSERT_EQUALS(result_jumpahead, get_million_result());
-        delete jumpahead_rng;
+        discard_rng = factory();
+        discard_rng->discard(999999);
+        result_discard = (*discard_rng)();
+        TS_ASSERT_EQUALS(result_discard, get_million_result());
+        delete discard_rng;
     }
     void testJumpahead()
     {
