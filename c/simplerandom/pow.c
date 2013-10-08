@@ -86,6 +86,33 @@ uint32_t pow_uint32(uint32_t base, uintmax_t n)
     return result;
 }
 
+/* Calculate geometric series:
+ *     1 + r + r^2 + r^3 + ... r^(n-1)
+ * summed to n terms.
+ *
+ * It makes use of the fact that the series can pair up terms:
+ *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
+ *     (1 + r) (1 + r^2 + r^4 + ... + (r^2)^(n/2-1)) + [ r^(n-1) if n is odd ]
+ *
+ * Which can be easily calculated by recursion, with time order O(log n), and
+ * also stack depth O(log n).
+ * This implementation is by recursion. Stack depth O(log n) isn't ideal; a
+ * non-recursive implementation is preferable.
+ */
+uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
+{
+    uint32_t    temp;
+
+    if (n == 0)
+        return 0;
+    if (n == 1)
+        return 1;
+    temp = (1 + r) * geom_series_uint32(r * r, n / 2);
+    if (n & 1)
+        temp += pow_uint32(r, n - 1);
+    return temp;
+}
+
 uint32_t pow_mod_uint32(uint32_t base, uintmax_t n, uint32_t mod)
 {
     uint32_t    result;

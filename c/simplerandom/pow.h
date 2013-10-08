@@ -24,6 +24,7 @@ extern "C" {
 
 uint32_t mul_mod_uint32(uint32_t a, uint32_t b, uint32_t mod);
 uint32_t pow_uint32(uint32_t base, uintmax_t n);
+uint32_t geom_series_uint32(uint32_t r, uintmax_t n);
 uint32_t pow_mod_uint32(uint32_t base, uintmax_t n, uint32_t mod);
 
 #ifdef UINT64_C

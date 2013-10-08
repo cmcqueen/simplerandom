@@ -165,14 +165,15 @@ void simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
 }
 
 
-#ifdef UINT64_C
-
 /*********
  * Cong
  ********/
 
 #define CONG_MULT                       69069u
 #define CONG_CONST                      12345u
+
+#ifdef UINT64_C
+
 #define CONG_JUMPAHEAD_C_FACTOR         4u      /* (CONG_MULT - 1) == 4 * 17267 */
 #define CONG_JUMPAHEAD_C_DENOM          17267u
 #define CONG_JUMPAHEAD_C_MOD            ((UINT64_C(1) << 32u) * CONG_JUMPAHEAD_C_FACTOR)
@@ -217,6 +218,25 @@ void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
     p_cong->cong = cong;
 }
 
+#else /* !defined(UINT64_C) */
+
+void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
+{
+    uint32_t    mult_exp;
+    uint32_t    add_const_part;
+    uint32_t    add_const;
+    uint32_t    cong;
+
+    mult_exp = pow_uint32(CONG_MULT, n);
+
+    add_const_part = geom_series_uint32(CONG_MULT, n);
+
+    add_const = add_const_part * CONG_CONST;
+    cong = mult_exp * p_cong->cong + add_const;
+    p_cong->cong = cong;
+}
+
+#endif /* defined(UINT64_C) */
 
 /*********
  * KISS
@@ -243,6 +263,8 @@ void simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
     p_kiss->shr3        = rng_shr3.shr3;
 }
 
+
+#ifdef UINT64_C
 
 /*********
  * MWC64
