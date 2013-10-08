@@ -108,7 +108,7 @@ static const BitColumnMatrix32_t lfsr88_3_matrix =
  * SHR3
  ********/
 
-uint32_t simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
+void simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
 {
     BitColumnMatrix32_t shr3_mult;
     uint32_t            shr3;
@@ -116,7 +116,6 @@ uint32_t simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
     bitcolumnmatrix32_pow(&shr3_mult, &shr3_matrix, n);
     shr3 = bitcolumnmatrix32_mul_uint32(&shr3_mult, p_shr3->shr3);
     p_shr3->shr3 = shr3;
-    return shr3;
 }
 
 
@@ -140,7 +139,7 @@ uint32_t simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
  * combining the upper and lower values in the last step, the upper 16 bits of
  * mwc_upper are added in too, instead of just being discarded.
  */
-uint32_t simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
+void simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
 {
     uint32_t    mwc;
 
@@ -151,8 +150,6 @@ uint32_t simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
     mwc = p_mwc->mwc_lower;
     mwc = mul_mod_uint32(pow_mod_uint32(_MWC_LOWER_MULT, n, _MWC_LOWER_MODULO), mwc, _MWC_LOWER_MODULO);
     p_mwc->mwc_lower = mwc;
-
-    return mwc2_current(p_mwc);
 }
 
 
@@ -162,10 +159,9 @@ uint32_t simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
  * MWC1 is very similar to MWC2, so many functions can be shared.
  ********/
 
-uint32_t simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
+void simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
 {
     simplerandom_mwc2_jumpahead(p_mwc, n);
-    return mwc1_current(p_mwc);
 }
 
 
@@ -203,7 +199,7 @@ uint32_t simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
  * After calculating the numerator, we divide by the common factor of 4,
  * then multiply by the inverse of the other part of the denominator.
  */
-uint32_t simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
+void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
 {
     uint32_t    mult_exp;
     uint64_t    add_const_exp;
@@ -219,7 +215,6 @@ uint32_t simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
     add_const = add_const_part * CONG_CONST;
     cong = mult_exp * p_cong->cong + add_const;
     p_cong->cong = cong;
-    return cong;
 }
 
 
@@ -227,7 +222,7 @@ uint32_t simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
  * KISS
  ********/
 
-uint32_t simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
+void simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
 {
     SimpleRandomMWC2_t  rng_mwc;
     SimpleRandomCong_t  rng_cong;
@@ -246,8 +241,6 @@ uint32_t simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
     p_kiss->mwc_lower   = rng_mwc.mwc_lower;
     p_kiss->cong        = rng_cong.cong;
     p_kiss->shr3        = rng_shr3.shr3;
-
-    return kiss_current(p_kiss);
 }
 
 
@@ -259,7 +252,7 @@ uint32_t simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
 #define _MWC64_MODULO       (_MWC64_MULT * (UINT64_C(1) << 32u) - 1u)
 #define _MWC64_CYCLE_LEN    (_MWC64_MULT * (UINT64_C(1) << 32u) / 2u - 1u)
 
-uint32_t simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
+void simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
 {
     uint64_t    mwc;
 
@@ -267,8 +260,6 @@ uint32_t simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
     mwc = mul_mod_uint64(pow_mod_uint64(_MWC64_MULT, n, _MWC64_MODULO), mwc, _MWC64_MODULO);
     p_mwc->mwc_upper = (uint32_t)(mwc >> 32u);
     p_mwc->mwc_lower = (uint32_t)mwc;
-
-    return (uint32_t)mwc;
 }
 
 
@@ -276,7 +267,7 @@ uint32_t simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
  * KISS2
  ********/
 
-uint32_t simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
+void simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
 {
     SimpleRandomMWC64_t rng_mwc;
     SimpleRandomCong_t  rng_cong;
@@ -295,8 +286,6 @@ uint32_t simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n
     p_kiss2->mwc_lower  = rng_mwc.mwc_lower;
     p_kiss2->cong       = rng_cong.cong;
     p_kiss2->shr3       = rng_shr3.shr3;
-
-    return kiss2_current(p_kiss2);
 }
 
 #endif /* defined(UINT64_C) */
@@ -306,7 +295,7 @@ uint32_t simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n
  * LFSR113
  ********/
 
-uint32_t simplerandom_lfsr113_jumpahead(SimpleRandomLFSR113_t * p_lfsr113, uintmax_t n)
+void simplerandom_lfsr113_jumpahead(SimpleRandomLFSR113_t * p_lfsr113, uintmax_t n)
 {
     BitColumnMatrix32_t lfsr_mult;
     uint32_t            z1;
@@ -329,8 +318,6 @@ uint32_t simplerandom_lfsr113_jumpahead(SimpleRandomLFSR113_t * p_lfsr113, uintm
     bitcolumnmatrix32_pow(&lfsr_mult, &lfsr113_4_matrix, n);
     z4 = bitcolumnmatrix32_mul_uint32(&lfsr_mult, p_lfsr113->z4);
     p_lfsr113->z4 = z4;
-
-    return z1 ^ z2 ^ z3 ^ z4;
 }
 
 
@@ -338,7 +325,7 @@ uint32_t simplerandom_lfsr113_jumpahead(SimpleRandomLFSR113_t * p_lfsr113, uintm
  * LFSR88
  ********/
 
-uint32_t simplerandom_lfsr88_jumpahead(SimpleRandomLFSR88_t * p_lfsr88, uintmax_t n)
+void simplerandom_lfsr88_jumpahead(SimpleRandomLFSR88_t * p_lfsr88, uintmax_t n)
 {
     BitColumnMatrix32_t lfsr_mult;
     uint32_t            z1;
@@ -356,7 +343,5 @@ uint32_t simplerandom_lfsr88_jumpahead(SimpleRandomLFSR88_t * p_lfsr88, uintmax_
     bitcolumnmatrix32_pow(&lfsr_mult, &lfsr88_3_matrix, n);
     z3 = bitcolumnmatrix32_mul_uint32(&lfsr_mult, p_lfsr88->z3);
     p_lfsr88->z3 = z3;
-
-    return z1 ^ z2 ^ z3;
 }
 
