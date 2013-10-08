@@ -132,8 +132,10 @@ class CongTest(unittest.TestCase):
     
         # Jump ahead 1, then back 1
         self.rng.jumpahead(1)
+        # See that state HAS changed
+        self.assertNotEqual(rng_state, self.rng.getstate())
         self.rng.jumpahead(-1)
-        # See that state hasn't changed
+        # See that state hasn't changed from original
         self.assertEqual(rng_state, self.rng.getstate())
     
         jumpahead_rng = self.RNG_CLASS()
