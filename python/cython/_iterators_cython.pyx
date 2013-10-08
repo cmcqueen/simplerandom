@@ -53,9 +53,11 @@ cdef uint64_t SIMPLERANDOM_MOD = 2**32
 cdef uint64_t CONG_CYCLE_LEN = 2**32
 cdef uint32_t CONG_MULT = 69069u
 cdef uint32_t CONG_CONST = 12345u
+# The following are used to calculate Cong.jumpahead().
 cdef uint32_t CONG_JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
 cdef uint32_t CONG_JUMPAHEAD_C_DENOM = 17267
 cdef uint64_t CONG_JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * CONG_JUMPAHEAD_C_FACTOR
+# Inverse of CONG_JUMPAHEAD_C_DENOM mod 2^32.
 cdef uint32_t CONG_JUMPAHEAD_C_DENOM_INVERSE = pow(CONG_JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
 cdef class Cong(object):
@@ -124,9 +126,17 @@ cdef class Cong(object):
     def jumpahead(self, n):
         # Cong.jumpahead(n) = r**n * x mod 2**32 + c * (r**n - 1) / (r - 1) mod 2**32
         # where r = 69069 and c = 12345.
-        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series.
+        #
+        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series
+        #     c + c*r + c*r^2 + c*r^3 + ... + c*r^(n-1)
         # For calculating geometric series mod 2**32, see:
         # http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
+        #
+        # The modulus 2^32 and (r - 1) have a common factor of 4 (see
+        # CONG_JUMPAHEAD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
+        # i.e. 2^34.
+        # After calculating the numerator, we divide by the common factor of 4,
+        # then multiply by the inverse of the other part of the denominator.
         cdef uint32_t n_int
         cdef uint32_t mult_exp
         cdef uint64_t add_const_exp

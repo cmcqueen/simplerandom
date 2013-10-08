@@ -66,9 +66,11 @@ class Cong(object):
     CONG_CYCLE_LEN = 2**32
     CONG_MULT = 69069
     CONG_CONST = 12345
+    # The following are used to calculate Cong.jumpahead().
     JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
     JUMPAHEAD_C_DENOM = 17267
     JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * JUMPAHEAD_C_FACTOR
+    # Inverse of CONG_JUMPAHEAD_C_DENOM mod 2^32.
     JUMPAHEAD_C_DENOM_INVERSE = pow(JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
     def __init__(self, *args, **kwargs):
@@ -116,9 +118,17 @@ class Cong(object):
     def jumpahead(self, n):
         # Cong.jumpahead(n) = r**n * x mod 2**32 + c * (r**n - 1) / (r - 1) mod 2**32
         # where r = 69069 and c = 12345.
-        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series.
+        #
+        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series
+        #     c + c*r + c*r^2 + c*r^3 + ... + c*r^(n-1)
         # For calculating geometric series mod 2**32, see:
         # http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
+        #
+        # The modulus 2^32 and (r - 1) have a common factor of 4 (see
+        # CONG_JUMPAHEAD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
+        # i.e. 2^34.
+        # After calculating the numerator, we divide by the common factor of 4,
+        # then multiply by the inverse of the other part of the denominator.
         n = int(n) % self.CONG_CYCLE_LEN
         mult_exp = pow(self.CONG_MULT, n, self.SIMPLERANDOM_MOD)
         add_const = ((((pow(self.CONG_MULT, n, self.JUMPAHEAD_C_MOD) - 1) // self.JUMPAHEAD_C_FACTOR * self.JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFF) * self.CONG_CONST) & 0xFFFFFFFF
