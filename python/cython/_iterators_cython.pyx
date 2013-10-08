@@ -148,7 +148,7 @@ cdef class Cong(object):
         add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
         add_const = add_const_part * CONG_CONST
         self.cong = mult_exp * self.cong + add_const
-        return self.cong
+
 
 cdef uint32_t SHR3_CYCLE_LEN = 2u**32u - 1u
 _SHR3_MATRIX_COLUMNS = [
@@ -237,7 +237,6 @@ cdef class SHR3(object):
         n_shr3 = n % SHR3_CYCLE_LEN
         shr3 = pow(_SHR3_MATRIX, n_shr3) * self.shr3
         self.shr3 = shr3
-        return shr3
 
 
 cdef uint32_t _MWC_UPPER_MULT = 36969u
@@ -377,7 +376,6 @@ cdef class MWC1(object):
         n_int = n % _MWC_LOWER_CYCLE_LEN
         # The following calculation needs to be done in greater than 32-bit.
         self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
-        return self.current()
 
 
 cdef class MWC2(object):
@@ -498,7 +496,6 @@ cdef class MWC2(object):
         n_int = n % _MWC_LOWER_CYCLE_LEN
         # The following calculation needs to be done in greater than 32-bit.
         self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
-        return self.current()
 
 
 cdef uint64_t _MWC64_MULT = 698769069u
@@ -607,7 +604,6 @@ cdef class MWC64(object):
         temp64 = pow(int(_MWC64_MULT), n, int(_MWC64_MODULO)) * temp64 % _MWC64_MODULO
         self.mwc_lower = temp64 & 0xFFFFFFFFu
         self.mwc_upper = (temp64 >> 32u) & 0xFFFFFFFFu
-        return self.mwc_lower
 
 
 cdef class KISS(object):
@@ -797,8 +793,6 @@ cdef class KISS(object):
         shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
         self.shr3 = shr3
 
-        return self.current()
-
 
 cdef class KISS2(object):
     '''"Keep It Simple Stupid" random number generator
@@ -987,8 +981,6 @@ cdef class KISS2(object):
         n_int = n % SHR3_CYCLE_LEN
         shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
         self.shr3 = shr3
-
-        return self.current()
 
 
 def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
@@ -1203,8 +1195,6 @@ cdef class LFSR113(object):
         z4 = pow(_LFSR113_4_MATRIX, n_4) * self.z4
         self.z4 = z4
 
-        return self.current()
-
 
 _LFSR88_1_MATRIX = BitColumnMatrix([
     0x00000000, 0x00002000, 0x00004000, 0x00008000, 0x00010000, 0x00020000, 0x00040001, 0x00080002,
@@ -1341,6 +1331,3 @@ cdef class LFSR88(object):
         self.z2 = z2
         z3 = pow(_LFSR88_3_MATRIX, n_3) * self.z3
         self.z3 = z3
-
-        return self.current()
-

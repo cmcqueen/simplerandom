@@ -133,7 +133,6 @@ class Cong(object):
         mult_exp = pow(self.CONG_MULT, n, self.SIMPLERANDOM_MOD)
         add_const = ((((pow(self.CONG_MULT, n, self.JUMPAHEAD_C_MOD) - 1) // self.JUMPAHEAD_C_FACTOR * self.JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFF) * self.CONG_CONST) & 0xFFFFFFFF
         self.cong = (mult_exp * self.cong + add_const) & 0xFFFFFFFF
-        return self.cong
 
 
 class SHR3(object):
@@ -216,7 +215,7 @@ class SHR3(object):
         n = int(n) % self.SHR3_CYCLE_LEN
         shr3 = pow(self._SHR3_MATRIX, n) * self.shr3
         self.shr3 = shr3
-        return shr3
+
 
 class MWC2(object):
     '''"Multiply-with-carry" random number generator
@@ -330,7 +329,6 @@ class MWC2(object):
         self.mwc_upper = pow(self._MWC_UPPER_MULT, n_upper, self._MWC_UPPER_MODULO) * self.mwc_upper % self._MWC_UPPER_MODULO
         n_lower = int(n) % self._MWC_LOWER_CYCLE_LEN
         self.mwc_lower = pow(self._MWC_LOWER_MULT, n_lower, self._MWC_LOWER_MODULO) * self.mwc_lower % self._MWC_LOWER_MODULO
-        return self.current()
 
 
 class MWC1(MWC2):
@@ -457,7 +455,6 @@ class MWC64(object):
         temp64 = pow(self._MWC64_MULT, n, self._MWC64_MODULO) * temp64 % self._MWC64_MODULO
         self.mwc_lower = temp64 & 0xFFFFFFFF
         self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
-        return self.mwc_lower
 
 
 class KISS(object):
@@ -542,7 +539,6 @@ class KISS(object):
         self.random_mwc.jumpahead(n)
         self.random_cong.jumpahead(n)
         self.random_shr3.jumpahead(n)
-        return self.current()
 
     def _get_mwc_upper(self):
         return self.random_mwc.mwc_upper
@@ -655,7 +651,6 @@ class KISS2(object):
         self.random_mwc.jumpahead(n)
         self.random_cong.jumpahead(n)
         self.random_shr3.jumpahead(n)
-        return self.current()
 
     def _get_mwc_upper(self):
         return self.random_mwc.mwc_upper
@@ -876,8 +871,6 @@ class LFSR113(object):
         z4 = pow(self._LFSR113_4_MATRIX, n_4) * self.z4
         self.z4 = z4
 
-        return self.current()
-
 
 class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -1000,5 +993,3 @@ class LFSR88(object):
         self.z2 = z2
         z3 = pow(self._LFSR88_3_MATRIX, n_3) * self.z3
         self.z3 = z3
-
-        return self.current()

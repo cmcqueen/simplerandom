@@ -140,7 +140,8 @@ class CongTest(unittest.TestCase):
         jumpahead_rng_start_state = self.rng.getstate()
         for i in range(1, 10000 + 1):
             jumpahead_rng.setstate(jumpahead_rng_start_state)
-            self.assertEqual(self.rng.next(), jumpahead_rng.jumpahead(i))
+            jumpahead_rng.jumpahead(i - 1)
+            self.assertEqual(self.rng.next(), jumpahead_rng.next())
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
