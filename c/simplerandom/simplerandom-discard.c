@@ -184,71 +184,26 @@ void simplerandom_mwc1_discard(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
 #define CONG_MULT                       69069u
 #define CONG_CONST                      12345u
 
-#ifdef UINT64_C
-
-#define CONG_DISCARD_C_FACTOR           4u      /* (CONG_MULT - 1) == 4 * 17267 */
-#define CONG_DISCARD_C_DENOM            17267u
-#define CONG_DISCARD_C_MOD              ((UINT64_C(1) << 32u) * CONG_DISCARD_C_FACTOR)
-/* Inverse of CONG_DISCARD_C_DENOM mod 2^32.
- * It can be calculated using extended Euclidean algorithm.
- * Or it can be calculated as (CONG_DISCARD_C_DENOM ^ (2^32 - 1)) mod 2^32.
- * In Python: pow(17267, 2**32 - 1, 2**32) */
-#define CONG_DISCARD_C_DENOM_INVERSE    UINT32_C(1355127227)
-
-/* Cong discard(n) = r^n * x mod 2^32 + c * (r^n - 1) / (r - 1) mod 2^32
+/* Cong discard(n) = r^n * x mod 2^32 +
+ *                      c * (1 + r + r^2 + ... + r^(n-1)) mod 2^32
  * where r = 69069 and c = 12345.
  *
- * The part c * (r^n - 1) / (r - 1) is the formula for a geometric series
- *     c + c*r + c*r^2 + c*r^3 + ... + c*r^(n-1)
+ * The part c * (1 + r + r^2 + ... + r^(n-1)) is a geometric series
  * For calculating geometric series mod 2^32, see:
  * http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
- *
- * The modulus 2^32 and (r - 1) have a common factor of 4 (see
- * CONG_DISCARD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
- * i.e. 2^34. Unfortunately this requires more than 32-bit calculations--either
- * calculations with 64-bit integers, or multiple-precision arithmetic.
- * This function implements 64-bit integer calculations.
- *
- * After calculating the numerator, we divide by the common factor of 4,
- * then multiply by the inverse of the other part of the denominator.
  */
 void simplerandom_cong_discard(SimpleRandomCong_t * p_cong, uintmax_t n)
 {
     uint32_t    mult_exp;
-    uint64_t    add_const_exp;
-    uint32_t    add_const_part;
     uint32_t    add_const;
     uint32_t    cong;
 
     mult_exp = pow_uint32(CONG_MULT, n);
-
-    add_const_exp = pow_uint64(CONG_MULT, n) % CONG_DISCARD_C_MOD;
-    add_const_part = (add_const_exp - 1) / CONG_DISCARD_C_FACTOR * CONG_DISCARD_C_DENOM_INVERSE;
-
-    add_const = add_const_part * CONG_CONST;
+    add_const = geom_series_uint32(CONG_MULT, n) * CONG_CONST;
     cong = mult_exp * p_cong->cong + add_const;
     p_cong->cong = cong;
 }
 
-#else /* !defined(UINT64_C) */
-
-void simplerandom_cong_discard(SimpleRandomCong_t * p_cong, uintmax_t n)
-{
-    uint32_t    mult_exp;
-    uint32_t    add_const_part;
-    uint32_t    add_const;
-    uint32_t    cong;
-
-    mult_exp = pow_uint32(CONG_MULT, n);
-
-    add_const_part = geom_series_uint32(CONG_MULT, n);
-
-    add_const = add_const_part * CONG_CONST;
-    cong = mult_exp * p_cong->cong + add_const;
-    p_cong->cong = cong;
-}
-
-#endif /* defined(UINT64_C) */
 
 /*********
  * KISS
