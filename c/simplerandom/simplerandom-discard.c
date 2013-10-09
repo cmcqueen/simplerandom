@@ -1,7 +1,19 @@
 /*
- * simplerandom-jumpahead.c
+ * simplerandom-discard.c
  *
- * Simple Pseudo-random Number Generators -- jumpahead functions
+ * Simple Pseudo-random Number Generators -- discard functions.
+ * These functions could also be called "jumpahead" functions, as in the
+ * Python 2.x random API. They are named "discard" to follow the naming of the
+ * C++ random API.
+ *
+ * Discard a given number of random samples, effectively fast-forwarding the
+ * generator by that number of samples. This is useful when wanting several
+ * uncorrelated random streams.
+ * E.g. if a program needs 4 streams of 1,000,000 uncorrelated samples, then
+ * create 4 generators, seeded with the same values. Then:
+ *     - with the 2nd generator, discard 1,000,000 samples.
+ *     - with the 3rd generator, discard 2,000,000 samples.
+ *     - with the 4th generator, discard 3,000,000 samples.
  */
 
 
@@ -108,7 +120,7 @@ static const BitColumnMatrix32_t lfsr88_3_matrix =
  * SHR3
  ********/
 
-void simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
+void simplerandom_shr3_discard(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
 {
     BitColumnMatrix32_t shr3_mult;
     uint32_t            shr3;
@@ -135,11 +147,11 @@ void simplerandom_shr3_jumpahead(SimpleRandomSHR3_t * p_shr3, uintmax_t n)
 #define _MWC_LOWER_CYCLE_LEN    (_MWC_LOWER_MULT * (UINT32_C(1) << 16u) / 2u - 1u)
 
 /*
- * This is almost identical to simplerandom_mwc1_jumpahead(), except that when
+ * This is almost identical to simplerandom_mwc1_discard(), except that when
  * combining the upper and lower values in the last step, the upper 16 bits of
  * mwc_upper are added in too, instead of just being discarded.
  */
-void simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
+void simplerandom_mwc2_discard(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
 {
     uint32_t    mwc;
 
@@ -159,9 +171,9 @@ void simplerandom_mwc2_jumpahead(SimpleRandomMWC2_t * p_mwc, uintmax_t n)
  * MWC1 is very similar to MWC2, so many functions can be shared.
  ********/
 
-void simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
+void simplerandom_mwc1_discard(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
 {
-    simplerandom_mwc2_jumpahead(p_mwc, n);
+    simplerandom_mwc2_discard(p_mwc, n);
 }
 
 
@@ -174,16 +186,16 @@ void simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
 
 #ifdef UINT64_C
 
-#define CONG_JUMPAHEAD_C_FACTOR         4u      /* (CONG_MULT - 1) == 4 * 17267 */
-#define CONG_JUMPAHEAD_C_DENOM          17267u
-#define CONG_JUMPAHEAD_C_MOD            ((UINT64_C(1) << 32u) * CONG_JUMPAHEAD_C_FACTOR)
-/* Inverse of CONG_JUMPAHEAD_C_DENOM mod 2^32.
+#define CONG_DISCARD_C_FACTOR           4u      /* (CONG_MULT - 1) == 4 * 17267 */
+#define CONG_DISCARD_C_DENOM            17267u
+#define CONG_DISCARD_C_MOD              ((UINT64_C(1) << 32u) * CONG_DISCARD_C_FACTOR)
+/* Inverse of CONG_DISCARD_C_DENOM mod 2^32.
  * It can be calculated using extended Euclidean algorithm.
- * Or it can be calculated as (CONG_JUMPAHEAD_C_DENOM ^ (2^32 - 1)) mod 2^32.
+ * Or it can be calculated as (CONG_DISCARD_C_DENOM ^ (2^32 - 1)) mod 2^32.
  * In Python: pow(17267, 2**32 - 1, 2**32) */
-#define CONG_JUMPAHEAD_C_DENOM_INVERSE  UINT32_C(1355127227)
+#define CONG_DISCARD_C_DENOM_INVERSE    UINT32_C(1355127227)
 
-/* Cong jumpahead(n) = r^n * x mod 2^32 + c * (r^n - 1) / (r - 1) mod 2^32
+/* Cong discard(n) = r^n * x mod 2^32 + c * (r^n - 1) / (r - 1) mod 2^32
  * where r = 69069 and c = 12345.
  *
  * The part c * (r^n - 1) / (r - 1) is the formula for a geometric series
@@ -192,7 +204,7 @@ void simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
  * http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
  *
  * The modulus 2^32 and (r - 1) have a common factor of 4 (see
- * CONG_JUMPAHEAD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
+ * CONG_DISCARD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
  * i.e. 2^34. Unfortunately this requires more than 32-bit calculations--either
  * calculations with 64-bit integers, or multiple-precision arithmetic.
  * This function implements 64-bit integer calculations.
@@ -200,7 +212,7 @@ void simplerandom_mwc1_jumpahead(SimpleRandomMWC1_t * p_mwc, uintmax_t n)
  * After calculating the numerator, we divide by the common factor of 4,
  * then multiply by the inverse of the other part of the denominator.
  */
-void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
+void simplerandom_cong_discard(SimpleRandomCong_t * p_cong, uintmax_t n)
 {
     uint32_t    mult_exp;
     uint64_t    add_const_exp;
@@ -210,8 +222,8 @@ void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
 
     mult_exp = pow_uint32(CONG_MULT, n);
 
-    add_const_exp = pow_uint64(CONG_MULT, n) % CONG_JUMPAHEAD_C_MOD;
-    add_const_part = (add_const_exp - 1) / CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE;
+    add_const_exp = pow_uint64(CONG_MULT, n) % CONG_DISCARD_C_MOD;
+    add_const_part = (add_const_exp - 1) / CONG_DISCARD_C_FACTOR * CONG_DISCARD_C_DENOM_INVERSE;
 
     add_const = add_const_part * CONG_CONST;
     cong = mult_exp * p_cong->cong + add_const;
@@ -220,7 +232,7 @@ void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
 
 #else /* !defined(UINT64_C) */
 
-void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
+void simplerandom_cong_discard(SimpleRandomCong_t * p_cong, uintmax_t n)
 {
     uint32_t    mult_exp;
     uint32_t    add_const_part;
@@ -242,7 +254,7 @@ void simplerandom_cong_jumpahead(SimpleRandomCong_t * p_cong, uintmax_t n)
  * KISS
  ********/
 
-void simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
+void simplerandom_kiss_discard(SimpleRandomKISS_t * p_kiss, uintmax_t n)
 {
     SimpleRandomMWC2_t  rng_mwc;
     SimpleRandomCong_t  rng_cong;
@@ -253,9 +265,9 @@ void simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
     rng_cong.cong       = p_kiss->cong;
     rng_shr3.shr3       = p_kiss->shr3;
 
-    simplerandom_mwc2_jumpahead(&rng_mwc, n);
-    simplerandom_cong_jumpahead(&rng_cong, n);
-    simplerandom_shr3_jumpahead(&rng_shr3, n);
+    simplerandom_mwc2_discard(&rng_mwc, n);
+    simplerandom_cong_discard(&rng_cong, n);
+    simplerandom_shr3_discard(&rng_shr3, n);
 
     p_kiss->mwc_upper   = rng_mwc.mwc_upper;
     p_kiss->mwc_lower   = rng_mwc.mwc_lower;
@@ -274,7 +286,7 @@ void simplerandom_kiss_jumpahead(SimpleRandomKISS_t * p_kiss, uintmax_t n)
 #define _MWC64_MODULO       (_MWC64_MULT * (UINT64_C(1) << 32u) - 1u)
 #define _MWC64_CYCLE_LEN    (_MWC64_MULT * (UINT64_C(1) << 32u) / 2u - 1u)
 
-void simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
+void simplerandom_mwc64_discard(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
 {
     uint64_t    mwc;
 
@@ -289,7 +301,7 @@ void simplerandom_mwc64_jumpahead(SimpleRandomMWC64_t * p_mwc, uintmax_t n)
  * KISS2
  ********/
 
-void simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
+void simplerandom_kiss2_discard(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
 {
     SimpleRandomMWC64_t rng_mwc;
     SimpleRandomCong_t  rng_cong;
@@ -300,9 +312,9 @@ void simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
     rng_cong.cong       = p_kiss2->cong;
     rng_shr3.shr3       = p_kiss2->shr3;
 
-    simplerandom_mwc64_jumpahead(&rng_mwc, n);
-    simplerandom_cong_jumpahead(&rng_cong, n);
-    simplerandom_shr3_jumpahead(&rng_shr3, n);
+    simplerandom_mwc64_discard(&rng_mwc, n);
+    simplerandom_cong_discard(&rng_cong, n);
+    simplerandom_shr3_discard(&rng_shr3, n);
 
     p_kiss2->mwc_upper  = rng_mwc.mwc_upper;
     p_kiss2->mwc_lower  = rng_mwc.mwc_lower;
@@ -317,7 +329,7 @@ void simplerandom_kiss2_jumpahead(SimpleRandomKISS2_t * p_kiss2, uintmax_t n)
  * LFSR113
  ********/
 
-void simplerandom_lfsr113_jumpahead(SimpleRandomLFSR113_t * p_lfsr113, uintmax_t n)
+void simplerandom_lfsr113_discard(SimpleRandomLFSR113_t * p_lfsr113, uintmax_t n)
 {
     BitColumnMatrix32_t lfsr_mult;
     uint32_t            z1;
@@ -347,7 +359,7 @@ void simplerandom_lfsr113_jumpahead(SimpleRandomLFSR113_t * p_lfsr113, uintmax_t
  * LFSR88
  ********/
 
-void simplerandom_lfsr88_jumpahead(SimpleRandomLFSR88_t * p_lfsr88, uintmax_t n)
+void simplerandom_lfsr88_discard(SimpleRandomLFSR88_t * p_lfsr88, uintmax_t n)
 {
     BitColumnMatrix32_t lfsr_mult;
     uint32_t            z1;

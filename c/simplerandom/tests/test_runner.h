@@ -14,7 +14,7 @@ class SimpleRandomWrapper
 public:
     // Non-standard API
     virtual size_t num_seeds() = 0;
-    virtual void jumpahead(uintmax_t n) = 0;
+    virtual void discard(uintmax_t n) = 0;
 
     // Standard C++ random API
     virtual uint32_t operator()() = 0;
@@ -25,11 +25,6 @@ public:
     virtual uint32_t max()
     {
         return std::numeric_limits<uint32_t>::max();
-    }
-    void discard(uintmax_t n)
-    {
-        // discard() is just the C++ random API name for jumpahead().
-        jumpahead(n);
     }
 };
 
@@ -46,7 +41,7 @@ public:
     size_t num_seeds() { return 1; }
 
     uint32_t operator()() { return simplerandom_cong_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_cong_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_cong_discard(&rng, n); }
 };
 
 typedef SimpleRandomWrapperCong SimpleRandomSeeder;
@@ -64,7 +59,7 @@ public:
     size_t num_seeds() { return 1; }
 
     uint32_t operator()() { return simplerandom_shr3_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_shr3_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_shr3_discard(&rng, n); }
     uint32_t min()
     {
         // SHR3 is exceptional in that it doesn't ever return 0.
@@ -85,7 +80,7 @@ public:
     size_t num_seeds() { return 2; }
 
     uint32_t operator()() { return simplerandom_mwc1_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_mwc1_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_mwc1_discard(&rng, n); }
 };
 
 class SimpleRandomWrapperMWC2 : public SimpleRandomWrapper
@@ -101,7 +96,7 @@ public:
     size_t num_seeds() { return 2; }
 
     uint32_t operator()() { return simplerandom_mwc2_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_mwc2_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_mwc2_discard(&rng, n); }
 };
 
 class SimpleRandomWrapperKISS : public SimpleRandomWrapper
@@ -120,7 +115,7 @@ public:
     size_t num_seeds() { return 4; }
 
     uint32_t operator()() { return simplerandom_kiss_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_kiss_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_kiss_discard(&rng, n); }
 };
 
 #ifdef UINT64_C
@@ -138,7 +133,7 @@ public:
     size_t num_seeds() { return 2; }
 
     uint32_t operator()() { return simplerandom_mwc64_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_mwc64_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_mwc64_discard(&rng, n); }
 };
 
 class SimpleRandomWrapperKISS2 : public SimpleRandomWrapper
@@ -157,7 +152,7 @@ public:
     size_t num_seeds() { return 4; }
 
     uint32_t operator()() { return simplerandom_kiss2_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_kiss2_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_kiss2_discard(&rng, n); }
 };
 
 #endif
@@ -178,7 +173,7 @@ public:
     size_t num_seeds() { return 4; }
 
     uint32_t operator()() { return simplerandom_lfsr113_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_lfsr113_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_lfsr113_discard(&rng, n); }
 };
 
 class SimpleRandomWrapperLFSR88 : public SimpleRandomWrapper
@@ -197,7 +192,7 @@ public:
     size_t num_seeds() { return 3; }
 
     uint32_t operator()() { return simplerandom_lfsr88_next(&rng); }
-    void jumpahead(uintmax_t n) { simplerandom_lfsr88_jumpahead(&rng, n); }
+    void discard(uintmax_t n) { simplerandom_lfsr88_discard(&rng, n); }
 };
 
 
@@ -258,22 +253,22 @@ public:
         TS_ASSERT_EQUALS(result, get_million_result());
         delete million_rng;
     }
-    void testJumpaheadMillion()
+    void testDiscardMillion()
     {
-        SimpleRandomWrapper * jumpahead_rng;
-        uint32_t result_jumpahead;
+        SimpleRandomWrapper * discard_rng;
+        uint32_t result_discard;
 
-        jumpahead_rng = factory();
-        jumpahead_rng->jumpahead(999999);
-        result_jumpahead = (*jumpahead_rng)();
-        TS_ASSERT_EQUALS(result_jumpahead, get_million_result());
-        delete jumpahead_rng;
+        discard_rng = factory();
+        discard_rng->discard(999999);
+        result_discard = (*discard_rng)();
+        TS_ASSERT_EQUALS(result_discard, get_million_result());
+        delete discard_rng;
     }
-    void testJumpahead()
+    void testDiscard()
     {
-        SimpleRandomWrapper * jumpahead_rng;
+        SimpleRandomWrapper * discard_rng;
         SimpleRandomWrapper * next_rng;
-        uint32_t result_jumpahead;
+        uint32_t result_discard;
         uint32_t result_next;
 
         CxxTest::setAbortTestOnFail(true);
@@ -281,18 +276,18 @@ public:
         for (uint32_t i = 1; i < 10001; i++)
         {
             result_next = (*next_rng)();
-            jumpahead_rng = factory();
-            jumpahead_rng->jumpahead(i - 1);
-            result_jumpahead = (*jumpahead_rng)();
-            TS_ASSERT_EQUALS(result_jumpahead, result_next);
-            if (result_jumpahead != result_next)
+            discard_rng = factory();
+            discard_rng->discard(i - 1);
+            result_discard = (*discard_rng)();
+            TS_ASSERT_EQUALS(result_discard, result_next);
+            if (result_discard != result_next)
             {
                 std::ostringstream out_temp;
                 out_temp << "failed at i = " << i;
                 TS_TRACE(out_temp.str().c_str());
                 break;
             }
-            delete jumpahead_rng;
+            delete discard_rng;
         }
         delete next_rng;
     }
