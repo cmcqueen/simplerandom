@@ -49,16 +49,40 @@ def _next_seed_int32_or_default(seed_iter, uint32_t default_value):
         else:
             return (int(seed_item) & 0xFFFFFFFFu)
 
+def _geom_series_uint32(uint32_t r, n):
+    """Unsigned integer calculation of sum of geometric series:
+    1 + r + r^2 + r^3 + ... r^(n-1)
+    summed to n terms.
+    Calculated modulo 2**32.
+    Use the formula (r**n - 1) / (r - 1)
+    For calculating geometric series mod 2**32, see:
+    http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
+    """
+    cdef uint64_t m = 2**32
+    cdef uint32_t common_factor
+    cdef uint32_t other_factors
+    cdef uint32_t other_factors_inverse
+    cdef uint64_t numerator
+
+    if n == 0:
+        return 0
+    if n == 1 or r == 0:
+        return 1
+    # Split (r - 1) into common factors with the modulo 2**32 -- i.e. all
+    # factors of 2; and other factors which are coprime with the modulo 2**32.
+    other_factors = r - 1u
+    common_factor = 1u
+    while (other_factors % 2u) == 0:
+        other_factors //= 2u
+        common_factor *= 2u
+    other_factors_inverse = pow(other_factors, m - 1u, m)
+    numerator = pow(r, n, common_factor * m) - 1u
+    return (numerator // common_factor * other_factors_inverse) % m
+
 cdef uint64_t SIMPLERANDOM_MOD = 2**32
 cdef uint64_t CONG_CYCLE_LEN = 2**32
 cdef uint32_t CONG_MULT = 69069u
 cdef uint32_t CONG_CONST = 12345u
-# The following are used to calculate Cong.jumpahead().
-cdef uint32_t CONG_JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
-cdef uint32_t CONG_JUMPAHEAD_C_DENOM = 17267
-cdef uint64_t CONG_JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * CONG_JUMPAHEAD_C_FACTOR
-# Inverse of CONG_JUMPAHEAD_C_DENOM mod 2^32.
-cdef uint32_t CONG_JUMPAHEAD_C_DENOM_INVERSE = pow(CONG_JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
 cdef class Cong(object):
     '''Congruential random number generator
@@ -124,28 +148,21 @@ cdef class Cong(object):
         self.cong = int(state[0]) & 0xFFFFFFFFu
 
     def jumpahead(self, n):
-        # Cong.jumpahead(n) = r**n * x mod 2**32 + c * (r**n - 1) / (r - 1) mod 2**32
+        # Cong.jumpahead(n) = r**n * x mod 2**32 +
+        #                      c * (1 + r + r**2 + ... + r**(n-1)) mod 2**32
         # where r = 69069 and c = 12345.
         #
-        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series
-        #     c + c*r + c*r^2 + c*r^3 + ... + c*r^(n-1)
+        # The part c * (1 + r + r**2 + ... + r**(n-1)) is a geometric series.
         # For calculating geometric series mod 2**32, see:
         # http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
-        #
-        # The modulus 2^32 and (r - 1) have a common factor of 4 (see
-        # CONG_JUMPAHEAD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
-        # i.e. 2^34.
-        # After calculating the numerator, we divide by the common factor of 4,
-        # then multiply by the inverse of the other part of the denominator.
         cdef uint32_t n_int
         cdef uint32_t mult_exp
-        cdef uint64_t add_const_exp
         cdef uint32_t add_const_part
         cdef uint32_t add_const
+
         n_int = n % CONG_CYCLE_LEN
         mult_exp = CONG_MULT**n_int
-        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
-        add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
+        add_const_part = _geom_series_uint32(CONG_MULT, n_int)
         add_const = add_const_part * CONG_CONST
         self.cong = mult_exp * self.cong + add_const
 
@@ -768,7 +785,6 @@ cdef class KISS(object):
         # Cong variables
         cdef uint32_t n_int
         cdef uint32_t mult_exp
-        cdef uint64_t add_const_exp
         cdef uint32_t add_const_part
         cdef uint32_t add_const
 
@@ -783,8 +799,7 @@ cdef class KISS(object):
         # Cong
         n_int = n % CONG_CYCLE_LEN
         mult_exp = CONG_MULT**n_int
-        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
-        add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
+        add_const_part = _geom_series_uint32(CONG_MULT, n_int)
         add_const = add_const_part * CONG_CONST
         self.cong = mult_exp * self.cong + add_const
 
@@ -956,7 +971,6 @@ cdef class KISS2(object):
         # Cong variables
         cdef uint32_t n_int
         cdef uint32_t mult_exp
-        cdef uint64_t add_const_exp
         cdef uint32_t add_const_part
         cdef uint32_t add_const
         cdef uint64_t temp64
@@ -972,8 +986,7 @@ cdef class KISS2(object):
         # Cong
         n_int = n % CONG_CYCLE_LEN
         mult_exp = CONG_MULT**n_int
-        add_const_exp = (<uint64_t>CONG_MULT)**n_int % CONG_JUMPAHEAD_C_MOD
-        add_const_part = ((add_const_exp - 1) // CONG_JUMPAHEAD_C_FACTOR * CONG_JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFFu
+        add_const_part = _geom_series_uint32(CONG_MULT, n_int)
         add_const = add_const_part * CONG_CONST
         self.cong = mult_exp * self.cong + add_const
 

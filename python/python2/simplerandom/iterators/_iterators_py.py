@@ -45,6 +45,29 @@ def _next_seed_int32_or_default(seed_iter, default_value):
         else:
             return (int(seed_item) & 0xFFFFFFFF)
 
+def _geom_series_uint32(r, n):
+    """Unsigned integer calculation of sum of geometric series:
+    1 + r + r^2 + r^3 + ... r^(n-1)
+    summed to n terms.
+    Calculated modulo 2**32.
+    Use the formula (r**n - 1) / (r - 1)
+    """
+    if n == 0:
+        return 0
+    if n == 1 or r == 0:
+        return 1
+    m = 2**32
+    # Split (r - 1) into common factors with the modulo 2**32 -- i.e. all
+    # factors of 2; and other factors which are coprime with the modulo 2**32.
+    other_factors = r - 1
+    common_factor = 1
+    while (other_factors % 2) == 0:
+        other_factors //= 2
+        common_factor *= 2
+    other_factors_inverse = pow(other_factors, m - 1, m)
+    numerator = pow(r, n, common_factor * m) - 1
+    return (numerator // common_factor * other_factors_inverse) % m
+
 class Cong(object):
     '''Congruential random number generator
 
@@ -66,12 +89,6 @@ class Cong(object):
     CONG_CYCLE_LEN = 2**32
     CONG_MULT = 69069
     CONG_CONST = 12345
-    # The following are used to calculate Cong.jumpahead().
-    JUMPAHEAD_C_FACTOR = 4      # (CONG_MULT - 1) == 4 * 17267
-    JUMPAHEAD_C_DENOM = 17267
-    JUMPAHEAD_C_MOD = SIMPLERANDOM_MOD * JUMPAHEAD_C_FACTOR
-    # Inverse of CONG_JUMPAHEAD_C_DENOM mod 2^32.
-    JUMPAHEAD_C_DENOM_INVERSE = pow(JUMPAHEAD_C_DENOM, SIMPLERANDOM_MOD - 1, SIMPLERANDOM_MOD)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -116,22 +133,16 @@ class Cong(object):
         (self.cong, ) = (int(val) & 0xFFFFFFFF for val in state)
 
     def jumpahead(self, n):
-        # Cong.jumpahead(n) = r**n * x mod 2**32 + c * (r**n - 1) / (r - 1) mod 2**32
+        # Cong.jumpahead(n) = r**n * x mod 2**32 +
+        #                      c * (1 + r + r**2 + ... + r**(n-1)) mod 2**32
         # where r = 69069 and c = 12345.
         #
-        # The part c * (r**n - 1) / (r - 1) is the formula for a geometric series
-        #     c + c*r + c*r^2 + c*r^3 + ... + c*r^(n-1)
+        # The part c * (1 + r + r**2 + ... + r**(n-1)) is a geometric series.
         # For calculating geometric series mod 2**32, see:
         # http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
-        #
-        # The modulus 2^32 and (r - 1) have a common factor of 4 (see
-        # CONG_JUMPAHEAD_C_FACTOR). So we calculate the numerator modulo 2^32 * 4,
-        # i.e. 2^34.
-        # After calculating the numerator, we divide by the common factor of 4,
-        # then multiply by the inverse of the other part of the denominator.
         n = int(n) % self.CONG_CYCLE_LEN
         mult_exp = pow(self.CONG_MULT, n, self.SIMPLERANDOM_MOD)
-        add_const = ((((pow(self.CONG_MULT, n, self.JUMPAHEAD_C_MOD) - 1) // self.JUMPAHEAD_C_FACTOR * self.JUMPAHEAD_C_DENOM_INVERSE) & 0xFFFFFFFF) * self.CONG_CONST) & 0xFFFFFFFF
+        add_const = (_geom_series_uint32(self.CONG_MULT, n) * self.CONG_CONST) & 0xFFFFFFFF
         self.cong = (mult_exp * self.cong + add_const) & 0xFFFFFFFF
 
 
