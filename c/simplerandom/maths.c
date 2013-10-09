@@ -1,7 +1,8 @@
 /*
- * pow.c
+ * maths.c
  *
- * Integer power functions for uint32_t and uint64_t.
+ * Integer functions for modulo power, multiplication and geometric series,
+ * for uint32_t and uint64_t.
  */
 
 
@@ -9,7 +10,7 @@
  * Includes
  ****************************************************************************/
 
-#include "pow.h"
+#include "maths.h"
 
 
 /*****************************************************************************

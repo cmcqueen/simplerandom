@@ -1,10 +1,11 @@
 /*
- * pow.h
+ * maths.h
  *
- * Integer power functions for uint32_t and uint64_t.
+ * Integer functions for modulo power, multiplication and geometric series,
+ * for uint32_t and uint64_t.
  */
-#ifndef _SIMPLERANDOM_POW_H
-#define _SIMPLERANDOM_POW_H
+#ifndef _SIMPLERANDOM_MATHS_H
+#define _SIMPLERANDOM_MATHS_H
 
 
 /*****************************************************************************

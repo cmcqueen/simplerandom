@@ -12,7 +12,7 @@
 #include "simplerandom.h"
 
 #include "bitcolumnmatrix.h"
-#include "pow.h"
+#include "maths.h"
 
 
 /*****************************************************************************
