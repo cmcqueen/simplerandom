@@ -1,7 +1,4 @@
 
-AM_CPPFLAGS = -DSYSCONFDIR=\"$(sysconfdir)\"
-AM_LDFLAGS = -version-info @LIB_SO_VERSION@
-
 #######################################
 # The list of libraries we are building separated by spaces.
 # The 'lib_' indicates that these build products will be installed
@@ -15,6 +12,7 @@ lib_LTLIBRARIES = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 library_include_simplerandomdir=$(includedir)/@PACKAGE_NAME@-@PACKAGE_VERSION@
 library_include_simplerandom_HEADERS = simplerandom.h
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = simplerandom.c simplerandom-discard.c bitcolumnmatrix.c bitcolumnmatrix.h maths.c maths.h
+lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_LDFLAGS = -version-info @LIB_SO_VERSION@
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = @PACKAGE_NAME@.pc
