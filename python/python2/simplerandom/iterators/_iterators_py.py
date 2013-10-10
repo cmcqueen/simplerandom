@@ -751,32 +751,28 @@ class LFSR113(object):
     '''
     _LFSR113_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,6)
     _LFSR113_1_MATRIX_b = BitColumnMatrix.shift(32,-13)
-    _LFSR113_1_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR113_1_MATRIX_c.columns[0] = 0
+    _LFSR113_1_MATRIX_c = BitColumnMatrix.mask(32, 1, 32)
     _LFSR113_1_MATRIX_d = BitColumnMatrix.shift(32,18)
     _LFSR113_1_MATRIX = _LFSR113_1_MATRIX_d * _LFSR113_1_MATRIX_c + _LFSR113_1_MATRIX_b * _LFSR113_1_MATRIX_a
     _LFSR113_1_CYCLE_LEN = 2**(32 - 1) - 1
 
     _LFSR113_2_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,2)
     _LFSR113_2_MATRIX_b = BitColumnMatrix.shift(32,-27)
-    _LFSR113_2_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR113_2_MATRIX_c.columns[0:3] = [ 0, 0, 0 ]
+    _LFSR113_2_MATRIX_c = BitColumnMatrix.mask(32, 3, 32)
     _LFSR113_2_MATRIX_d = BitColumnMatrix.shift(32,2)
     _LFSR113_2_MATRIX = _LFSR113_2_MATRIX_d * _LFSR113_2_MATRIX_c + _LFSR113_2_MATRIX_b * _LFSR113_2_MATRIX_a
     _LFSR113_2_CYCLE_LEN = 2**(32 - 3) - 1
 
     _LFSR113_3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _LFSR113_3_MATRIX_b = BitColumnMatrix.shift(32,-21)
-    _LFSR113_3_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR113_3_MATRIX_c.columns[0:4] = [ 0, 0, 0, 0 ]
+    _LFSR113_3_MATRIX_c = BitColumnMatrix.mask(32, 4, 32)
     _LFSR113_3_MATRIX_d = BitColumnMatrix.shift(32,7)
     _LFSR113_3_MATRIX = _LFSR113_3_MATRIX_d * _LFSR113_3_MATRIX_c + _LFSR113_3_MATRIX_b * _LFSR113_3_MATRIX_a
     _LFSR113_3_CYCLE_LEN = 2**(32 - 4) - 1
 
     _LFSR113_4_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,3)
     _LFSR113_4_MATRIX_b = BitColumnMatrix.shift(32,-12)
-    _LFSR113_4_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR113_4_MATRIX_c.columns[0:7] = [ 0, 0, 0, 0, 0, 0, 0 ]
+    _LFSR113_4_MATRIX_c = BitColumnMatrix.mask(32, 7, 32)
     _LFSR113_4_MATRIX_d = BitColumnMatrix.shift(32,13)
     _LFSR113_4_MATRIX = _LFSR113_4_MATRIX_d * _LFSR113_4_MATRIX_c + _LFSR113_4_MATRIX_b * _LFSR113_4_MATRIX_a
     _LFSR113_4_CYCLE_LEN = 2**(32 - 7) - 1
@@ -897,24 +893,21 @@ class LFSR88(object):
     '''
     _LFSR88_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _LFSR88_1_MATRIX_b = BitColumnMatrix.shift(32,-19)
-    _LFSR88_1_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR88_1_MATRIX_c.columns[0] = 0
+    _LFSR88_1_MATRIX_c = BitColumnMatrix.mask(32, 1, 32)
     _LFSR88_1_MATRIX_d = BitColumnMatrix.shift(32,12)
     _LFSR88_1_MATRIX = _LFSR88_1_MATRIX_d * _LFSR88_1_MATRIX_c + _LFSR88_1_MATRIX_b * _LFSR88_1_MATRIX_a
     _LFSR88_1_CYCLE_LEN = 2**(32 - 1) - 1
 
     _LFSR88_2_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,2)
     _LFSR88_2_MATRIX_b = BitColumnMatrix.shift(32,-25)
-    _LFSR88_2_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR88_2_MATRIX_c.columns[0:3] = [ 0, 0, 0 ]
+    _LFSR88_2_MATRIX_c = BitColumnMatrix.mask(32, 3, 32)
     _LFSR88_2_MATRIX_d = BitColumnMatrix.shift(32,4)
     _LFSR88_2_MATRIX = _LFSR88_2_MATRIX_d * _LFSR88_2_MATRIX_c + _LFSR88_2_MATRIX_b * _LFSR88_2_MATRIX_a
     _LFSR88_2_CYCLE_LEN = 2**(32 - 3) - 1
 
     _LFSR88_3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,3)
     _LFSR88_3_MATRIX_b = BitColumnMatrix.shift(32,-11)
-    _LFSR88_3_MATRIX_c = BitColumnMatrix.unity(32)
-    _LFSR88_3_MATRIX_c.columns[0:4] = [ 0, 0, 0, 0 ]
+    _LFSR88_3_MATRIX_c = BitColumnMatrix.mask(32, 4, 32)
     _LFSR88_3_MATRIX_d = BitColumnMatrix.shift(32,17)
     _LFSR88_3_MATRIX = _LFSR88_3_MATRIX_d * _LFSR88_3_MATRIX_c + _LFSR88_3_MATRIX_b * _LFSR88_3_MATRIX_a
     _LFSR88_3_CYCLE_LEN = 2**(32 - 4) - 1

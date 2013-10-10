@@ -10,6 +10,24 @@ class BitColumnMatrix(object):
         return BitColumnMatrix(columns)
 
     @staticmethod
+    def mask(n, start, end):
+        """Make a BitColumnMatrix that represents a mask.
+        BitColumnMatrix size of n*n, to manipulate n binary bits.
+        If start <= end, then bits in half-open range [start, end) are set.
+        If end < start, then bits in ranges [0, end) and [start, n) are set,
+        i.e. bits in range [end, start) are clear; others are set.
+        """
+        columns = []
+        value = 1
+        for i in range(n):
+            if start <= end:
+                columns.append(value if (start <= i < end) else 0)
+            else:
+                columns.append(value if (start <= i or i < end) else 0)
+            value <<= 1
+        return BitColumnMatrix(columns)
+
+    @staticmethod
     def shift(n, shift_value):
         columns = []
         if shift_value >= 0:

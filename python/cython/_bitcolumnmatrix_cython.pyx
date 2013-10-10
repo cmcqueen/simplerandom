@@ -21,6 +21,25 @@ cdef class BitColumnMatrix(object):
         return result
 
     @staticmethod
+    def mask(n, start, end):
+        """Make a BitColumnMatrix that represents a mask.
+        BitColumnMatrix size of n*n, to manipulate n binary bits.
+        If start <= end, then bits in half-open range [start, end) are set.
+        If end < start, then bits in ranges [0, end) and [start, n) are set,
+        i.e. bits in range [end, start) are clear; others are set.
+        """
+        cdef uint32_t value
+        cdef BitColumnMatrix result = BitColumnMatrix(int(n))
+        value = 1
+        for i in range(n):
+            if start <= end:
+                result.columns[i] = value if (start <= i < end) else 0
+            else:
+                result.columns[i] = value if (start <= i or i < end) else 0
+            value <<= 1
+        return result
+
+    @staticmethod
     def shift(uint32_t n, int shift_value):
         cdef uint32_t value
         cdef BitColumnMatrix result = BitColumnMatrix(int(n))
@@ -36,7 +55,7 @@ cdef class BitColumnMatrix(object):
                     value = 1
             else:
                 value <<= 1
-                if value >= (1 << n):
+                if (1 << n) != 0 and value >= (1 << n):
                     value = 0
         return result
 
