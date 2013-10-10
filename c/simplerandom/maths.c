@@ -145,23 +145,35 @@ uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
  *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
  *     (1 + r) (1 + r^2 + r^4 + ... + (r^2)^(n/2-1)) + [ r^(n-1) if n is odd ]
  *
- * Which can be easily calculated by recursion, with time order O(log n), and
- * also stack depth O(log n).
- * This implementation is by recursion. Stack depth O(log n) isn't ideal; a
+ * Which can easily be calculated by recursion, with time order O(log n), and
+ * also stack depth O(log n). However that stack depth isn't good, so a
  * non-recursive implementation is preferable.
+ * This implementation is by a loop, not recursion, with time order
+ * O(log n) and stack depth O(1).
  */
 uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
 {
-    uint32_t    temp;
+    uint32_t    temp_r;
+    uint32_t    mult;
+    uint32_t    result;
 
     if (n == 0)
         return 0;
-    if (n == 1)
-        return 1;
-    temp = (1 + r) * geom_series_uint32(r * r, n / 2);
-    if (n & 1)
-        temp += pow_uint32(r, n - 1);
-    return temp;
+
+    temp_r = r;
+    mult = 1;
+    result = 0;
+
+    while (n > 1)
+    {
+        if (n & 1)
+            result += mult * pow_uint32(temp_r, n - 1);
+        mult *= (1 + temp_r);
+        temp_r *= temp_r;
+        n >>= 1;
+    }
+    result += mult;
+    return result;
 }
 
 #endif /* defined(UINT64_C) */
