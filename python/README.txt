@@ -194,7 +194,7 @@ thorough unit test suite is needed.
 
 In Ubuntu, it has been tested on Python 2.6 and 3.1 and passes.
 
-In Windows, it has been tested on Python 2.4, 2.5, 2.6, 2.7, 3.1 and 3.2.
+In Windows, it has been tested on Python 2.5, 2.6, 2.7, 3.1, 3.2 and 3.3.
 It passes under these versions.
 
 The pure Python code is expected to work on 64-bit platforms, but has not been
@@ -248,15 +248,12 @@ Basic unit testing of the iterators is in ``simplerandom.iterators.test``. It
 duplicates the tests of the C algorithms given in the original newsgroup post
 [#marsaglia1999]_, as well as other unit tests.
 
-To run it on Python >=2.5::
+To run unit tests::
 
     python -m simplerandom.iterators.test
 
-Alternatively, in the ``test`` directory run::
-
-    python test_iterators.py
-
-A more thorough unit test suite is needed.
+A more thorough unit test suite is needed. A unit test suite for
+``simplerandom.random`` is needed.
 
 
 -------
