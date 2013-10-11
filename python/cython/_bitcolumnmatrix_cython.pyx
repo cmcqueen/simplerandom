@@ -1,6 +1,15 @@
 
 from cython cimport view
-import numbers
+
+try:
+    import numbers
+except ImportError:
+    def isint(value):
+        return isinstance(value, int) or isinstance(value, long)
+else:
+    def isint(value):
+        return isinstance(value, numbers.Integral)
+
 
 cdef extern from "types.h":
     ctypedef unsigned int uint32_t
@@ -63,7 +72,7 @@ cdef class BitColumnMatrix(object):
         if isinstance(columns, BitColumnMatrix):
             for i in range(32):
                 self.columns[i] = (<BitColumnMatrix>columns).columns[i]
-        elif isinstance(columns, numbers.Integral):
+        elif isint(columns):
             if columns > 32:
                 raise NotImplementedError
             #self.columns = view.array(shape=(columns,), itemsize=sizeof(unsigned int), format="I")
@@ -114,7 +123,7 @@ cdef class BitColumnMatrix(object):
         cdef uint32_t y_len
         if not isinstance(x, BitColumnMatrix):
             return NotImplemented
-        if isinstance(y, numbers.Integral):
+        if isint(y):
             # Single value
             yy = int(y)
             value = 0
@@ -142,16 +151,14 @@ cdef class BitColumnMatrix(object):
                 result.columns[j] = value
             return result
 
-    def __imul__(self, other):
+    def __imul__(self, BitColumnMatrix other):
         cdef BitColumnMatrix result
         cdef uint32_t yy
         cdef uint32_t value
         cdef uint32_t self_len
         cdef uint32_t other_len
-        if isinstance(other, numbers.Integral):
-            # Single value. Not suitable for __imul__.
-            return NotImplemented
-        elif not isinstance(other, BitColumnMatrix):
+        if not isinstance(other, BitColumnMatrix):
+            # Single int value, or some other object. Not suitable for __imul__.
             return NotImplemented
         else:
             # Matrix multiplication
