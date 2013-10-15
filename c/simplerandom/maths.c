@@ -23,7 +23,11 @@
 
 #ifdef UINT64_C
 
-/* Simple implementation that uses 64-bit intermediate results */
+/* Multiplication of uint32_t values, modulo some uint32_t value.
+ *
+ * This is a simple implementation that uses 64-bit intermediate results.
+ * As long as uint64_t capability is available, this is straight-forward.
+ */
 uint32_t mul_mod_uint32(uint32_t a, uint32_t b, uint32_t mod)
 {
     uint64_t    temp;
@@ -34,7 +38,15 @@ uint32_t mul_mod_uint32(uint32_t a, uint32_t b, uint32_t mod)
 
 #else /* !defined(UINT64_C) */
 
-/* Slower implementation that fits all calculations within 32 bits. */
+/* Multiplication of uint32_t values, modulo some uint32_t value.
+ *
+ * This is an implementation that fits all calculations within 32 bits.
+ * It is useful for limited platforms that don't have 64-bit types
+ * available (smaller embedded systems).
+ *
+ * This same essential algorithm is used in the implementation of
+ * mul_mod_uint64(), since a uint128_t is most likely not available.
+ */
 uint32_t mul_mod_uint32(uint32_t a, uint32_t b, uint32_t mod)
 {
     uint32_t    result = 0;
@@ -68,6 +80,7 @@ uint32_t mul_mod_uint32(uint32_t a, uint32_t b, uint32_t mod)
 
 #endif /* defined(UINT64_C) */
 
+/* 32-bit calculation of 'base' to the power of 'n', modulo 2^32. */
 uint32_t pow_uint32(uint32_t base, uintmax_t n)
 {
     uint32_t    result;
@@ -107,6 +120,13 @@ uint32_t pow_uint32(uint32_t base, uintmax_t n)
  * Then divide by the common factor.
  * Then multiply by the inverse mod 2^32 of the other factors.
  *
+ * This is a simple implementation that uses 64-bit intermediate results.
+ * Given the complexity of this calculation, it is questionable whether it is
+ * faster than the alternative 32-bit-only implementation.
+ * The calculation of 'other_factors_inverse' is one of the slower parts. Given
+ * that this is used for the simplerandom Cong discard function, and so 'r' is
+ * a fixed constant, then a faster implementation would special-case the 'r'
+ * constant used for Cong.
  */
 uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
 {
@@ -140,6 +160,10 @@ uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
 /* Calculate geometric series:
  *     1 + r + r^2 + r^3 + ... r^(n-1)
  * summed to n terms, modulo 2^32.
+ *
+ * This is an implementation that fits all calculations within 32 bits.
+ * It is useful for limited platforms that don't have 64-bit types
+ * available (smaller embedded systems).
  *
  * It makes use of the fact that the series can pair up terms:
  *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
@@ -178,6 +202,8 @@ uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
 
 #endif /* defined(UINT64_C) */
 
+/* 32-bit calculation of 'base' to the power of an unsigned integer 'n',
+ * modulo a uint32_t value 'mod'. */
 uint32_t pow_mod_uint32(uint32_t base, uintmax_t n, uint32_t mod)
 {
     uint32_t    result;
@@ -201,6 +227,15 @@ uint32_t pow_mod_uint32(uint32_t base, uintmax_t n, uint32_t mod)
 
 #ifdef UINT64_C
 
+/* Multiplication of uint64_t values, modulo some uint64_t value.
+ *
+ * A "simple" implementation would require 128-bit intermediate values
+ * (see the "simple" implementation of mul_mod_uint32 that uses 64-bit
+ * intermediate calculations as a comparison). Given that a uint128_t isn't
+ * commonly available, this is an implementation that fits all calculations
+ * within 64 bits. It uses the same essential algorithm as the 32-bit-only
+ * implementation of mul_mod_uint32().
+ */
 uint64_t mul_mod_uint64(uint64_t a, uint64_t b, uint64_t mod)
 {
     uint64_t    result = 0;
@@ -232,6 +267,7 @@ uint64_t mul_mod_uint64(uint64_t a, uint64_t b, uint64_t mod)
     return result;
 }
 
+/* 64-bit calculation of 'base' to the power of 'n', modulo 2^64. */
 uint64_t pow_uint64(uint64_t base, uintmax_t n)
 {
     uint64_t    result;
@@ -251,6 +287,8 @@ uint64_t pow_uint64(uint64_t base, uintmax_t n)
     return result;
 }
 
+/* 64-bit calculation of 'base' to the power of an unsigned integer 'n',
+ * modulo a uint64_t value 'mod'. */
 uint64_t pow_mod_uint64(uint64_t base, uintmax_t n, uint64_t mod)
 {
     uint64_t    result;

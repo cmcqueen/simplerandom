@@ -3,6 +3,20 @@
  *
  * Simple Pseudo-random Number Generators
  *
+ * API Functions
+ *
+ * Each generator has state defined by a structure such as SimpleRandomCong_t.
+ * Functions operate on the structure passed by pointer.
+ * Each generator 'zzz' has the following functions:
+ *
+ *     simplerandom_zzz_seed(s1, s2, s3, ...)
+ *         Seed the generator with a number of unsigned 32-bit seed values.
+ *         The number of seed values depends on the generator.
+ *     simplerandom_zzz_seed_array(array, array_len)
+ *         Seed the generator with a number of unsigned 32-bit seed values.
+ *         The number of seed values depends on the generator, and is given
+ *         by simplerandom_zzz_num_seeds().
+ *
  * Most of these are from two newsgroup posts by George Marsaglia.
  *
  * The first was in 1999 [1]. From that newsgroup post, the following RNGs are
