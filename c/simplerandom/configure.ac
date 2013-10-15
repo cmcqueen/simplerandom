@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.68)
-AC_INIT([simplerandom], [0.6.0]) #set project name and version
+AC_INIT([simplerandom], [0.7.0]) #set project name and version
 AC_PROG_CC
 # C++ used for testing with cxxtest
 AC_PROG_CXX
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # library version as current:revision:age
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([LIB_SO_VERSION], [6:0:1])
+AC_SUBST([LIB_SO_VERSION], [7:0:2])
 
 # Enable "automake" to simplify creating makefiles:
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
