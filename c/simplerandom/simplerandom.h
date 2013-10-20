@@ -193,8 +193,6 @@ void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed);
 void simplerandom_cong_sanitize(SimpleRandomCong_t * p_cong);
 void simplerandom_cong_mix(SimpleRandomCong_t * p_cong, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong);
-uint8_t simplerandom_cong_next_uint8(SimpleRandomCong_t * p_cong);
-uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong);
 void simplerandom_cong_discard(SimpleRandomCong_t * p_cong, uintmax_t n);
 
 /* SHR3 -- 3-shift-register random number generator
@@ -226,8 +224,6 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed);
 void simplerandom_shr3_sanitize(SimpleRandomSHR3_t * p_shr3);
 void simplerandom_shr3_mix(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3);
-uint8_t simplerandom_shr3_next_uint8(SimpleRandomSHR3_t * p_shr3);
-uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3);
 void simplerandom_shr3_discard(SimpleRandomSHR3_t * p_shr3, uintmax_t n);
 
 /* MWC1 -- "Multiply-with-carry" random number generator
@@ -259,8 +255,6 @@ void simplerandom_mwc1_seed(SimpleRandomMWC1_t * p_mwc, uint32_t seed_upper, uin
 void simplerandom_mwc1_sanitize(SimpleRandomMWC1_t * p_mwc);
 void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc);
-uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc);
-uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc);
 void simplerandom_mwc1_discard(SimpleRandomMWC1_t * p_mwc, uintmax_t n);
 
 static inline uint32_t mwc1_current(SimpleRandomMWC1_t * p_mwc)
@@ -285,8 +279,6 @@ void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uin
 void simplerandom_mwc2_sanitize(SimpleRandomMWC2_t * p_mwc);
 void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc);
-uint8_t simplerandom_mwc2_next_uint8(SimpleRandomMWC2_t * p_mwc);
-uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc);
 void simplerandom_mwc2_discard(SimpleRandomMWC2_t * p_mwc, uintmax_t n);
 
 static inline uint32_t mwc2_current(SimpleRandomMWC2_t * p_mwc)
@@ -314,8 +306,6 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
 void simplerandom_kiss_sanitize(SimpleRandomKISS_t * p_kiss);
 void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss);
-uint8_t simplerandom_kiss_next_uint8(SimpleRandomKISS_t * p_kiss);
-uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss);
 void simplerandom_kiss_discard(SimpleRandomKISS_t * p_kiss, uintmax_t n);
 
 static inline uint32_t kiss_current(SimpleRandomKISS_t * p_kiss)
@@ -348,8 +338,6 @@ void simplerandom_mwc64_seed(SimpleRandomMWC64_t * p_mwc, uint32_t seed_upper, u
 void simplerandom_mwc64_sanitize(SimpleRandomMWC64_t * p_mwc);
 void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc);
-uint8_t simplerandom_mwc64_next_uint8(SimpleRandomMWC64_t * p_mwc);
-uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc);
 void simplerandom_mwc64_discard(SimpleRandomMWC64_t * p_mwc, uintmax_t n);
 
 /* KISS2 -- "Keep It Simple Stupid" random number generator
@@ -369,8 +357,6 @@ void simplerandom_kiss2_seed(SimpleRandomKISS2_t * p_kiss2, uint32_t seed_mwc_up
 void simplerandom_kiss2_sanitize(SimpleRandomKISS2_t * p_kiss2);
 void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2);
-uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2);
-uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2);
 void simplerandom_kiss2_discard(SimpleRandomKISS2_t * p_kiss2, uintmax_t n);
 
 static inline uint32_t kiss2_current(SimpleRandomKISS2_t * p_kiss2)
@@ -399,8 +385,6 @@ void simplerandom_lfsr113_seed(SimpleRandomLFSR113_t * p_lfsr113, uint32_t seed_
 void simplerandom_lfsr113_sanitize(SimpleRandomLFSR113_t * p_lfsr113);
 void simplerandom_lfsr113_mix(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113);
-uint8_t simplerandom_lfsr113_next_uint8(SimpleRandomLFSR113_t * p_lfsr113);
-uint16_t simplerandom_lfsr113_next_uint16(SimpleRandomLFSR113_t * p_lfsr113);
 void simplerandom_lfsr113_discard(SimpleRandomLFSR113_t * p_lfsr113, uintmax_t n);
 
 /* LFSR88 -- Combined LFSR random number generator by L'Ecuyer
@@ -420,8 +404,6 @@ void simplerandom_lfsr88_seed(SimpleRandomLFSR88_t * p_lfsr88, uint32_t seed_z1,
 void simplerandom_lfsr88_sanitize(SimpleRandomLFSR88_t * p_lfsr88);
 void simplerandom_lfsr88_mix(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_data, size_t num_data);
 uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88);
-uint8_t simplerandom_lfsr88_next_uint8(SimpleRandomLFSR88_t * p_lfsr88);
-uint16_t simplerandom_lfsr88_next_uint16(SimpleRandomLFSR88_t * p_lfsr88);
 void simplerandom_lfsr88_discard(SimpleRandomLFSR88_t * p_lfsr88, uintmax_t n);
 
 

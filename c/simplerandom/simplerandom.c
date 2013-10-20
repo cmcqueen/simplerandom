@@ -69,18 +69,6 @@ uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
     return cong;
 }
 
-uint8_t simplerandom_cong_next_uint8(SimpleRandomCong_t * p_cong)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_cong_next(p_cong) >> 24u);
-}
-
-uint16_t simplerandom_cong_next_uint16(SimpleRandomCong_t * p_cong)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_cong_next(p_cong) >> 16u);
-}
-
 void simplerandom_cong_mix(SimpleRandomCong_t * p_cong, const uint32_t * p_data, size_t num_data)
 {
     if (p_data != NULL)
@@ -153,18 +141,6 @@ uint32_t simplerandom_shr3_next(SimpleRandomSHR3_t * p_shr3)
     p_shr3->shr3 = shr3;
 
     return shr3;
-}
-
-uint8_t simplerandom_shr3_next_uint8(SimpleRandomSHR3_t * p_shr3)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_shr3_next(p_shr3) >> 24u);
-}
-
-uint16_t simplerandom_shr3_next_uint16(SimpleRandomSHR3_t * p_shr3)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_shr3_next(p_shr3) >> 16u);
 }
 
 void simplerandom_shr3_mix(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_data, size_t num_data)
@@ -322,18 +298,6 @@ uint32_t simplerandom_mwc2_next(SimpleRandomMWC2_t * p_mwc)
     return mwc2_current(p_mwc);
 }
 
-uint8_t simplerandom_mwc2_next_uint8(SimpleRandomMWC2_t * p_mwc)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_mwc2_next(p_mwc) >> 24u);
-}
-
-uint16_t simplerandom_mwc2_next_uint16(SimpleRandomMWC2_t * p_mwc)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_mwc2_next(p_mwc) >> 16u);
-}
-
 void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, size_t num_data)
 {
     uint32_t    current;
@@ -422,18 +386,6 @@ uint32_t simplerandom_mwc1_next(SimpleRandomMWC1_t * p_mwc)
     mwc2_next_upper(p_mwc);
     mwc2_next_lower(p_mwc);
     return mwc1_current(p_mwc);
-}
-
-uint8_t simplerandom_mwc1_next_uint8(SimpleRandomMWC1_t * p_mwc)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_mwc1_next(p_mwc) >> 24u);
-}
-
-uint16_t simplerandom_mwc1_next_uint16(SimpleRandomMWC1_t * p_mwc)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_mwc1_next(p_mwc) >> 16u);
 }
 
 /* This is nearly identical to the MWC2 mix function, except for the call to
@@ -623,18 +575,6 @@ uint32_t simplerandom_kiss_next(SimpleRandomKISS_t * p_kiss)
     return kiss_current(p_kiss);
 }
 
-uint8_t simplerandom_kiss_next_uint8(SimpleRandomKISS_t * p_kiss)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_kiss_next(p_kiss) >> 24u);
-}
-
-uint16_t simplerandom_kiss_next_uint16(SimpleRandomKISS_t * p_kiss)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_kiss_next(p_kiss) >> 16u);
-}
-
 void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data, size_t num_data)
 {
     uint32_t    current;
@@ -768,18 +708,6 @@ uint32_t simplerandom_mwc64_next(SimpleRandomMWC64_t * p_mwc)
     p_mwc->mwc_lower = (uint32_t)mwc64;
 
     return (uint32_t)mwc64;
-}
-
-uint8_t simplerandom_mwc64_next_uint8(SimpleRandomMWC64_t * p_mwc)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_mwc64_next(p_mwc) >> 24u);
-}
-
-uint16_t simplerandom_mwc64_next_uint16(SimpleRandomMWC64_t * p_mwc)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_mwc64_next(p_mwc) >> 16u);
 }
 
 void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data, size_t num_data)
@@ -932,18 +860,6 @@ uint32_t simplerandom_kiss2_next(SimpleRandomKISS2_t * p_kiss2)
     kiss2_next_cong(p_kiss2);
     kiss2_next_shr3(p_kiss2);
     return kiss2_current(p_kiss2);
-}
-
-uint8_t simplerandom_kiss2_next_uint8(SimpleRandomKISS2_t * p_kiss2)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_kiss2_next(p_kiss2) >> 24u);
-}
-
-uint16_t simplerandom_kiss2_next_uint16(SimpleRandomKISS2_t * p_kiss2)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_kiss2_next(p_kiss2) >> 16u);
 }
 
 void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_data, size_t num_data)
@@ -1211,18 +1127,6 @@ uint32_t simplerandom_lfsr113_next(SimpleRandomLFSR113_t * p_lfsr113)
     return lfsr113_current(p_lfsr113);
 }
 
-uint8_t simplerandom_lfsr113_next_uint8(SimpleRandomLFSR113_t * p_lfsr113)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_lfsr113_next(p_lfsr113) >> 24u);
-}
-
-uint16_t simplerandom_lfsr113_next_uint16(SimpleRandomLFSR113_t * p_lfsr113)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_lfsr113_next(p_lfsr113) >> 16u);
-}
-
 void simplerandom_lfsr113_mix(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t * p_data, size_t num_data)
 {
     uint32_t    current;
@@ -1424,18 +1328,6 @@ uint32_t simplerandom_lfsr88_next(SimpleRandomLFSR88_t * p_lfsr88)
     lfsr88_next_z2(p_lfsr88);
     lfsr88_next_z3(p_lfsr88);
     return lfsr88_current(p_lfsr88);
-}
-
-uint8_t simplerandom_lfsr88_next_uint8(SimpleRandomLFSR88_t * p_lfsr88)
-{
-    /* Return most-significant 8 bits. */
-    return (simplerandom_lfsr88_next(p_lfsr88) >> 24u);
-}
-
-uint16_t simplerandom_lfsr88_next_uint16(SimpleRandomLFSR88_t * p_lfsr88)
-{
-    /* Return most-significant 16 bits. */
-    return (simplerandom_lfsr88_next(p_lfsr88) >> 16u);
 }
 
 void simplerandom_lfsr88_mix(SimpleRandomLFSR88_t * p_lfsr88, const uint32_t * p_data, size_t num_data)
