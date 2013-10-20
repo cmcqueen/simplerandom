@@ -1025,7 +1025,7 @@ def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
 
             min_value = 1 << min_value_shift
             if working_seed < min_value:
-                working_seed = (seed << 16) & 0xFFFFFFFFu
+                working_seed = (seed << 24) & 0xFFFFFFFFu
                 if working_seed < min_value:
                     working_seed ^= 0xFFFFFFFFu
             return working_seed

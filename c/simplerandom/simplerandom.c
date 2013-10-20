@@ -908,8 +908,9 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
  ********/
 
 #define LFSR_SEED_SHIFT         16u
+#define LFSR_ALT_SEED_SHIFT     24u
 #define LFSR_SEED(X)            ((X) ^ ((X) << LFSR_SEED_SHIFT))
-#define LFSR_ALT_SEED(X)        ((X) << LFSR_SEED_SHIFT)
+#define LFSR_ALT_SEED(X)        ((X) << LFSR_ALT_SEED_SHIFT)
 
 #define LFSR_SEED_Z1_MIN_VALUE  2u
 #define LFSR_SEED_Z2_MIN_VALUE  8u
