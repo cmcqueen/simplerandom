@@ -86,9 +86,17 @@ class Cong(object):
     all seemingly without complaint.
     '''
     SIMPLERANDOM_MOD = 2**32
+    SIMPLERANDOM_MAX = 2**32 - 1
     CONG_CYCLE_LEN = 2**32
     CONG_MULT = 69069
     CONG_CONST = 12345
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return Cong.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -164,12 +172,20 @@ class SHR3(object):
     '''
 
     SIMPLERANDOM_MOD = 2**32
+    SIMPLERANDOM_MAX = 2**32 - 1
     SHR3_CYCLE_LEN = 2**32 - 1
 
     _SHR3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _SHR3_MATRIX_b = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,-17)
     _SHR3_MATRIX_c = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,5)
     _SHR3_MATRIX = _SHR3_MATRIX_c * _SHR3_MATRIX_b * _SHR3_MATRIX_a
+
+    @staticmethod
+    def min():
+        return 1
+    @staticmethod
+    def max():
+        return SHR3.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -240,12 +256,20 @@ class MWC2(object):
     L'Ecuyer's TestU01 test suite, so it should probably
     be preferred.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
     _MWC_UPPER_MULT = 36969
     _MWC_LOWER_MULT = 18000
     _MWC_UPPER_MODULO = _MWC_UPPER_MULT * 2**16 - 1
     _MWC_LOWER_MODULO = _MWC_LOWER_MULT * 2**16 - 1
     _MWC_UPPER_CYCLE_LEN = _MWC_UPPER_MULT * 2**16 // 2 - 1
     _MWC_LOWER_CYCLE_LEN = _MWC_LOWER_MULT * 2**16 // 2 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return MWC2.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -381,9 +405,17 @@ class MWC64(object):
     generate a 32-bit value. The seeds should be 32-bit
     values.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
     _MWC64_MULT = 698769069
     _MWC64_MODULO = _MWC64_MULT * 2**32 - 1
     _MWC64_CYCLE_LEN = _MWC64_MULT * 2**32 // 2 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return MWC64.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -482,6 +514,14 @@ class KISS(object):
     that reason, we take the opportunity to slightly
     update the MWC and Cong generators too.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return KISS.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -594,6 +634,14 @@ class KISS2(object):
     The MWC component uses a single 64-bit calculation,
     instead of two 32-bit calculations that are combined.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return KISS2.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -749,6 +797,8 @@ class LFSR113(object):
     P. L'Ecuyer
     Mathematics of Computation, 68, 225 (1999), 261-269.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
     _LFSR113_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,6)
     _LFSR113_1_MATRIX_b = BitColumnMatrix.shift(32,-13)
     _LFSR113_1_MATRIX_c = BitColumnMatrix.mask(32, 1, 32)
@@ -776,6 +826,13 @@ class LFSR113(object):
     _LFSR113_4_MATRIX_d = BitColumnMatrix.shift(32,13)
     _LFSR113_4_MATRIX = _LFSR113_4_MATRIX_d * _LFSR113_4_MATRIX_c + _LFSR113_4_MATRIX_b * _LFSR113_4_MATRIX_a
     _LFSR113_4_CYCLE_LEN = 2**(32 - 7) - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return LFSR113.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -891,6 +948,8 @@ class LFSR88(object):
     P. L'Ecuyer
     Mathematics of Computation, 65, 213 (1996), 203-213. 
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
     _LFSR88_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _LFSR88_1_MATRIX_b = BitColumnMatrix.shift(32,-19)
     _LFSR88_1_MATRIX_c = BitColumnMatrix.mask(32, 1, 32)
@@ -911,6 +970,13 @@ class LFSR88(object):
     _LFSR88_3_MATRIX_d = BitColumnMatrix.shift(32,17)
     _LFSR88_3_MATRIX = _LFSR88_3_MATRIX_d * _LFSR88_3_MATRIX_c + _LFSR88_3_MATRIX_b * _LFSR88_3_MATRIX_a
     _LFSR88_3_CYCLE_LEN = 2**(32 - 4) - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return LFSR88.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values

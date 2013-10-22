@@ -79,10 +79,18 @@ def _geom_series_uint32(uint32_t r, n):
     numerator = pow(r, n, common_factor * m) - 1u
     return (numerator // common_factor * other_factors_inverse) % m
 
+cdef uint32_t SIMPLERANDOM_MAX = 2**32 - 1
 cdef uint64_t SIMPLERANDOM_MOD = 2**32
 cdef uint64_t CONG_CYCLE_LEN = 2**32
 cdef uint32_t CONG_MULT = 69069u
 cdef uint32_t CONG_CONST = 12345u
+
+def _simplerandom_min():
+    return 0
+def _simplerandom_max():
+    return SIMPLERANDOM_MAX
+def _SHR3_min():
+    return 1
 
 cdef class Cong(object):
     '''Congruential random number generator
@@ -103,6 +111,9 @@ cdef class Cong(object):
     '''
 
     cdef public uint32_t cong
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -195,6 +206,9 @@ cdef class SHR3(object):
     '''
 
     cdef public uint32_t shr3
+
+    min = staticmethod(_SHR3_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -290,6 +304,9 @@ cdef class MWC1(object):
 
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -411,6 +428,9 @@ cdef class MWC2(object):
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
 
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
+
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
         Keyword-only arguments:
@@ -530,6 +550,9 @@ cdef class MWC64(object):
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
 
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
+
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
         Keyword-only arguments:
@@ -642,6 +665,9 @@ cdef class KISS(object):
     cdef public uint32_t shr3
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -828,6 +854,9 @@ cdef class KISS2(object):
     cdef public uint32_t shr3
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -1096,6 +1125,9 @@ cdef class LFSR113(object):
     cdef public uint32_t z3
     cdef public uint32_t z4
 
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
+
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
         Keyword-only arguments:
@@ -1249,6 +1281,9 @@ cdef class LFSR88(object):
     cdef public uint32_t z1
     cdef public uint32_t z2
     cdef public uint32_t z3
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
