@@ -4,6 +4,7 @@ import random
 from numbers import Integral as _Integral
 from os import urandom as _urandom
 from binascii import hexlify as _hexlify
+from math import log
 
 import simplerandom.iterators as sri
 
@@ -11,8 +12,11 @@ class _StandardRandomTemplate(random.Random):
     BPF = random.BPF
     RECIP_BPF = random.RECIP_BPF
     RNG_BITS = 32
-    RNG_RANGE = (1 << RNG_BITS)
-    RNG_BITS_MASK = RNG_RANGE - 1
+    RNG_MIN = 0                 # with few exceptions (e.g. SHR3 with min 1)
+    RNG_MAX = 2**32 - 1
+    RNG_RANGE = RNG_MAX - RNG_MIN + 1
+    RNG_RANGE_BITS = log(RNG_RANGE, 2)
+    SEED_BITS_MASK = 2**32 - 1
     RNG_SEEDS = 1
 
     def __init__(self, x=None, bpf=None):
@@ -27,6 +31,7 @@ class _StandardRandomTemplate(random.Random):
         if not bpf:
             self._bpf = self.BPF
             self._recip_bpf = self.RECIP_BPF
+            self._rng_n = int((self._bpf + self.RNG_RANGE_BITS - 1) / self.RNG_RANGE_BITS)
         else:
             self.setbpf(bpf)
 
@@ -47,7 +52,7 @@ class _StandardRandomTemplate(random.Random):
             seed = hash(seed)
         seeds = []
         while True:
-            seeds.append(seed & self.RNG_BITS_MASK)
+            seeds.append(seed & self.SEED_BITS_MASK)
             seed >>= self.RNG_BITS
             # If seed is negative, then it effectively has infinitely extending
             # '1' bits (modelled as a 2's complement representation). So when
@@ -65,8 +70,10 @@ class _StandardRandomTemplate(random.Random):
 
     def setbpf(self, bpf):
         """Set number of bits per float output"""
-        self._bpf = bpf
         self._recip_bpf = 1./(1 << bpf)
+        self._bpf = min(bpf, self.BPF)
+        self._recip_bpf = 1./(1 << bpf)
+        self._rng_n = int((self._bpf + self.RNG_RANGE_BITS - 1) / self.RNG_RANGE_BITS)
 
     bpf = property(getbpf, setbpf, doc="bits per float")
 
@@ -80,7 +87,12 @@ class _StandardRandomTemplate(random.Random):
         return x
 
     def random(self):
-        return self.getrandbits(self._bpf) * self._recip_bpf
+        accum = 0.0
+        accum_range = 1.0
+        for _ in range(self._rng_n):
+            accum += (self.rng_iterator.next() - self.RNG_MIN) * accum_range
+            accum_range *= self.RNG_RANGE
+        return accum / accum_range
 
     def jumpahead(self, n):
         """Jump the random number generator ahead 'n' values of the
@@ -120,6 +132,9 @@ class Cong(_StandardRandomTemplate):
 
 class SHR3(_StandardRandomTemplate):
     RNG_CLASS = sri.SHR3
+    RNG_MIN = RNG_CLASS.min()
+    RNG_RANGE = _StandardRandomTemplate.RNG_MAX - RNG_MIN + 1
+    RNG_RANGE_BITS = log(RNG_RANGE, 2)
     __doc__ = RNG_CLASS.__doc__
 
 
