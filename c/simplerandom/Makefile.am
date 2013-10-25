@@ -10,7 +10,7 @@ lib_LTLIBRARIES = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
 
 library_include_simplerandomdir=$(includedir)/@PACKAGE_NAME@-@PACKAGE_VERSION@
-library_include_simplerandom_HEADERS = simplerandom.h
+library_include_simplerandom_HEADERS = simplerandom.h simplerandom-c.h simplerandom-cpp.h
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = simplerandom.c simplerandom-discard.c bitcolumnmatrix.c bitcolumnmatrix.h maths.c maths.h
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_LDFLAGS = -version-info @LIB_SO_VERSION@
 
@@ -36,6 +36,7 @@ runner.cpp: tests/test_runner.h
 TESTS += test_runner
 check_PROGRAMS += test_runner
 
+dist_noinst_DATA = tests/test_runner.h
 test_runner_SOURCES = $(builddir)/runner.cpp
 test_runner_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 

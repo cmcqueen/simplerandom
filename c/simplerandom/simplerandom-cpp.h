@@ -1,5 +1,5 @@
 /*
- * simplerandom.h
+ * simplerandom-cpp.h
  *
  * Simple Pseudo-random Number Generators
  *
@@ -72,13 +72,23 @@
  *     http://www.iro.umontreal.ca/~simardr/rng/lfsr113.c
  */
 
+#ifndef _SIMPLERANDOM_CPP_H
+#define _SIMPLERANDOM_CPP_H
 
-#ifdef __cplusplus
-
-#include <simplerandom-cpp.h>
-
-#else
-
-#include <simplerandom-c.h>
-
+#ifndef __cplusplus
+#error This header simplerandom-cpp.h is only suitable for C++ not C
 #endif
+
+
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+namespace simplerandom
+{
+
+}
+
+
+#endif /* !defined(_SIMPLERANDOM_CPP_H) */
+

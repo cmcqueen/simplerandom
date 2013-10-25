@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <random>
 
+namespace simplerandom {
+
 class SHR3
 {
 private:
     uint32_t shr3;
 public:
-    typedef uint32_t return_value;
+    typedef uint32_t result_type;
 
     SHR3(uint32_t seed1 = 0xFFFFFFFF)
     {
@@ -33,39 +35,45 @@ public:
         shr3 ^= (shr3 << 5);
         return shr3;
     }
-    uint32_t min()
+    uint32_t min() const
     {
         return 1;
     }
-    uint32_t max()
+    uint32_t max() const
     {
         return 0xFFFFFFFFu;
     }
 };
 
+};
+
 int main()
 {
+    std::string rng_name;
 #if 0
     /* This should work, but doesn't accept m == 0 in GCC g++ 4.7.3. */
     std::linear_congruential_engine<uint32_t, 69069u, 12345u, 0> rng;
-#elif 0
+    rng_name = "Cong";
+#elif 1
     std::linear_congruential_engine<uint64_t, 69069u, 12345u, 0x100000000u> rng;
+    rng_name = "Cong";
 #else
-    SHR3 rng;
+    simplerandom::SHR3 rng;
+    rng_name = "SHR3";
 #endif
     rng.seed(0);
 
-    std::cout << "Min: " << rng.min() << std::endl;
-    std::cout << "Max: " << rng.max() << std::endl;
+    std::cout << rng_name << " min: " << rng.min() << std::endl;
+    std::cout << rng_name << " max: " << rng.max() << std::endl;
 
     std::cout << std::endl
-        << "RNG(0) values:" << std::endl;
+        << rng_name << "(0) values:" << std::endl;
     for (size_t i = 0; i < 10; ++i)
     {
         std::cout << rng() << std::endl;
     }
     std::cout << std::endl
-        << "RNG(0) real values:" << std::endl;
+        << rng_name << "(0) real values:" << std::endl;
     std::uniform_real_distribution<> real_dist;
     rng.seed(0);
     for (size_t i = 0; i < 10; ++i)
