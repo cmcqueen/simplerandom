@@ -177,6 +177,9 @@ cdef class Cong(object):
         add_const = add_const_part * CONG_CONST
         self.cong = mult_exp * self.cong + add_const
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.cong)) + ")"
+
 
 cdef uint32_t SHR3_CYCLE_LEN = 2u**32u - 1u
 _SHR3_MATRIX_COLUMNS = [
@@ -268,6 +271,9 @@ cdef class SHR3(object):
         n_shr3 = n % SHR3_CYCLE_LEN
         shr3 = pow(_SHR3_MATRIX, n_shr3) * self.shr3
         self.shr3 = shr3
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.shr3)) + ")"
 
 
 cdef uint32_t _MWC_UPPER_MULT = 36969u
@@ -411,6 +417,9 @@ cdef class MWC1(object):
         # The following calculation needs to be done in greater than 32-bit.
         self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 cdef class MWC2(object):
     '''"Multiply-with-carry" random number generator
@@ -534,6 +543,9 @@ cdef class MWC2(object):
         # The following calculation needs to be done in greater than 32-bit.
         self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 cdef uint64_t _MWC64_MULT = 698769069u
 cdef uint64_t _MWC64_MODULO = _MWC64_MULT * 2u**32u - 1u
@@ -644,6 +656,9 @@ cdef class MWC64(object):
         temp64 = pow(int(_MWC64_MULT), n, int(_MWC64_MODULO)) * temp64 % _MWC64_MODULO
         self.mwc_lower = temp64 & 0xFFFFFFFFu
         self.mwc_upper = (temp64 >> 32u) & 0xFFFFFFFFu
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
 
 
 cdef class KISS(object):
@@ -833,6 +848,12 @@ cdef class KISS(object):
         n_int = n % SHR3_CYCLE_LEN
         shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
         self.shr3 = shr3
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
 
 
 cdef class KISS2(object):
@@ -1024,6 +1045,12 @@ cdef class KISS2(object):
         shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
         self.shr3 = shr3
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
+
 
 def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
     """High-quality seeding for LFSR generators.
@@ -1075,6 +1102,8 @@ def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
         seed ^= 0xFFFFFFFFu
     return seed
 
+def lfsr_repr_z(uint32_t seed):
+    return repr(int((seed ^ (seed << 16))))
 
 _LFSR113_1_MATRIX = BitColumnMatrix([
     0x00000000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000001,
@@ -1240,6 +1269,12 @@ cdef class LFSR113(object):
         z4 = pow(_LFSR113_4_MATRIX, n_4) * self.z4
         self.z4 = z4
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) +
+                                        "," + lfsr_repr_z(self.z4) + ")")
+
 
 _LFSR88_1_MATRIX = BitColumnMatrix([
     0x00000000, 0x00002000, 0x00004000, 0x00008000, 0x00010000, 0x00020000, 0x00040001, 0x00080002,
@@ -1379,3 +1414,8 @@ cdef class LFSR88(object):
         self.z2 = z2
         z3 = pow(_LFSR88_3_MATRIX, n_3) * self.z3
         self.z3 = z3
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) + ")")
