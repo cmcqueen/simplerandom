@@ -29,11 +29,8 @@ class _StandardRandomTemplate(random.Random):
         self.seed(x)
 
         if not bpf:
-            self._bpf = self.BPF
-            self._recip_bpf = self.RECIP_BPF
-            self._rng_n = int((self._bpf + self.RNG_RANGE_BITS - 1) / self.RNG_RANGE_BITS)
-        else:
-            self.setbpf(bpf)
+            bpf = self.BPF
+        self.setbpf(bpf)
 
     def seed(self, seed=None):
         """For consistent cross-platform seeding, provide an integer seed.
@@ -70,9 +67,7 @@ class _StandardRandomTemplate(random.Random):
 
     def setbpf(self, bpf):
         """Set number of bits per float output"""
-        self._recip_bpf = 1./(1 << bpf)
         self._bpf = min(bpf, self.BPF)
-        self._recip_bpf = 1./(1 << bpf)
         self._rng_n = int((self._bpf + self.RNG_RANGE_BITS - 1) / self.RNG_RANGE_BITS)
 
     bpf = property(getbpf, setbpf, doc="bits per float")
