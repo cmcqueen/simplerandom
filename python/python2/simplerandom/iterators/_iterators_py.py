@@ -153,6 +153,9 @@ class Cong(object):
         add_const = (_geom_series_uint32(self.CONG_MULT, n) * self.CONG_CONST) & 0xFFFFFFFF
         self.cong = (mult_exp * self.cong + add_const) & 0xFFFFFFFF
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.cong)) + ")"
+
 
 class SHR3(object):
     '''3-shift-register random number generator
@@ -242,6 +245,9 @@ class SHR3(object):
         n = int(n) % self.SHR3_CYCLE_LEN
         shr3 = pow(self._SHR3_MATRIX, n) * self.shr3
         self.shr3 = shr3
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.shr3)) + ")"
 
 
 class MWC2(object):
@@ -364,6 +370,9 @@ class MWC2(object):
         self.mwc_upper = pow(self._MWC_UPPER_MULT, n_upper, self._MWC_UPPER_MODULO) * self.mwc_upper % self._MWC_UPPER_MODULO
         n_lower = int(n) % self._MWC_LOWER_CYCLE_LEN
         self.mwc_lower = pow(self._MWC_LOWER_MULT, n_lower, self._MWC_LOWER_MODULO) * self.mwc_lower % self._MWC_LOWER_MODULO
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
 
 
 class MWC1(MWC2):
@@ -499,6 +508,9 @@ class MWC64(object):
         self.mwc_lower = temp64 & 0xFFFFFFFF
         self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 class KISS(object):
     '''"Keep It Simple Stupid" random number generator
@@ -618,6 +630,12 @@ class KISS(object):
     def _set_cong(self, value):
         self.random_cong.cong = value
     cong = property(_get_cong, _set_cong)
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
 
 
 class KISS2(object):
@@ -739,6 +757,12 @@ class KISS2(object):
         self.random_cong.cong = value
     cong = property(_get_cong, _set_cong)
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
+
 
 def lfsr_next_one_seed(seed_iter, min_value_shift):
     """High-quality seeding for LFSR generators.
@@ -784,6 +808,9 @@ def lfsr_validate_one_seed(seed, min_value_shift):
     if seed < min_value:
         seed ^= 0xFFFFFFFF
     return seed
+
+def lfsr_repr_z(z):
+    return repr(int(z ^ ((z << 16) & 0xFFFFFFFF)))
 
 class LFSR113(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -935,6 +962,12 @@ class LFSR113(object):
         z4 = pow(self._LFSR113_4_MATRIX, n_4) * self.z4
         self.z4 = z4
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) +
+                                        "," + lfsr_repr_z(self.z4) + ")")
+
 
 class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -1063,3 +1096,8 @@ class LFSR88(object):
         self.z2 = z2
         z3 = pow(self._LFSR88_3_MATRIX, n_3) * self.z3
         self.z3 = z3
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) + ")")
