@@ -58,8 +58,6 @@ class _StandardRandomTemplate(random.Random):
             if seed == 0 or seed == -1:
                 break
         self.rng_iterator.seed(seeds, mix_extras=True)
-        self.f = 0
-        self.bits = 0
 
     def getbpf(self):
         """Get number of bits per float output"""
@@ -73,13 +71,18 @@ class _StandardRandomTemplate(random.Random):
     bpf = property(getbpf, setbpf, doc="bits per float")
 
     def getrandbits(self, k):
-        while self.bits < k:
-            self.f = (self.f << self.RNG_BITS) | self.rng_iterator.next()
-            self.bits += self.RNG_BITS
-        self.bits -= k
-        x = self.f >> self.bits
-        self.f &= ((1 << self.bits) - 1)
-        return x
+        accum = 0
+        accum_bits = 0
+        rng_bits = self.RNG_BITS
+        k_div, k_remainder = divmod(k, rng_bits)
+        if k_remainder:
+            accum_bits = k_remainder
+            accum = self.rng_iterator.next() >> (rng_bits - k_remainder)
+        while k_div > 0:
+            accum |= self.rng_iterator.next() << accum_bits
+            accum_bits += rng_bits
+            k_div -= rng_bits
+        return accum
 
     def random(self):
         accum = 0.0
@@ -97,27 +100,13 @@ class _StandardRandomTemplate(random.Random):
         simplerandom generators. It is implemented in both Python 2
         and Python 3.
         """
-        n_bits = n * self._bpf
-        if n_bits < self.bits:
-            self.bits -= n_bits
-        else:
-            n_more_bits = n_bits - self.bits
-            n_rng_words = n_more_bits // self.RNG_BITS
-            remove_bits = n_more_bits % self.RNG_BITS
-            self.f = self.rng_iterator.jumpahead(n_rng_words + 1)
-            self.bits = self.RNG_BITS - remove_bits
-            self.f &= ((1 << self.bits) - 1)
+        self.rng_iterator.jumpahead(n * self._rng_n)
 
     def getstate(self):
-        return self.f, self.bits, self.rng_iterator.getstate()
+        return self.rng_iterator.getstate()
 
     def setstate(self, state):
-        (f, bits, rng_state) = state
-        bits = int(bits)
-        bits = max(bits, self.RNG_BITS)
-        f %= (1 << bits)
-        self.f, self.bits, = f,  bits
-        self.rng_iterator.setstate(rng_state)
+        self.rng_iterator.setstate(state)
 
 
 class Cong(_StandardRandomTemplate):
