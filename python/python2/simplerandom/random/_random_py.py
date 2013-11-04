@@ -19,45 +19,44 @@ class _StandardRandomTemplate(random.Random):
     SEED_BITS_MASK = 2**32 - 1
     RNG_SEEDS = 1
 
-    def __init__(self, x=None, bpf=None):
+    def __new__(cls, *args, **kwargs):
+        return super (_StandardRandomTemplate, cls).__new__ (cls, random.random() )
+
+    def __init__(self, x=None, *args, **kwargs):
         """x is a seed. For consistent cross-platform seeding, provide
         an integer seed.
         bpf is "bits per float", the number of bits of random data used
         to generate each output of random().
         """
+        bpf = kwargs.pop('bpf', None)
+        for key in kwargs:
+            raise TypeError("__init__() got an unexpected keyword argument '%s'" % key)
+
         self.rng_iterator = self.RNG_CLASS()
-        self.seed(x)
+        random.Random.__init__(self, x)         # This will call self.seed() with the 1 arg.
+        if args:
+            self.seed(x, *args)                 # Call our seed again with all args. Inefficient but necessary.
 
         if not bpf:
             bpf = self.BPF
         self.setbpf(bpf)
 
-    def seed(self, seed=None):
+    def seed(self, x=None, *args):
         """For consistent cross-platform seeding, provide an integer seed.
         """
-        if seed is None:
+        if x is None:
             # Use same random seed code copied from Python's random.Random
             try:
-                seed = long(_hexlify(_urandom(16)), 16)
+                x = long(_hexlify(_urandom(16)), 16)
             except NotImplementedError:
                 import time
-                seed = long(time.time() * 256) # use fractional seconds
-        elif not isinstance(seed, _Integral):
+                x = long(time.time() * 256) # use fractional seconds
+        elif not isinstance(x, _Integral):
             # Use the hash of the input seed object. Note this does not give
             # consistent results cross-platform--between Python versions or
             # between 32-bit and 64-bit systems.
-            seed = hash(seed)
-        seeds = []
-        while True:
-            seeds.append(seed & self.SEED_BITS_MASK)
-            seed >>= self.RNG_BITS
-            # If seed is negative, then it effectively has infinitely extending
-            # '1' bits (modelled as a 2's complement representation). So when
-            # right-shifting it, it will eventually get to -1, and any further
-            # right-shifting will not change it.
-            if seed == 0 or seed == -1:
-                break
-        self.rng_iterator.seed(seeds, mix_extras=True)
+            x = hash(x)
+        self.rng_iterator.seed(x, *args, mix_extras=True)
 
     def getbpf(self):
         """Get number of bits per float output"""

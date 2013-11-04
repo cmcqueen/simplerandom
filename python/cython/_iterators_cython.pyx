@@ -10,10 +10,21 @@ def _traverse_iter(o, tree_types=(list, tuple)):
     This allows generator __init__() functions to be passed seeds either as
     a series of arguments, or as a list/tuple.
     """
+    SIMPLERANDOM_BITS = 32
+    SIMPLERANDOM_MOD = 2**SIMPLERANDOM_BITS
+    SIMPLERANDOM_MASK = SIMPLERANDOM_MOD - 1
     if isinstance(o, tree_types) or getattr(o, '__iter__', False):
         for value in o:
             for subvalue in _traverse_iter(value):
-                yield subvalue
+                while True:
+                    yield subvalue & SIMPLERANDOM_MASK
+                    subvalue >>= SIMPLERANDOM_BITS
+                    # If value is negative, then it effectively has infinitely extending
+                    # '1' bits (modelled as a 2's complement representation). So when
+                    # right-shifting it, it will eventually get to -1, and any further
+                    # right-shifting will not change it.
+                    if subvalue == 0 or subvalue == -1:
+                        break
     else:
         yield o
 
