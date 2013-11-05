@@ -107,6 +107,26 @@ class _StandardRandomTemplate(random.Random):
     def setstate(self, state):
         self.rng_iterator.setstate(state)
 
+    def __repr__(self):
+        """The object could be represented either as a single (potentially
+        large) seed integer, or alternatively as a number of 32-bit seeds
+        (which is not the standard Python random API, but it's consistent
+        with the C init/seed API).
+        Show the state as a single seed integer, for consistency with the
+        Python API.
+        """
+        accum = 0
+        accum_range = 1
+        for x in sri._traverse_iter(self.getstate()):
+            accum += x * accum_range
+            accum_range <<= 32
+        if 0:
+            # Return a list of integers
+            return self.__class__.__name__ + "(" + ",".join(repr(int(x)) for x in self.getstate()) + ")"
+        else:
+            # Return a single large integer
+            return self.__class__.__name__ + "(" + repr(int(accum)) + ")"
+
 
 class Cong(_StandardRandomTemplate):
     RNG_CLASS = sri.Cong

@@ -5,6 +5,19 @@ cdef extern from "types.h":
 
 from simplerandom._bitcolumnmatrix import BitColumnMatrix
 
+__all__ = [
+    "Cong",
+    "SHR3",
+    "MWC1",
+    "MWC2",
+    "MWC64",
+    "KISS",
+    "KISS2",
+    "LFSR113",
+    "LFSR88",
+    "_traverse_iter",
+]
+
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.
     This allows generator __init__() functions to be passed seeds either as
@@ -1113,6 +1126,9 @@ def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
         seed ^= 0xFFFFFFFFu
     return seed
 
+def lfsr_state_z(uint32_t z):
+    return int(z ^ (z << 16))
+
 def lfsr_repr_z(uint32_t z):
     return repr(int(z ^ (z << 16)))
 
@@ -1256,14 +1272,10 @@ cdef class LFSR113(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3, self.z4)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3), lfsr_state_z(self.z4))
 
     def setstate(self, state):
-        self.z1 = int(state[0]) & 0xFFFFFFFFu
-        self.z2 = int(state[1]) & 0xFFFFFFFFu
-        self.z3 = int(state[2]) & 0xFFFFFFFFu
-        self.z4 = int(state[3]) & 0xFFFFFFFFu
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % _LFSR113_1_CYCLE_LEN
@@ -1406,13 +1418,10 @@ cdef class LFSR88(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3))
 
     def setstate(self, state):
-        self.z1 = int(state[0]) & 0xFFFFFFFFu
-        self.z2 = int(state[1]) & 0xFFFFFFFFu
-        self.z3 = int(state[2]) & 0xFFFFFFFFu
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % _LFSR88_1_CYCLE_LEN

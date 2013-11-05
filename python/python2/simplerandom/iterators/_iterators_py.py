@@ -1,6 +1,19 @@
 
 from simplerandom._bitcolumnmatrix import BitColumnMatrix
 
+__all__ = [
+    "Cong",
+    "SHR3",
+    "MWC1",
+    "MWC2",
+    "MWC64",
+    "KISS",
+    "KISS2",
+    "LFSR113",
+    "LFSR88",
+    "_traverse_iter",
+]
+
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.
     This allows generator __init__() functions to be passed seeds either as
@@ -820,6 +833,9 @@ def lfsr_validate_one_seed(seed, min_value_shift):
         seed ^= 0xFFFFFFFF
     return seed
 
+def lfsr_state_z(z):
+    return int(z ^ ((z << 16) & 0xFFFFFFFF))
+
 def lfsr_repr_z(z):
     return repr(int(z ^ ((z << 16) & 0xFFFFFFFF)))
 
@@ -952,11 +968,10 @@ class LFSR113(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3, self.z4)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3), lfsr_state_z(self.z4))
 
     def setstate(self, state):
-        (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % self._LFSR113_1_CYCLE_LEN
@@ -1090,11 +1105,10 @@ class LFSR88(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3))
 
     def setstate(self, state):
-        (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % self._LFSR88_1_CYCLE_LEN
