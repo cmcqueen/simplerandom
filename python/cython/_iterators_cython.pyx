@@ -5,15 +5,39 @@ cdef extern from "types.h":
 
 from simplerandom._bitcolumnmatrix import BitColumnMatrix
 
+__all__ = [
+    "Cong",
+    "SHR3",
+    "MWC1",
+    "MWC2",
+    "MWC64",
+    "KISS",
+    "KISS2",
+    "LFSR113",
+    "LFSR88",
+    "_traverse_iter",
+]
+
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.
     This allows generator __init__() functions to be passed seeds either as
     a series of arguments, or as a list/tuple.
     """
+    SIMPLERANDOM_BITS = 32
+    SIMPLERANDOM_MOD = 2**SIMPLERANDOM_BITS
+    SIMPLERANDOM_MASK = SIMPLERANDOM_MOD - 1
     if isinstance(o, tree_types) or getattr(o, '__iter__', False):
         for value in o:
             for subvalue in _traverse_iter(value):
-                yield subvalue
+                while True:
+                    yield subvalue & SIMPLERANDOM_MASK
+                    subvalue >>= SIMPLERANDOM_BITS
+                    # If value is negative, then it effectively has infinitely extending
+                    # '1' bits (modelled as a 2's complement representation). So when
+                    # right-shifting it, it will eventually get to -1, and any further
+                    # right-shifting will not change it.
+                    if subvalue == 0 or subvalue == -1:
+                        break
     else:
         yield o
 
@@ -79,10 +103,18 @@ def _geom_series_uint32(uint32_t r, n):
     numerator = pow(r, n, common_factor * m) - 1u
     return (numerator // common_factor * other_factors_inverse) % m
 
+cdef uint32_t SIMPLERANDOM_MAX = 2**32 - 1
 cdef uint64_t SIMPLERANDOM_MOD = 2**32
 cdef uint64_t CONG_CYCLE_LEN = 2**32
 cdef uint32_t CONG_MULT = 69069u
 cdef uint32_t CONG_CONST = 12345u
+
+def _simplerandom_min():
+    return 0
+def _simplerandom_max():
+    return SIMPLERANDOM_MAX
+def _SHR3_min():
+    return 1
 
 cdef class Cong(object):
     '''Congruential random number generator
@@ -103,6 +135,9 @@ cdef class Cong(object):
     '''
 
     cdef public uint32_t cong
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -166,6 +201,9 @@ cdef class Cong(object):
         add_const = add_const_part * CONG_CONST
         self.cong = mult_exp * self.cong + add_const
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.cong)) + ")"
+
 
 cdef uint32_t SHR3_CYCLE_LEN = 2u**32u - 1u
 _SHR3_MATRIX_COLUMNS = [
@@ -195,6 +233,9 @@ cdef class SHR3(object):
     '''
 
     cdef public uint32_t shr3
+
+    min = staticmethod(_SHR3_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -255,6 +296,9 @@ cdef class SHR3(object):
         shr3 = pow(_SHR3_MATRIX, n_shr3) * self.shr3
         self.shr3 = shr3
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.shr3)) + ")"
+
 
 cdef uint32_t _MWC_UPPER_MULT = 36969u
 cdef uint32_t _MWC_LOWER_MULT = 18000u
@@ -290,6 +334,9 @@ cdef class MWC1(object):
 
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -394,6 +441,9 @@ cdef class MWC1(object):
         # The following calculation needs to be done in greater than 32-bit.
         self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 cdef class MWC2(object):
     '''"Multiply-with-carry" random number generator
@@ -410,6 +460,9 @@ cdef class MWC2(object):
 
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -514,6 +567,9 @@ cdef class MWC2(object):
         # The following calculation needs to be done in greater than 32-bit.
         self.mwc_lower = pow(<uint64_t>_MWC_LOWER_MULT, n_int, <uint64_t>_MWC_LOWER_MODULO) * self.mwc_lower % _MWC_LOWER_MODULO
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 cdef uint64_t _MWC64_MULT = 698769069u
 cdef uint64_t _MWC64_MODULO = _MWC64_MULT * 2u**32u - 1u
@@ -529,6 +585,9 @@ cdef class MWC64(object):
 
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -622,6 +681,9 @@ cdef class MWC64(object):
         self.mwc_lower = temp64 & 0xFFFFFFFFu
         self.mwc_upper = (temp64 >> 32u) & 0xFFFFFFFFu
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 cdef class KISS(object):
     '''"Keep It Simple Stupid" random number generator
@@ -642,6 +704,9 @@ cdef class KISS(object):
     cdef public uint32_t shr3
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -808,6 +873,12 @@ cdef class KISS(object):
         shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
         self.shr3 = shr3
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
+
 
 cdef class KISS2(object):
     '''"Keep It Simple Stupid" random number generator
@@ -828,6 +899,9 @@ cdef class KISS2(object):
     cdef public uint32_t shr3
     cdef public uint32_t mwc_upper
     cdef public uint32_t mwc_lower
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -995,6 +1069,12 @@ cdef class KISS2(object):
         shr3 = pow(_SHR3_MATRIX, n_int) * self.shr3
         self.shr3 = shr3
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
+
 
 def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
     """High-quality seeding for LFSR generators.
@@ -1025,7 +1105,7 @@ def lfsr_next_one_seed(seed_iter, uint32_t min_value_shift):
 
             min_value = 1 << min_value_shift
             if working_seed < min_value:
-                working_seed = (seed << 16) & 0xFFFFFFFFu
+                working_seed = (seed << 24) & 0xFFFFFFFFu
                 if working_seed < min_value:
                     working_seed ^= 0xFFFFFFFFu
             return working_seed
@@ -1046,6 +1126,11 @@ def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
         seed ^= 0xFFFFFFFFu
     return seed
 
+def lfsr_state_z(uint32_t z):
+    return int(z ^ (z << 16))
+
+def lfsr_repr_z(uint32_t z):
+    return repr(int(z ^ (z << 16)))
 
 _LFSR113_1_MATRIX = BitColumnMatrix([
     0x00000000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000001,
@@ -1095,6 +1180,9 @@ cdef class LFSR113(object):
     cdef public uint32_t z2
     cdef public uint32_t z3
     cdef public uint32_t z4
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -1184,14 +1272,10 @@ cdef class LFSR113(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3, self.z4)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3), lfsr_state_z(self.z4))
 
     def setstate(self, state):
-        self.z1 = int(state[0]) & 0xFFFFFFFFu
-        self.z2 = int(state[1]) & 0xFFFFFFFFu
-        self.z3 = int(state[2]) & 0xFFFFFFFFu
-        self.z4 = int(state[3]) & 0xFFFFFFFFu
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % _LFSR113_1_CYCLE_LEN
@@ -1207,6 +1291,12 @@ cdef class LFSR113(object):
         self.z3 = z3
         z4 = pow(_LFSR113_4_MATRIX, n_4) * self.z4
         self.z4 = z4
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) +
+                                        "," + lfsr_repr_z(self.z4) + ")")
 
 
 _LFSR88_1_MATRIX = BitColumnMatrix([
@@ -1249,6 +1339,9 @@ cdef class LFSR88(object):
     cdef public uint32_t z1
     cdef public uint32_t z2
     cdef public uint32_t z3
+
+    min = staticmethod(_simplerandom_min)
+    max = staticmethod(_simplerandom_max)
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -1325,13 +1418,10 @@ cdef class LFSR88(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3))
 
     def setstate(self, state):
-        self.z1 = int(state[0]) & 0xFFFFFFFFu
-        self.z2 = int(state[1]) & 0xFFFFFFFFu
-        self.z3 = int(state[2]) & 0xFFFFFFFFu
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % _LFSR88_1_CYCLE_LEN
@@ -1344,3 +1434,8 @@ cdef class LFSR88(object):
         self.z2 = z2
         z3 = pow(_LFSR88_3_MATRIX, n_3) * self.z3
         self.z3 = z3
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) + ")")

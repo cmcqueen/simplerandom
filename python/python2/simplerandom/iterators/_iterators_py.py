@@ -1,15 +1,39 @@
 
 from simplerandom._bitcolumnmatrix import BitColumnMatrix
 
+__all__ = [
+    "Cong",
+    "SHR3",
+    "MWC1",
+    "MWC2",
+    "MWC64",
+    "KISS",
+    "KISS2",
+    "LFSR113",
+    "LFSR88",
+    "_traverse_iter",
+]
+
 def _traverse_iter(o, tree_types=(list, tuple)):
     """Iterate over nested containers and/or iterators.
     This allows generator __init__() functions to be passed seeds either as
     a series of arguments, or as a list/tuple.
     """
+    SIMPLERANDOM_BITS = 32
+    SIMPLERANDOM_MOD = 2**SIMPLERANDOM_BITS
+    SIMPLERANDOM_MASK = SIMPLERANDOM_MOD - 1
     if isinstance(o, tree_types) or getattr(o, '__iter__', False):
         for value in o:
             for subvalue in _traverse_iter(value):
-                yield subvalue
+                while True:
+                    yield subvalue & SIMPLERANDOM_MASK
+                    subvalue >>= SIMPLERANDOM_BITS
+                    # If value is negative, then it effectively has infinitely extending
+                    # '1' bits (modelled as a 2's complement representation). So when
+                    # right-shifting it, it will eventually get to -1, and any further
+                    # right-shifting will not change it.
+                    if subvalue == 0 or subvalue == -1:
+                        break
     else:
         yield o
 
@@ -86,9 +110,17 @@ class Cong(object):
     all seemingly without complaint.
     '''
     SIMPLERANDOM_MOD = 2**32
+    SIMPLERANDOM_MAX = 2**32 - 1
     CONG_CYCLE_LEN = 2**32
     CONG_MULT = 69069
     CONG_CONST = 12345
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return Cong.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -145,6 +177,9 @@ class Cong(object):
         add_const = (_geom_series_uint32(self.CONG_MULT, n) * self.CONG_CONST) & 0xFFFFFFFF
         self.cong = (mult_exp * self.cong + add_const) & 0xFFFFFFFF
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.cong)) + ")"
+
 
 class SHR3(object):
     '''3-shift-register random number generator
@@ -164,12 +199,20 @@ class SHR3(object):
     '''
 
     SIMPLERANDOM_MOD = 2**32
+    SIMPLERANDOM_MAX = 2**32 - 1
     SHR3_CYCLE_LEN = 2**32 - 1
 
     _SHR3_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _SHR3_MATRIX_b = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,-17)
     _SHR3_MATRIX_c = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,5)
     _SHR3_MATRIX = _SHR3_MATRIX_c * _SHR3_MATRIX_b * _SHR3_MATRIX_a
+
+    @staticmethod
+    def min():
+        return 1
+    @staticmethod
+    def max():
+        return SHR3.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -227,6 +270,9 @@ class SHR3(object):
         shr3 = pow(self._SHR3_MATRIX, n) * self.shr3
         self.shr3 = shr3
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.shr3)) + ")"
+
 
 class MWC2(object):
     '''"Multiply-with-carry" random number generator
@@ -240,12 +286,20 @@ class MWC2(object):
     L'Ecuyer's TestU01 test suite, so it should probably
     be preferred.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
     _MWC_UPPER_MULT = 36969
     _MWC_LOWER_MULT = 18000
     _MWC_UPPER_MODULO = _MWC_UPPER_MULT * 2**16 - 1
     _MWC_LOWER_MODULO = _MWC_LOWER_MULT * 2**16 - 1
     _MWC_UPPER_CYCLE_LEN = _MWC_UPPER_MULT * 2**16 // 2 - 1
     _MWC_LOWER_CYCLE_LEN = _MWC_LOWER_MULT * 2**16 // 2 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return MWC2.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -341,6 +395,9 @@ class MWC2(object):
         n_lower = int(n) % self._MWC_LOWER_CYCLE_LEN
         self.mwc_lower = pow(self._MWC_LOWER_MULT, n_lower, self._MWC_LOWER_MODULO) * self.mwc_lower % self._MWC_LOWER_MODULO
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 class MWC1(MWC2):
     '''"Multiply-with-carry" random number generator
@@ -381,9 +438,17 @@ class MWC64(object):
     generate a 32-bit value. The seeds should be 32-bit
     values.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
     _MWC64_MULT = 698769069
     _MWC64_MODULO = _MWC64_MULT * 2**32 - 1
     _MWC64_CYCLE_LEN = _MWC64_MULT * 2**32 // 2 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return MWC64.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -467,6 +532,9 @@ class MWC64(object):
         self.mwc_lower = temp64 & 0xFFFFFFFF
         self.mwc_upper = (temp64 >> 32) & 0xFFFFFFFF
 
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) + "," + repr(int(self.mwc_lower)) + ")"
+
 
 class KISS(object):
     '''"Keep It Simple Stupid" random number generator
@@ -482,6 +550,14 @@ class KISS(object):
     that reason, we take the opportunity to slightly
     update the MWC and Cong generators too.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return KISS.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -579,6 +655,12 @@ class KISS(object):
         self.random_cong.cong = value
     cong = property(_get_cong, _set_cong)
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
+
 
 class KISS2(object):
     '''"Keep It Simple Stupid" random number generator
@@ -594,6 +676,14 @@ class KISS2(object):
     The MWC component uses a single 64-bit calculation,
     instead of two 32-bit calculations that are combined.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return KISS2.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -691,6 +781,12 @@ class KISS2(object):
         self.random_cong.cong = value
     cong = property(_get_cong, _set_cong)
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + repr(int(self.mwc_upper)) +
+                                        "," + repr(int(self.mwc_lower)) +
+                                        "," + repr(int(self.cong)) +
+                                        "," + repr(int(self.shr3)) + ")")
+
 
 def lfsr_next_one_seed(seed_iter, min_value_shift):
     """High-quality seeding for LFSR generators.
@@ -718,7 +814,7 @@ def lfsr_next_one_seed(seed_iter, min_value_shift):
 
             min_value = 1 << min_value_shift
             if working_seed < min_value:
-                working_seed = (seed << 16) & 0xFFFFFFFF
+                working_seed = (seed << 24) & 0xFFFFFFFF
                 if working_seed < min_value:
                     working_seed ^= 0xFFFFFFFF
             return working_seed
@@ -737,6 +833,12 @@ def lfsr_validate_one_seed(seed, min_value_shift):
         seed ^= 0xFFFFFFFF
     return seed
 
+def lfsr_state_z(z):
+    return int(z ^ ((z << 16) & 0xFFFFFFFF))
+
+def lfsr_repr_z(z):
+    return repr(int(z ^ ((z << 16) & 0xFFFFFFFF)))
+
 class LFSR113(object):
     '''Combined LFSR random number generator by L'Ecuyer
 
@@ -749,6 +851,8 @@ class LFSR113(object):
     P. L'Ecuyer
     Mathematics of Computation, 68, 225 (1999), 261-269.
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
     _LFSR113_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,6)
     _LFSR113_1_MATRIX_b = BitColumnMatrix.shift(32,-13)
     _LFSR113_1_MATRIX_c = BitColumnMatrix.mask(32, 1, 32)
@@ -776,6 +880,13 @@ class LFSR113(object):
     _LFSR113_4_MATRIX_d = BitColumnMatrix.shift(32,13)
     _LFSR113_4_MATRIX = _LFSR113_4_MATRIX_d * _LFSR113_4_MATRIX_c + _LFSR113_4_MATRIX_b * _LFSR113_4_MATRIX_a
     _LFSR113_4_CYCLE_LEN = 2**(32 - 7) - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return LFSR113.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -857,11 +968,10 @@ class LFSR113(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3, self.z4)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3), lfsr_state_z(self.z4))
 
     def setstate(self, state):
-        (self.z1, self.z2, self.z3, self.z4) = (int(val) & 0xFFFFFFFF for val in state)
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % self._LFSR113_1_CYCLE_LEN
@@ -878,6 +988,12 @@ class LFSR113(object):
         z4 = pow(self._LFSR113_4_MATRIX, n_4) * self.z4
         self.z4 = z4
 
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) +
+                                        "," + lfsr_repr_z(self.z4) + ")")
+
 
 class LFSR88(object):
     '''Combined LFSR random number generator by L'Ecuyer
@@ -891,6 +1007,8 @@ class LFSR88(object):
     P. L'Ecuyer
     Mathematics of Computation, 65, 213 (1996), 203-213. 
     '''
+    SIMPLERANDOM_MAX = 2**32 - 1
+
     _LFSR88_1_MATRIX_a = BitColumnMatrix.unity(32) + BitColumnMatrix.shift(32,13)
     _LFSR88_1_MATRIX_b = BitColumnMatrix.shift(32,-19)
     _LFSR88_1_MATRIX_c = BitColumnMatrix.mask(32, 1, 32)
@@ -911,6 +1029,13 @@ class LFSR88(object):
     _LFSR88_3_MATRIX_d = BitColumnMatrix.shift(32,17)
     _LFSR88_3_MATRIX = _LFSR88_3_MATRIX_d * _LFSR88_3_MATRIX_c + _LFSR88_3_MATRIX_b * _LFSR88_3_MATRIX_a
     _LFSR88_3_CYCLE_LEN = 2**(32 - 4) - 1
+
+    @staticmethod
+    def min():
+        return 0
+    @staticmethod
+    def max():
+        return LFSR88.SIMPLERANDOM_MAX
 
     def __init__(self, *args, **kwargs):
         '''Positional arguments are seed values
@@ -980,11 +1105,10 @@ class LFSR88(object):
         return self
 
     def getstate(self):
-        return (self.z1, self.z2, self.z3)
+        return (lfsr_state_z(self.z1), lfsr_state_z(self.z2), lfsr_state_z(self.z3))
 
     def setstate(self, state):
-        (self.z1, self.z2, self.z3) = (int(val) & 0xFFFFFFFF for val in state)
-        self.sanitise()
+        self.seed(state)
 
     def jumpahead(self, n):
         n_1 = int(n) % self._LFSR88_1_CYCLE_LEN
@@ -997,3 +1121,8 @@ class LFSR88(object):
         self.z2 = z2
         z3 = pow(self._LFSR88_3_MATRIX, n_3) * self.z3
         self.z3 = z3
+
+    def __repr__(self):
+        return (self.__class__.__name__ + "(" + lfsr_repr_z(self.z1) +
+                                        "," + lfsr_repr_z(self.z2) +
+                                        "," + lfsr_repr_z(self.z3) + ")")

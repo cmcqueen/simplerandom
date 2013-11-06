@@ -83,7 +83,6 @@ void bitcolumnmatrix32_unity(BitColumnMatrix32_t * p_matrix);
 void bitcolumnmatrix32_shift(BitColumnMatrix32_t * p_matrix, int_fast8_t shift_value);
 
 void bitcolumnmatrix32_iadd(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_right);
-void bitcolumnmatrix32_isub(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_right);
 void bitcolumnmatrix32_imul(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_right);
 uint32_t bitcolumnmatrix32_mul_uint32(const BitColumnMatrix32_t * p_left, uint32_t right);
 void bitcolumnmatrix32_pow(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_matrix, uintmax_t n);

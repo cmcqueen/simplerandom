@@ -101,57 +101,11 @@ static int test_multi(void)
     return 0;
 }
 
-static int test_byte_cong(void)
-{
-    SimpleRandomCong_t      sr;
-    uint32_t                i;
-    uint32_t                j;
-
-    printf("byte API tests\n");
-    printf("    word output:\n");
-    simplerandom_cong_seed(&sr, 1);
-    for (i = 0; i < 3; i++)
-    {
-        printf("        %08X\n", simplerandom_cong_next(&sr));
-    }
-
-    printf("    uint16 output:\n");
-    simplerandom_cong_seed(&sr, 1);
-    for (i = 0; i < 3; i++)
-    {
-        printf("        ");
-        for (j = 0; j < 2; j++)
-        {
-            printf("%04X ", simplerandom_cong_next_uint16(&sr));
-        }
-        printf("\n");
-    }
-
-    printf("    uint8 output:\n");
-    simplerandom_cong_seed(&sr, 1);
-    for (i = 0; i < 3; i++)
-    {
-        printf("        ");
-        for (j = 0; j < 4; j++)
-        {
-            printf("%02X ", simplerandom_cong_next_uint8(&sr));
-        }
-        printf("\n");
-    }
-
-    printf("\n");
-    return 0;
-}
-
 int main(void)
 {
     int ret_val;
 
     ret_val = test_multi();
-    if (ret_val != 0)
-        return ret_val;
-
-    ret_val = test_byte_cong();
     if (ret_val != 0)
         return ret_val;
 

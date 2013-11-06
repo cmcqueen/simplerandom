@@ -1,6 +1,6 @@
 
 #define __STDC_CONSTANT_MACROS
-#include "simplerandom.h"
+#include "simplerandom-c.h"
 
 #include <time.h>
 
@@ -17,12 +17,13 @@ public:
     virtual void discard(uintmax_t n) = 0;
 
     // Standard C++ random API
+    typedef uint32_t result_type;
     virtual uint32_t operator()() = 0;
-    virtual uint32_t min()
+    virtual uint32_t min() const
     {
         return 0;
     }
-    virtual uint32_t max()
+    virtual uint32_t max() const
     {
         return std::numeric_limits<uint32_t>::max();
     }
@@ -60,7 +61,7 @@ public:
 
     uint32_t operator()() { return simplerandom_shr3_next(&rng); }
     void discard(uintmax_t n) { simplerandom_shr3_discard(&rng, n); }
-    uint32_t min()
+    uint32_t min() const
     {
         // SHR3 is exceptional in that it doesn't ever return 0.
         return 1;

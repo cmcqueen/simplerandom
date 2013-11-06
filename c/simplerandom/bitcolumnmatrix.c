@@ -65,6 +65,7 @@
  * Functions
  ****************************************************************************/
 
+/* Create a unity matrix -- that is, 1 on the main diagonal, 0 elsewhere. */
 void bitcolumnmatrix32_unity(BitColumnMatrix32_t * p_matrix)
 {
     size_t      i;
@@ -81,6 +82,10 @@ void bitcolumnmatrix32_unity(BitColumnMatrix32_t * p_matrix)
     }
 }
 
+/* Create a shift matrix -- which if multiplied into a vector, would be
+ * equivalent to a left or right shift of the vector value.
+ * That is, 1 on a super- or sub-diagonal, 0 elsewhere.
+ */
 void bitcolumnmatrix32_shift(BitColumnMatrix32_t * p_matrix, int_fast8_t shift_value)
 {
     size_t      i;
@@ -110,6 +115,9 @@ void bitcolumnmatrix32_shift(BitColumnMatrix32_t * p_matrix, int_fast8_t shift_v
     }
 }
 
+/* Add two matrices, with the result put in the left matrix.
+ * That is to say, left += right.
+ */
 void bitcolumnmatrix32_iadd(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_right)
 {
     size_t      i;
@@ -123,19 +131,10 @@ void bitcolumnmatrix32_iadd(BitColumnMatrix32_t * p_left, const BitColumnMatrix3
     }
 }
 
-void bitcolumnmatrix32_isub(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_right)
-{
-    size_t      i;
-
-    if (p_left != NULL && p_right != NULL)
-    {
-        for (i = 0; i < 32u; i++)
-        {
-            p_left->matrix[i] ^= p_right->matrix[i];
-        }
-    }
-}
-
+/* Multiply a matrix with a vector, resulting in a vector result.
+ * The input and result vectors are represented by a uint32_t value.
+ * That is to say, result_vector = left_matrix * right_vector.
+ */
 uint32_t bitcolumnmatrix32_mul_uint32(const BitColumnMatrix32_t * p_left, uint32_t right)
 {
     size_t      i;
@@ -154,6 +153,9 @@ uint32_t bitcolumnmatrix32_mul_uint32(const BitColumnMatrix32_t * p_left, uint32
     return result;
 }
 
+/* Multiply two matrices, with the result put in the left matrix.
+ * That is to say, left *= right.
+ */
 void bitcolumnmatrix32_imul(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_right)
 {
     BitColumnMatrix32_t matrix_result;
@@ -171,12 +173,15 @@ void bitcolumnmatrix32_imul(BitColumnMatrix32_t * p_left, const BitColumnMatrix3
     }
 }
 
-void bitcolumnmatrix32_pow(BitColumnMatrix32_t * p_left, const BitColumnMatrix32_t * p_matrix, uintmax_t n)
+/* Raise matrix to the power of 'n'.
+ * Algorithm is "exponentiation by squaring". Time complexity is O(log n).
+ */
+void bitcolumnmatrix32_pow(BitColumnMatrix32_t * p_result, const BitColumnMatrix32_t * p_matrix, uintmax_t n)
 {
     BitColumnMatrix32_t matrix_result;
     BitColumnMatrix32_t matrix_exp;
 
-    if (p_left != NULL && p_matrix != NULL)
+    if (p_result != NULL && p_matrix != NULL)
     {
         bitcolumnmatrix32_unity(&matrix_result);
         memcpy(&matrix_exp, p_matrix, sizeof(matrix_exp));
@@ -192,8 +197,8 @@ void bitcolumnmatrix32_pow(BitColumnMatrix32_t * p_left, const BitColumnMatrix32
                 break;
             bitcolumnmatrix32_imul(&matrix_exp, &matrix_exp);
         }
-        /* Copy result to left matrix */
-        memcpy(p_left, &matrix_result, sizeof(*p_left));
+        /* Copy result to result matrix */
+        memcpy(p_result, &matrix_result, sizeof(*p_result));
     }
 }
 
