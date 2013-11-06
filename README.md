@@ -44,17 +44,17 @@ Algorithms
 ----------
 
 Most algorithms were obtained from two newsgroup posts by George
-Marsaglia [[^1]](#mars1) [^2]. However, some modifications have been made. From
-[^3], it seems that the SHR3 algorithm defined in [^1] is flawed and
+Marsaglia [[mars1]](#mars1) [[mars2]](#mars2). However, some modifications have been made. From
+[^3], it seems that the SHR3 algorithm defined in [[mars1]](#mars1) is flawed and
 should not be used. It doesn't actually have a period of 2**32-1 as
 expected, but has 64 different cycles, some with very short periods. The
 SHR3 in the 2003 post is very similar, but with two shift values
 swapped. It has a period of 2**32-1 as expected.
 
-We still find KISS from [^1] useful mainly because it uses 32-bit
+We still find KISS from [[mars1]](#mars1) useful mainly because it uses 32-bit
 calculations for MWC, which can be more suitable for small embedded
-systems. So we define KISS that uses a MWC based on [^1], but the Cong
-and SHR3 from [^2].
+systems. So we define KISS that uses a MWC based on [[mars1]](#mars1), but the Cong
+and SHR3 from [[mars2]](#mars2).
 
 From Pierre L'Ecuyer [^4] [^5], the Combined LFSR (Tausworthe) LFSR113
 algorithm [^6] and LFSR88 (aka Taus88) have been implemented.
@@ -65,13 +65,13 @@ The following pseudo-random number generators are provided:
 
 | Generator   | Notes
 | ----------- | --------------------------------------------------------------------------------------------------------------
-| `MWC1`      | Two 32-bit MWCs combined. From [^1].
+| `MWC1`      | Two 32-bit MWCs combined. From [[mars1]](#mars1).
 | `MWC2`      | Very similar to `MWC1`, but slightly modified to improve its statistical properties.
-| `Cong`      | From [^2].
-| `SHR3`      | From [^2].
-| `MWC64`     | A single 64-bit multiply-with-carry calculation. From [^2].
-| `KISS`      | Combination of MWC2, Cong and SHR3. Based on [^1] but using Cong and SHR3 from [^2], and the modified MWC.
-| `KISS2`     | Combination of MWC64, Cong and SHR3. From [^2].
+| `Cong`      | From [[mars2]](#mars2).
+| `SHR3`      | From [[mars2]](#mars2).
+| `MWC64`     | A single 64-bit multiply-with-carry calculation. From [[mars2]](#mars2).
+| `KISS`      | Combination of MWC2, Cong and SHR3. Based on [[mars1]](#mars1) but using Cong and SHR3 from [[mars2]](#mars2), and the modified MWC.
+| `KISS2`     | Combination of MWC64, Cong and SHR3. From [[mars2]](#mars2).
 | `LFSR113`   | Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^4] [^6].
 | `LFSR88`    | Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^5].
 
@@ -181,7 +181,7 @@ Python implementation, using the following command:
 
 Basic unit testing of the iterators is in `simplerandom.iterators.test`.
 It duplicates the tests of the C algorithms given in the original
-newsgroup post [^1], as well as other unit tests.
+newsgroup post [[mars1]](#mars1), as well as other unit tests.
 
 To run it on Python \>=2.5:
 
@@ -202,17 +202,20 @@ References
 ----------
 
 <a name="mars1"></a>
+\[mars1\]  
 [Random Numbers for C: End, at last?](http://www.cse.yorku.ca/~oz/marsaglia-rng.html)  
 George Marsaglia  
 Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
 
-[^2]: [RNGs](http://groups.google.com/group/sci.math/msg/9959175f66dd138f)\
-    George Marsaglia\
-    Newsgroup post, sci.math, 26 Feb 2003
+<a name="mars2"></a>
+[RNGs](http://groups.google.com/group/sci.math/msg/9959175f66dd138f)  
+George Marsaglia  
+Newsgroup post, sci.math, 26 Feb 2003
 
-[^3]: [KISS: A Bit Too Simple](http://eprint.iacr.org/2011/007.pdf)\
-    Greg Rose\
-    Qualcomm Inc.
+<a name="rose1"></a>
+[KISS: A Bit Too Simple](http://eprint.iacr.org/2011/007.pdf)  
+Greg Rose  
+Qualcomm Inc.
 
 [^4]: [Tables of Maximally-Equidistributed Combined LFSR Generators](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.3639)\
     Pierre L'Ecuyer\
