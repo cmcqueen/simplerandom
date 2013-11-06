@@ -63,17 +63,17 @@ algorithm [^6] and LFSR88 (aka Taus88) have been implemented.
 
 The following pseudo-random number generators are provided:
 
-  Generator   Notes
-  ----------- --------------------------------------------------------------------------------------------------------------
-  `MWC1`      Two 32-bit MWCs combined. From [^1].
-  `MWC2`      Very similar to `MWC1`, but slightly modified to improve its statistical properties.
-  `Cong`      From [^2].
-  `SHR3`      From [^2].
-  `MWC64`     A single 64-bit multiply-with-carry calculation. From [^2].
-  `KISS`      Combination of MWC2, Cong and SHR3. Based on [^1] but using Cong and SHR3 from [^2], and the modified MWC.
-  `KISS2`     Combination of MWC64, Cong and SHR3. From [^2].
-  `LFSR113`   Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^4] [^6].
-  `LFSR88`    Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^5].
+| Generator   | Notes
+| ----------- | --------------------------------------------------------------------------------------------------------------
+| `MWC1`      | Two 32-bit MWCs combined. From [^1].
+| `MWC2`      | Very similar to `MWC1`, but slightly modified to improve its statistical properties.
+| `Cong`      | From [^2].
+| `SHR3`      | From [^2].
+| `MWC64`     | A single 64-bit multiply-with-carry calculation. From [^2].
+| `KISS`      | Combination of MWC2, Cong and SHR3. Based on [^1] but using Cong and SHR3 from [^2], and the modified MWC.
+| `KISS2`     | Combination of MWC64, Cong and SHR3. From [^2].
+| `LFSR113`   | Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^4] [^6].
+| `LFSR88`    | Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^5].
 
 Python
 ------
@@ -89,10 +89,10 @@ class `Random` in the `random` module of the standard Python library.
 
 ### Modules Provided
 
-  Module                     Description
-  -------------------------- --------------------------------------------------------------
-  `simplerandom.iterators`   Iterator classes, which generate unsigned 32-bit integers.
-  `simplerandom.random`      Classes that conform to standard Python `random.Random` API.
+| Module                     | Description
+| -------------------------- | --------------------------------------------------------------
+| `simplerandom.iterators`   | Iterator classes, which generate unsigned 32-bit integers.
+| `simplerandom.random`      | Classes that conform to standard Python `random.Random` API.
 
 In `simplerandom.iterators`, the generators are provided as Python
 iterators, of infinite length (they never raise `StopIteration`). They
