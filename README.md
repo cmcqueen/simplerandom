@@ -44,7 +44,7 @@ Algorithms
 ----------
 
 Most algorithms were obtained from two newsgroup posts by George
-Marsaglia [^1] [^2]. However, some modifications have been made. From
+Marsaglia [[^1]](#mars1) [^2]. However, some modifications have been made. From
 [^3], it seems that the SHR3 algorithm defined in [^1] is flawed and
 should not be used. It doesn't actually have a period of 2**32-1 as
 expected, but has 64 different cycles, some with very short periods. The
@@ -201,9 +201,10 @@ The code is released under the MIT license. See LICENSE.txt for details.
 References
 ----------
 
-[^1]: [Random Numbers for C: End, at last?](http://www.cse.yorku.ca/~oz/marsaglia-rng.html)\
-    George Marsaglia\
-    Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
+<a name="mars1"></a>
+[Random Numbers for C: End, at last?](http://www.cse.yorku.ca/~oz/marsaglia-rng.html)  
+George Marsaglia  
+Newsgroup post, sci.stat.math and others, Thu, 21 Jan 1999
 
 [^2]: [RNGs](http://groups.google.com/group/sci.math/msg/9959175f66dd138f)\
     George Marsaglia\
