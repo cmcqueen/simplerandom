@@ -40,33 +40,8 @@ Features:
 * Reasonable statistical properties of pseudo-random output (though
   not for all generators provided).
 
-Python
-------
-
-The `simplerandom` package is provided, which contains modules
-containing classes for various simple pseudo-random number generators.
-
-One module provides Python iterators, which generate simple unsigned
-32-bit integers identical to their C counterparts.
-
-Another module provides random classes that are sub-classed from the
-class `Random` in the `random` module of the standard Python library.
-
-Why use this package? These random number generators are very simple,
-which has two main advantages:
-
--   It is easy to port them to a different platform and/or language. It
-    can be useful to be able to implement the identical algorithm on
-    multiple platforms and/or languages.
--   Small and simple generators can be more appropriate for small
-    embedded systems, with limited RAM and ROM.
-
-An equivalent C implementation (of the Python `simplerandom.iterators`
-module) has been created. See:
-
-> [http://bitbucket.org/cmcqueen1975/simplerandom](http://bitbucket.org/cmcqueen1975/simplerandom)
-
-### Algorithms
+Algorithms
+----------
 
 Most algorithms were obtained from two newsgroup posts by George
 Marsaglia [^1] [^2]. However, some modifications have been made. From
@@ -84,14 +59,6 @@ and SHR3 from [^2].
 From Pierre L'Ecuyer [^4] [^5], the Combined LFSR (Tausworthe) LFSR113
 algorithm [^6] and LFSR88 (aka Taus88) have been implemented.
 
-Modules Provided
-----------------
-
-  Module                     Description
-  -------------------------- --------------------------------------------------------------
-  `simplerandom.iterators`   Iterator classes, which generate unsigned 32-bit integers.
-  `simplerandom.random`      Classes that conform to standard Python `random.Random` API.
-
 ### Random Number Generators Provided
 
 The following pseudo-random number generators are provided:
@@ -108,6 +75,25 @@ The following pseudo-random number generators are provided:
   `LFSR113`   Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^4] [^6].
   `LFSR88`    Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [^5].
 
+Python
+------
+
+The `simplerandom` package is provided, which contains modules
+containing classes for various simple pseudo-random number generators.
+
+One module provides Python iterators, which generate simple unsigned
+32-bit integers identical to their C counterparts.
+
+Another module provides random classes that are sub-classed from the
+class `Random` in the `random` module of the standard Python library.
+
+### Modules Provided
+
+  Module                     Description
+  -------------------------- --------------------------------------------------------------
+  `simplerandom.iterators`   Iterator classes, which generate unsigned 32-bit integers.
+  `simplerandom.random`      Classes that conform to standard Python `random.Random` API.
+
 In `simplerandom.iterators`, the generators are provided as Python
 iterators, of infinite length (they never raise `StopIteration`). They
 implement the `next()` method (`__next__()` in Python 3.x) to generate
@@ -123,10 +109,7 @@ all cases. Each generator uses the iterator of the same name in
 `simplerandom.iterators` to generate the random bits used to produce the
 random floats.
 
-Usage
------
-
-### Iterators
+### Iterators Usage
 
     >>> import simplerandom.iterators as sri
     >>> rng = sri.KISS(123958, 34987243, 3495825239, 2398172431)
@@ -137,21 +120,18 @@ Usage
     >>> next(rng)
     699722976L
 
-### Random class API
+### Random class API Usage
 
     >>> import simplerandom.random as srr
-    >>> rng =
-    srr.KISS(258725234)
+    >>> rng = srr.KISS(258725234)
     >>> rng.random()
-    0.773460115942927
-    >>>
-    rng.random()
-    0.012115143213983215
+    0.0925917826051541
     >>> rng.random()
-    0.8954136598708136
+    0.02901686453730415
+    >>> rng.random()
+    0.9024972981686489
 
-Supported Python Versions
--------------------------
+### Supported Python Versions
 
 Currently this has had basic testing on Ubuntu 10.04 32-bit and Windows
 XP 32-bit. It passes the basic `simplerandom.iterators.test` unit tests,
@@ -167,8 +147,7 @@ The pure Python code is expected to work on 64-bit platforms, but has
 not been tested. The Cython version of `simplerandom.iterators` should
 work on 64-bit platforms, but has not been tested.
 
-Use of Cython
--------------
+### Use of Cython
 
 [Cython](http://cython.org/) is used to make a fast implementation of
 `simplerandom.iterators`. Cython creates a `.c` file that can be
@@ -185,8 +164,7 @@ ensure that the build doesn't fail due to particular Cython version
 issues). If you wish to build using Cython from the included `.pyx`
 file, you must set `USE_CYTHON=True` in `setup.py`.
 
-Installation
-------------
+### Installation
 
 The simplerandom package is installed using `distutils`. If you have the
 tools installed to build a Python extension module, run the following
@@ -199,8 +177,7 @@ Python implementation, using the following command:
 
     python setup.py build_py install --skip-build
 
-Unit Testing
-------------
+### Unit Testing
 
 Basic unit testing of the iterators is in `simplerandom.iterators.test`.
 It duplicates the tests of the C algorithms given in the original
@@ -220,6 +197,9 @@ License
 -------
 
 The code is released under the MIT license. See LICENSE.txt for details.
+
+References
+----------
 
 [^1]: [Random Numbers for C: End, at last?](http://www.cse.yorku.ca/~oz/marsaglia-rng.html)\
     George Marsaglia\
