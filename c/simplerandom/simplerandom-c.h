@@ -94,6 +94,10 @@
  * Includes
  ****************************************************************************/
 
+#ifdef __cplusplus
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>

@@ -10,6 +10,10 @@
  * Includes
  ****************************************************************************/
 
+#ifdef __cplusplus
+#define __STDC_LIMIT_MACROS
+#endif
+
 #include "maths.h"
 
 
