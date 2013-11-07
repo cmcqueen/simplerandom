@@ -81,6 +81,145 @@ The following pseudo-random number generators are provided:
 | `LFSR113`   | Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [[lecuyer1]](#lecuyer1) [[lecuyer3]](#lecuyer3).
 | `LFSR88`    | Combined LFSR (Tausworthe) random number generator by L'Ecuyer. From [[lecuyer2]](#lecuyer2).
 
+
+C
+-
+
+A C implementation of simplerandom is provided. It should compile on a
+wide range of platforms and OS.
+
+### stdint.h
+
+Note that simplerandom uses `stdint.h` for integer types such as
+`uint32_t`, so that must be available. The generator `MWC64`, and
+`KISS2` which uses it, use 64-bit calculations with `uint64_t`. For
+platforms which do not support 64-bit integers, these generators are
+not included in the build. This is done via checking for the macro
+define `UINT64_C`.
+
+Note that C++ compilers may not define the constant macros `UINT32_C`
+and `UINT64_C` unless the following line is used before the `stdint.h`
+include:
+
+    #define __STDC_CONSTANT_MACROS
+
+### Build and Install for Unix
+
+For Unix-style platforms the library can be built via autotools in the
+normal method. E.g.:
+
+    ./configure
+    make
+    sudo make install
+
+To run very basic unit tests:
+
+    make check
+
+Optional cxxtest unit tests are provided. To run these:
+
+    ./configure --with-cxxteset
+    make check
+
+### Build and Install for Other Platforms
+
+For other platforms, it should not be difficult to add the source files
+to a project.
+
+### Include File
+
+Include file:
+
+    #include <simplerandom.h>
+
+A C++ simplerandom library is planned in future. C++ code should be
+able to use the C library, but should use a different include to use
+the C library instead of a C++ library:
+
+    #include <simplerandom-c.h>
+
+### Usage
+
+#### Generator State Variable
+
+First define a variable to contain the simplerandom generator state.
+E.g.:
+
+    static SimpleRandomCong_t rng_cong;
+    static SimpleRandomKISS_t rng_kiss;
+
+By encapsulating generator state in a variable, multiple independent
+generators can be used at the same time. Independent output can be
+achieved by seeding them with different seeds, or by calling the
+generator's `discard` function to "jump-ahead" by a certain number of
+samples.
+
+#### Seeding
+
+Seed the generator once with a suitable number of `uint32_t` seed
+values. The number of seeds depends on the generator.
+
+    simplerandom_cong_seed(&rng_cong, 2051391225u);
+    simplerandom_kiss_seed(&rng_kiss, 2247183469u, 99545079u, 3269400377u, 3950144837u);
+
+Alternatively, there are seed functions which take seed data from an
+array of `uint32_t`.
+
+    uint32_t seed_array[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    simplerandom_kiss_seed_array(&rng_kiss, seed_array, 8, false);
+
+If the last parameter `mix_extras` is `false`, then any "extra"
+seed values are simply ignored. So the above is equivalent to:
+
+    simplerandom_kiss_seed(&rng_kiss, 1, 2, 3, 4);
+
+If the last parameter `mix_extras` is `true`, then any "extra"
+seed values are mixed into the state in the same was as is done by the
+`mix` function (see below). So:
+
+    uint32_t seed_array[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    simplerandom_kiss_seed_array(&rng_kiss, seed_array, 8, true);
+
+is equivalent to:
+
+    simplerandom_kiss_seed(&rng_kiss, 1, 2, 3, 4);
+    simplerandom_kiss_mix(&rng_kiss, &seed_array[4], 4);
+
+#### Generate Random Values
+
+Call the generator's `next` function multiple times to generate random
+values. All generators output uniformly distributed `uint32_t` values
+in the full range (except for the SHR3 generator which excludes 0 as an
+output value).
+
+    uint32_t rng_value;
+    uint32_t rng_values_array[8];
+    ...
+    rng_value = simplerandom_cong_next(&rng_cong);
+    ...
+    for (i = 0; i < 8; ++i) {
+        rng_values_array[i] = simplerandom_kiss_next(&rng_kiss);
+    }
+
+#### Mix Function
+
+In some systems, there might be some source of random data available,
+although the quality may not be statistically ideal. The simplerandom
+library provides `mix` functions, to mix random data in to the
+generator state.
+
+Incorporating truly random data decreases the predictability of the
+generator's output, which might be useful in some applications. Even if
+the statistical properties of the random data isn't that great, once it
+is mixed into the generator's state, the generator's output should
+still be statistically good.
+
+    uint32_t real_random_data[8];
+    ...
+    get_real_random_data_from_somewhere(&real_random_data, 8);
+    simplerandom_kiss_mix(&rng_kiss, real_random_data, 8);
+
+
 Python
 ------
 
