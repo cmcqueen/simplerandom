@@ -410,7 +410,7 @@ cdef class MWC1(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
-            selector = (current >> 31u) & 0x1u
+            selector = (current >> 24u) & 0x1u
             if selector == 0:
                 self.mwc_upper ^= value_int
                 self._sanitise_upper()
@@ -536,7 +536,7 @@ cdef class MWC2(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
-            selector = (current >> 31u) & 0x1u
+            selector = (current >> 24u) & 0x1u
             if selector == 0:
                 self.mwc_upper ^= value_int
                 self._sanitise_upper()
@@ -651,7 +651,7 @@ cdef class MWC64(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
-            selector = (current >> 31u) & 0x1u
+            selector = (current >> 24u) & 0x1u
             if selector == 0:
                 self.mwc_upper ^= value_int
             else:
@@ -813,7 +813,7 @@ cdef class KISS(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
-            selector = (current >> 30u) & 0x3u
+            selector = (current >> 24u) & 0x3u
             if selector == 0:
                 self.mwc_upper ^= value_int
                 self._sanitise_mwc_upper()
@@ -1008,7 +1008,7 @@ cdef class KISS2(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFFu
             current = self.current()
-            selector = (current >> 30u) & 0x3u
+            selector = (current >> 24u) & 0x3u
             if selector == 0:
                 self.mwc_upper ^= value_int
                 self._sanitise_mwc64()

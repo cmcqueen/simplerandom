@@ -367,7 +367,7 @@ class MWC2(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
-            selector = (current >> 31) & 0x1
+            selector = (current >> 24) & 0x1
             if selector == 0:
                 self.mwc_upper ^= value_int
                 self._sanitise_upper()
@@ -505,7 +505,7 @@ class MWC64(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
-            selector = (current >> 31) & 0x1
+            selector = (current >> 24) & 0x1
             if selector == 0:
                 self.mwc_upper ^= value_int
             else:
@@ -591,7 +591,7 @@ class KISS(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
-            selector = (current >> 30) & 0x3
+            selector = (current >> 24) & 0x3
             if selector == 0:
                 self.random_mwc.mwc_upper ^= value_int
                 self.random_mwc._sanitise_upper()
@@ -717,7 +717,7 @@ class KISS2(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             current = self.current()
-            selector = (current >> 30) & 0x3
+            selector = (current >> 24) & 0x3
             if selector == 0:
                 self.random_mwc.mwc_upper ^= value_int
                 self.random_mwc.sanitise()

@@ -308,7 +308,7 @@ void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, 
         {
             --num_data;
             current = mwc2_current(p_mwc);
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            switch ((current >> 24u) & 0x1u)    /* Switch on 1 high bit */
             {
                 case 0:
                     p_mwc->mwc_upper ^= *p_data;
@@ -401,7 +401,7 @@ void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, 
         {
             --num_data;
             current = mwc1_current(p_mwc);
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            switch ((current >> 24u) & 0x1u)    /* Switch on 1 high bit */
             {
                 case 0:
                     p_mwc->mwc_upper ^= *p_data;
@@ -585,7 +585,7 @@ void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data,
         {
             --num_data;
             current = kiss_current(p_kiss);
-            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            switch ((current >> 24u) & 0x3u)    /* Switch on 2 high bits */
             {
                 case 0:
                     p_kiss->mwc_upper ^= *p_data;
@@ -720,7 +720,7 @@ void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data
         while (num_data)
         {
             --num_data;
-            switch ((current >> 31u) & 0x1)     /* Switch on 1 highest bit */
+            switch ((current >> 24u) & 0x1u)    /* Switch on 1 high bit */
             {
                 case 0:
                     p_mwc->mwc_upper ^= *p_data;
@@ -872,7 +872,7 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
         {
             --num_data;
             current = kiss2_current(p_kiss2);
-            switch ((current >> 30) & 0x3)  /* Switch on 2 highest bits */
+            switch ((current >> 24u) & 0x3u)    /* Switch on 2 high bits */
             {
                 case 0:
                     p_kiss2->mwc_upper ^= *p_data;
