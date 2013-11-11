@@ -53,7 +53,7 @@ setup(
     description='Simple random number generators',
     author='Craig McQueen',
     author_email='python@craig.mcqueen.id.au',
-    url='http://bitbucket.org/cmcqueen1975/simplerandom/',
+    url='http://github.com/cmcqueen/simplerandom',
     packages=[ 'simplerandom', 'simplerandom.iterators', 'simplerandom.random', 'simplerandom._bitcolumnmatrix', 'simplerandom._version', ],
     package_dir={
         'simplerandom' : base_dir + '/simplerandom',

@@ -34,7 +34,7 @@ has two main advantages:
 An equivalent C implementation (of the Python ``simplerandom.iterators``
 module) has been created. See:
 
-    http://bitbucket.org/cmcqueen1975/simplerandom
+    http://github.com/cmcqueen/simplerandom
 
 Algorithms
 ``````````
@@ -148,10 +148,12 @@ initialisation/seeding.
 
 In ``simplerandom.random``, pseudo-random number generators are provided which
 have the same names as those in ``simplerandom.iterators``, but these
-generators implement the standard Python ``random.Random`` API. However the
-``jumpahead()`` function (Python 2.x) is not implemented in all cases. Each
-generator uses the iterator of the same name in ``simplerandom.iterators`` to
-generate the random bits used to produce the random floats.
+generators implement the standard Python ``random.Random`` API. Each generator
+uses the iterator of the same name in ``simplerandom.iterators`` to generate
+the random bits used to produce the random floats. The ``jumpahead()`` function
+(Python 2.x) is implemented in all cases, and is also supported in Python 3.x,
+even though ``jumpahead()`` has officially been removed from the Python 3.x
+``random`` API. 
 
 
 -----
@@ -176,11 +178,11 @@ Random class API
     >>> import simplerandom.random as srr
     >>> rng = srr.KISS(258725234)
     >>> rng.random()
-    0.773460115942927
+    0.0925917826051541
     >>> rng.random()
-    0.012115143213983215
+    0.02901686453730415
     >>> rng.random()
-    0.8954136598708136
+    0.9024972981686489
 
 
 -------------------------
