@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.68)
-AC_INIT([simplerandom], [0.12.0]) #set project name and version
+AC_INIT([simplerandom], [0.12.1]) #set project name and version
 AC_PROG_CC
 # C++ used for testing with cxxtest
 AC_PROG_CXX
