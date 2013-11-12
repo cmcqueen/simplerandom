@@ -251,8 +251,8 @@ which have the same names as those in `simplerandom.iterators`, but
 these generators implement the standard Python `random.Random` API.
 However the `jumpahead()` function (Python 2.x) is not implemented in
 all cases. Each generator uses the iterator of the same name in
-`simplerandom.iterators` to generate the random bits used to produce the
-random floats.
+`simplerandom.iterators` to generate the random bits used to produce
+the random floats.
 
 ### Iterators Usage
 
@@ -278,19 +278,15 @@ random floats.
 
 ### Supported Python Versions
 
-Currently this has had basic testing on Ubuntu 10.04 32-bit and Windows
-XP 32-bit. It passes the basic `simplerandom.iterators.test` unit tests,
-as well as basic manual testing of `simplerandom.random`. A more
+Currently this has had basic testing on Ubuntu 13.04 64-bit and Windows
+XP 32-bit. It passes the `simplerandom.iterators.test` unit tests, as
+well as well as basic manual testing of `simplerandom.random`. A more
 thorough unit test suite is needed.
 
-In Ubuntu, it has been tested on Python 2.6 and 3.1 and passes.
+In Ubuntu, it has been tested on Python 2.7 and 3.3, and passes.
 
-In Windows, it has been tested on Python 2.4, 2.5, 2.6, 2.7, 3.1 and
-3.2. It passes under these versions.
-
-The pure Python code is expected to work on 64-bit platforms, but has
-not been tested. The Cython version of `simplerandom.iterators` should
-work on 64-bit platforms, but has not been tested.
+In Windows, it has been tested on Python 2.6, 2.7, 3.1, 3.2 and 3.3. It
+passes under these versions.
 
 ### Use of Cython
 
@@ -324,19 +320,17 @@ Python implementation, using the following command:
 
 ### Unit Testing
 
-Basic unit testing of the iterators is in `simplerandom.iterators.test`.
+Unit testing of the iterators is in `simplerandom.iterators.test`.
 It duplicates the tests of the C algorithms given in the original
 newsgroup post [[mars1]](#mars1), as well as other unit tests.
 
-To run it on Python \>=2.5:
+To run unit tests:
 
     python -m simplerandom.iterators.test
 
-Alternatively, in the `test` directory run:
+A more thorough unit test suite is needed. A unit test suite for
+`simplerandom.random` is needed.
 
-    python test_iterators.py
-
-A more thorough unit test suite is needed.
 
 License
 -------

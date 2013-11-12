@@ -190,14 +190,14 @@ Supported Python Versions
 -------------------------
 
 Currently this has had basic testing on Ubuntu 13.04 64-bit and
-Windows XP 32-bit. It passes the basic ``simplerandom.iterators.test`` unit
+Windows XP 32-bit. It passes the ``simplerandom.iterators.test`` unit
 tests, as well as basic manual testing of ``simplerandom.random``. A more
 thorough unit test suite is needed.
 
-In Ubuntu, it has been tested on Python 2.7 and 3.3 and passes.
+In Ubuntu, it has been tested on Python 2.7 and 3.3, and passes.
 
-In Windows, it has been tested on Python 2.5, 2.6, 2.7, 3.1, 3.2 and 3.3.
-It passes under these versions.
+In Windows, it has been tested on Python 2.6, 2.7, 3.1, 3.2 and 3.3. It
+passes under these versions.
 
 
 -------------
@@ -242,7 +242,7 @@ implementation, using the following command::
 Unit Testing
 ------------
 
-Basic unit testing of the iterators is in ``simplerandom.iterators.test``. It
+Unit testing of the iterators is in ``simplerandom.iterators.test``. It
 duplicates the tests of the C algorithms given in the original newsgroup post
 [#marsaglia1999]_, as well as other unit tests.
 
