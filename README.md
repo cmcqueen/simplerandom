@@ -249,8 +249,10 @@ seeding.
 In `simplerandom.random`, pseudo-random number generators are provided
 which have the same names as those in `simplerandom.iterators`, but
 these generators implement the standard Python `random.Random` API.
-However the `jumpahead()` function (Python 2.x) is not implemented in
-all cases. Each generator uses the iterator of the same name in
+The `jumpahead()` function (Python 2.x) is implemented for all the
+generators, and is also supported in Python 3.x, even though
+`jumpahead()` has officially been removed from the Python 3.x random
+API. Each generator uses the iterator of the same name in
 `simplerandom.iterators` to generate the random bits used to produce
 the random floats.
 
@@ -265,6 +267,14 @@ the random floats.
     >>> next(rng)
     699722976L
 
+It is possible to "jump ahead" by _n_ values at any time. The
+calculation is done with time complexity O(log n), so _n_ can be very
+large and `jumpahead` will still calculate quickly.
+
+    >>> rng.jumpahead(1000000000000000000)
+    >>> next(rng)
+    709328996L
+
 ### Random class API Usage
 
     >>> import simplerandom.random as srr
@@ -275,6 +285,13 @@ the random floats.
     0.02901686453730415
     >>> rng.random()
     0.9024972981686489
+
+The `jumpahead` function is supported for all generators in both
+Python 2.x and 3.x.
+
+    >>> rng.jumpahead(1000000000000000000)
+    >>> rng.random()
+    0.1423603103150949
 
 ### Supported Python Versions
 
