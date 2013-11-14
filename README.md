@@ -201,6 +201,25 @@ output value).
         rng_values_array[i] = simplerandom_kiss_next(&rng_kiss);
     }
 
+#### Discard (Jumpahead) Function
+
+Each generator has a `discard` function, which is equivalent to the
+`jumpahead` function in the Python package. It is named `discard` in
+the C library, to be consistent with the naming of the function in the
+C++11/Boost random API.
+
+The `discard` function allows for a generator to be moved ahead by _n_
+samples.
+
+    simplerandom_kiss_discard(&rng_kiss, 1000000000000uLL);
+
+Note that _n_ is of type `uintmax_t`, which would probably be 64-bit
+on most platforms, but might be 32-bit on some small embedded
+platforms.
+
+The calculation is done with time complexity O(log n), so _n_ can be
+very large and `jumpahead` will still calculate quickly.
+
 #### Mix Function
 
 In some systems, there might be some source of random data available,
