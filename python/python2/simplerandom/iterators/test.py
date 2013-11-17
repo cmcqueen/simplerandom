@@ -52,7 +52,8 @@ class CongTest(unittest.TestCase):
     RNG_BITS = 32
     RNG_RANGE = (1 << RNG_BITS)
     RNG_CYCLE_LEN = 2**32
-
+    MIX_MILLION_STATE = (1888180864,)
+    MIX_MILLION_RESULT = 2377132217
 
     def setUp(self):
         # Make some random seed values
@@ -120,6 +121,12 @@ class CongTest(unittest.TestCase):
         rng2 = self.RNG_CLASS(self.rng_seeds + self.mix_values, mix_extras=True)
         self.assertEqual(rng1.getstate(), rng2.getstate())
 
+    def test_mix_million(self):
+        rng = self.RNG_CLASS()
+        rng.mix(xrange(1000000))
+        self.assertEqual(rng.getstate(), self.MIX_MILLION_STATE)
+        self.assertEqual(next(rng), self.MIX_MILLION_RESULT)
+
     def test_jumpahead(self):
         # Do one 'next', to get past any unusual initial state.
         self.rng.next()
@@ -140,20 +147,24 @@ class CongTest(unittest.TestCase):
     
         jumpahead_rng = self.RNG_CLASS()
         jumpahead_rng_start_state = self.rng.getstate()
-        for i in range(1, 10000 + 1):
+        for i in range(10000):
             jumpahead_rng.setstate(jumpahead_rng_start_state)
-            jumpahead_rng.jumpahead(i - 1)
+            jumpahead_rng.jumpahead(i)
             self.assertEqual(self.rng.next(), jumpahead_rng.next())
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
     RNG_CYCLE_LEN = 2**32 - 1
+    MIX_MILLION_STATE = (3398451483,)
+    MIX_MILLION_RESULT = 2497398786
 
 
 class MWC1Test(CongTest):
     RNG_CLASS = sri.MWC1
     RNG_SEEDS = 2
     RNG_CYCLE_LEN = (36969 * 2**16 // 2 - 1) * (18000 * 2**16 // 2 - 1)
+    MIX_MILLION_STATE = (2368777526, 228316256)
+    MIX_MILLION_RESULT = 850045851
 
 
 class KISS2Test(CongTest):
@@ -162,6 +173,8 @@ class KISS2Test(CongTest):
     MILLION_RESULT = 4044786495
     MWC64_CYCLE_LEN = 698769069 * 2**32 // 2 - 1
     RNG_CYCLE_LEN = MWC64_CYCLE_LEN * CongTest.RNG_CYCLE_LEN * SHR3Test.RNG_CYCLE_LEN
+    MIX_MILLION_STATE = ((239137175, 3792736514), (3369301037,), (2168302343,))
+    MIX_MILLION_RESULT = 73179452
 
     def test_million(self):
         rng = self.RNG_CLASS()
@@ -173,14 +186,18 @@ class KISS2Test(CongTest):
 class MWC2Test(KISS2Test):
     RNG_CLASS = sri.MWC2
     RNG_SEEDS = 2
-    MILLION_RESULT = 767834450
     RNG_CYCLE_LEN = MWC1Test.RNG_CYCLE_LEN
+    MILLION_RESULT = 767834450
+    MIX_MILLION_STATE = (877346697, 339013993)
+    MIX_MILLION_RESULT = 2513067739
 
 class MWC64Test(KISS2Test):
     RNG_CLASS = sri.MWC64
     RNG_SEEDS = 2
-    MILLION_RESULT = 2191957470
     RNG_CYCLE_LEN = 698769069 * 2**32 // 2 - 1
+    MILLION_RESULT = 2191957470
+    MIX_MILLION_STATE = (303682145, 2644015475)
+    MIX_MILLION_RESULT = 3125681944
 
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.
@@ -196,20 +213,26 @@ class KISSTest(CongTest):
     RNG_CLASS = sri.KISS
     RNG_SEEDS = 4
     RNG_CYCLE_LEN = MWC2Test.RNG_CYCLE_LEN * CongTest.RNG_CYCLE_LEN * SHR3Test.RNG_CYCLE_LEN
+    MIX_MILLION_STATE = ((236260272, 836835745), (789422639,), (961402556,))
+    MIX_MILLION_RESULT = 3522308965
 
 
 class LFSR113Test(KISS2Test):
     RNG_CLASS = sri.LFSR113
     RNG_SEEDS = 4
-    MILLION_RESULT = 300959510
     RNG_CYCLE_LEN = (2**(32 - 1) - 1) * (2**(32 - 3) - 1) * (2**(32 - 4) - 1) * (2**(32 - 7) - 1)
+    MILLION_RESULT = 300959510
+    MIX_MILLION_STATE = (2691024344, 4239946093, 3982661918, 2371033497)
+    MIX_MILLION_RESULT = 1565144389
 
 
 class LFSR88Test(KISS2Test):
     RNG_CLASS = sri.LFSR88
     RNG_SEEDS = 3
-    MILLION_RESULT = 3774296834
     RNG_CYCLE_LEN = (2**(32 - 1) - 1) * (2**(32 - 3) - 1) * (2**(32 - 4) - 1)
+    MILLION_RESULT = 3774296834
+    MIX_MILLION_STATE = (3899912688, 3314273521, 3192347695)
+    MIX_MILLION_RESULT = 284026550
 
 
 def runtests():

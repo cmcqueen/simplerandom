@@ -15,6 +15,7 @@ public:
     // Non-standard API
     virtual size_t num_seeds() = 0;
     virtual void discard(uintmax_t n) = 0;
+    virtual void mix(uint32_t * p_mix_array, size_t n) = 0;
 
     // Standard C++ random API
     typedef uint32_t result_type;
@@ -43,6 +44,7 @@ public:
 
     uint32_t operator()() { return simplerandom_cong_next(&rng); }
     void discard(uintmax_t n) { simplerandom_cong_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_cong_mix(&rng, p_mix_array, n); }
 };
 
 typedef SimpleRandomWrapperCong SimpleRandomSeeder;
@@ -61,6 +63,7 @@ public:
 
     uint32_t operator()() { return simplerandom_shr3_next(&rng); }
     void discard(uintmax_t n) { simplerandom_shr3_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_shr3_mix(&rng, p_mix_array, n); }
     uint32_t min() const
     {
         // SHR3 is exceptional in that it doesn't ever return 0.
@@ -82,6 +85,7 @@ public:
 
     uint32_t operator()() { return simplerandom_mwc1_next(&rng); }
     void discard(uintmax_t n) { simplerandom_mwc1_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_mwc1_mix(&rng, p_mix_array, n); }
 };
 
 class SimpleRandomWrapperMWC2 : public SimpleRandomWrapper
@@ -98,6 +102,7 @@ public:
 
     uint32_t operator()() { return simplerandom_mwc2_next(&rng); }
     void discard(uintmax_t n) { simplerandom_mwc2_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_mwc2_mix(&rng, p_mix_array, n); }
 };
 
 class SimpleRandomWrapperKISS : public SimpleRandomWrapper
@@ -117,6 +122,7 @@ public:
 
     uint32_t operator()() { return simplerandom_kiss_next(&rng); }
     void discard(uintmax_t n) { simplerandom_kiss_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_kiss_mix(&rng, p_mix_array, n); }
 };
 
 #ifdef UINT64_C
@@ -135,6 +141,7 @@ public:
 
     uint32_t operator()() { return simplerandom_mwc64_next(&rng); }
     void discard(uintmax_t n) { simplerandom_mwc64_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_mwc64_mix(&rng, p_mix_array, n); }
 };
 
 class SimpleRandomWrapperKISS2 : public SimpleRandomWrapper
@@ -154,6 +161,7 @@ public:
 
     uint32_t operator()() { return simplerandom_kiss2_next(&rng); }
     void discard(uintmax_t n) { simplerandom_kiss2_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_kiss2_mix(&rng, p_mix_array, n); }
 };
 
 #endif
@@ -175,6 +183,7 @@ public:
 
     uint32_t operator()() { return simplerandom_lfsr113_next(&rng); }
     void discard(uintmax_t n) { simplerandom_lfsr113_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_lfsr113_mix(&rng, p_mix_array, n); }
 };
 
 class SimpleRandomWrapperLFSR88 : public SimpleRandomWrapper
@@ -194,6 +203,7 @@ public:
 
     uint32_t operator()() { return simplerandom_lfsr88_next(&rng); }
     void discard(uintmax_t n) { simplerandom_lfsr88_discard(&rng, n); }
+    void mix(uint32_t * p_mix_array, size_t n) { simplerandom_lfsr88_mix(&rng, p_mix_array, n); }
 };
 
 
@@ -216,6 +226,7 @@ public:
         return new SimpleRandomWrapperCong(p_seeds, num_seeds, mix_extras);
     }
     virtual uint32_t get_million_result() { return 2416584377u; }
+    virtual uint32_t get_mix_million_result() { return 2377132217u; }
     void setUp()
     {
         rng = factory((uint32_t)time(NULL));
@@ -265,6 +276,18 @@ public:
         TS_ASSERT_EQUALS(result_discard, get_million_result());
         delete discard_rng;
     }
+    void testMixMillion()
+    {
+        uint32_t zero_seeds[32] = { 0 };
+        SimpleRandomWrapper * rng;
+
+        rng = factory(zero_seeds, 32, false);
+        for (uint32_t i = 0; i < 1000000u; ++i)
+        {
+            rng->mix(&i, 1);
+        }
+        TS_ASSERT_EQUALS((*rng)(), get_mix_million_result());
+    }
     void testDiscard()
     {
         SimpleRandomWrapper * discard_rng;
@@ -311,6 +334,7 @@ public:
         return new SimpleRandomWrapperSHR3(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 1153302609u; }
+    uint32_t get_mix_million_result() { return 2497398786u; }
 };
 
 class SimplerandomMWC1Test : public SimplerandomCongTest
@@ -330,6 +354,7 @@ public:
         return new SimpleRandomWrapperMWC1(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 904977562u; }
+    uint32_t get_mix_million_result() { return 850045851u; }
 };
 
 class SimplerandomMWC2Test : public SimplerandomCongTest
@@ -349,6 +374,7 @@ public:
         return new SimpleRandomWrapperMWC2(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 767834450u; }
+    uint32_t get_mix_million_result() { return 2513067739u; }
 };
 
 class SimplerandomKISSTest : public SimplerandomCongTest
@@ -368,6 +394,7 @@ public:
         return new SimpleRandomWrapperKISS(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 2100752872u; }
+    uint32_t get_mix_million_result() { return 3522308965u; }
 };
 
 #ifdef UINT64_C
@@ -389,6 +416,7 @@ public:
         return new SimpleRandomWrapperMWC64(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 2191957470u; }
+    uint32_t get_mix_million_result() { return 3125681944u; }
 };
 
 class SimplerandomKISS2Test : public SimplerandomCongTest
@@ -408,6 +436,7 @@ public:
         return new SimpleRandomWrapperKISS2(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 4044786495u; }
+    uint32_t get_mix_million_result() { return 73179452u; }
 };
 
 #endif
@@ -429,6 +458,7 @@ public:
         return new SimpleRandomWrapperLFSR113(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 300959510u; }
+    uint32_t get_mix_million_result() { return 1565144389u; }
 };
 
 class SimplerandomLFSR88Test : public SimplerandomCongTest
@@ -448,4 +478,5 @@ public:
         return new SimpleRandomWrapperLFSR88(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 3774296834u; }
+    uint32_t get_mix_million_result() { return 284026550u; }
 };
