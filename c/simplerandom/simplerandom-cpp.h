@@ -79,6 +79,10 @@
 #error This header simplerandom-cpp.h is only suitable for C++ not C
 #endif
 
+#include <limits>
+
+#include <stdint.h>
+
 
 /*****************************************************************************
  *
@@ -86,6 +90,83 @@
 
 namespace simplerandom
 {
+
+template<bool> struct StaticAssert;
+template<> struct StaticAssert<true> {};
+
+
+template<typename UIntType, unsigned word_bits, UIntType a>
+class mwc_engine
+{
+    StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
+    StaticAssert< ((word_bits % 2u) == 0) > _word_bits_must_be_multiple_2;
+
+public:
+    /** The type of the generated random value. */
+    typedef UIntType result_type;
+
+    /** The multiplier. */
+    static const result_type multiplier     = a;
+    /** The modulus. */
+    static const unsigned _half_word_bits   = word_bits / 2u;
+    static const result_type modulus        = (a * (1u << _half_word_bits)) - 1u;
+    static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) % modulus;
+    static const result_type _lower_mask    = (1u << _half_word_bits) - 1u;
+
+    /** Constructors */
+    mwc_engine(result_type s = default_seed)
+    { seed(s); }
+
+    /** Seed functions */
+    void seed(result_type s = default_seed)
+    {
+        s %= modulus;
+        if (s == 0)
+        {
+            s = default_seed;
+        }
+        x = s;
+    }
+
+    /** Generation function */
+    result_type operator()()
+    {
+        x = multiplier * (x & _lower_mask) + (x >> _half_word_bits);
+        return x;
+    }
+
+private:
+    result_type     x;
+};
+
+class mwc2
+{
+    mwc_engine<uint32_t, 32u, 36969u> mwc_upper;
+    mwc_engine<uint32_t, 32u, 18000u> mwc_lower;
+
+public:
+    /** The type of the generated random value. */
+    typedef uint32_t result_type;
+
+    /** Constructors */
+    mwc2(result_type seed_upper, result_type seed_lower)
+        : mwc_upper(seed_upper), mwc_lower(seed_lower)
+    {}
+    mwc2(result_type s)
+        : mwc_upper(s), mwc_lower(s)
+    {}
+    mwc2()
+        : mwc_upper(), mwc_lower()
+    {}
+
+    /** Generation function */
+    result_type operator()()
+    {
+        result_type m_u = mwc_upper();
+        result_type m_l = mwc_lower();
+        return (m_u << 16u) + (m_u >> 16u) + m_l;
+    }
+};
 
 }
 

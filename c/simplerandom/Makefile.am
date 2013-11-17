@@ -21,12 +21,15 @@ pkgconfig_DATA = @PACKAGE_NAME@.pc
 #######################################
 # Tests
 
-TESTS = test_simple
+TESTS = test_simple test_cpp_simple
 
-check_PROGRAMS = test_simple
+check_PROGRAMS = test_simple test_cpp_simple
 
 test_simple_SOURCES = tests/test_simple.c
 test_simple_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
+
+test_cpp_simple_SOURCES = tests/test_cpp_simple.cpp
+test_cpp_simple_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
 if WITH_CXXTEST
 
