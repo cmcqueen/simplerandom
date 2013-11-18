@@ -4,6 +4,8 @@
  * Integer functions for modulo power, multiplication and geometric series,
  * for uint32_t and uint64_t.
  */
+#ifndef SIMPLERANDOM_MATHS_H
+#define SIMPLERANDOM_MATHS_H
 
 
 /*****************************************************************************
@@ -174,3 +176,5 @@ UIntType geom_series(UIntType r, uintmax_t n)
 } // namespace simplerandom
 
 #endif /* defined(__cplusplus) */
+
+#endif /* !defined(SIMPLERANDOM_MATHS_H) */

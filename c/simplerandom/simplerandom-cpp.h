@@ -98,20 +98,83 @@ template<bool> struct StaticAssert;
 template<> struct StaticAssert<true> {};
 
 
-template<typename UIntType, unsigned word_bits, UIntType a>
+template<typename UIntType, int sh1, int sh2, int sh3, unsigned word_bits = 0>
+class shr3_engine
+{
+    StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
+    StaticAssert< (word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
+
+public:
+    /** The type of the generated random value. */
+    typedef UIntType result_type;
+
+    static const int shift1                 = sh1;
+    static const int shift2                 = sh2;
+    static const int shift3                 = sh3;
+    static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
+    static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu);
+    static const result_type _word_mask     = (word_bits == 0) ? static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) : (1u << _word_bits) - 1u;
+
+    /** Constructors */
+    shr3_engine(result_type s = default_seed)
+    { seed(s); }
+
+    /** Seed functions */
+    void seed(result_type s = default_seed)
+    {
+        if (s == 0)
+        {
+            s = default_seed;
+        }
+        x = s;
+    }
+
+    /** Generation function */
+    result_type operator()()
+    {
+        x ^= (x << sh1);
+        x ^= (x << sh2);
+        x ^= (x << sh3);
+        x &= _word_mask;
+        return x;
+    }
+
+    static result_type min()
+    {
+        return 1u;
+    }
+
+    static result_type max()
+    {
+        return _word_mask;
+    }
+
+    void discard(uintmax_t n)
+    {
+        // TODO: implement this
+    }
+
+private:
+    result_type     x;
+};
+
+typedef shr3_engine<uint32_t, 13, -17, 5> shr3;
+
+
+template<typename UIntType, UIntType a, unsigned word_bits = 0>
 class mwc_engine
 {
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
+    StaticAssert< (word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
     StaticAssert< ((word_bits % 2u) == 0) > _word_bits_must_be_multiple_2;
 
 public:
     /** The type of the generated random value. */
     typedef UIntType result_type;
 
-    /** The multiplier. */
+    static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
+    static const unsigned _half_word_bits   = _word_bits / 2u;
     static const result_type multiplier     = a;
-    /** The modulus. */
-    static const unsigned _half_word_bits   = word_bits / 2u;
     static const result_type modulus        = (a * (1u << _half_word_bits)) - 1u;
     static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) % modulus;
     static const result_type _lower_mask    = (1u << _half_word_bits) - 1u;
@@ -138,12 +201,12 @@ public:
         return x;
     }
 
-    result_type min()
+    static result_type min()
     {
         return 0;
     }
 
-    result_type max()
+    static result_type max()
     {
         return modulus - 1u;
     }
@@ -159,8 +222,8 @@ private:
 
 class mwc2
 {
-    mwc_engine<uint32_t, 32u, 36969u> mwc_upper;
-    mwc_engine<uint32_t, 32u, 18000u> mwc_lower;
+    mwc_engine<uint32_t, 36969u> mwc_upper;
+    mwc_engine<uint32_t, 18000u> mwc_lower;
 
 public:
     /** The type of the generated random value. */
@@ -185,12 +248,12 @@ public:
         return (m_u << 16u) + (m_u >> 16u) + m_l;
     }
 
-    result_type min()
+    static result_type min()
     {
         return 0;
     }
 
-    result_type max()
+    static result_type max()
     {
         return std::numeric_limits<uint32_t>::max();
     }
