@@ -81,7 +81,10 @@
 
 #include <limits>
 
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
+
+#include <simplerandom/maths.h>
 
 
 /*****************************************************************************
@@ -135,6 +138,21 @@ public:
         return x;
     }
 
+    result_type min()
+    {
+        return 0;
+    }
+
+    result_type max()
+    {
+        return modulus - 1u;
+    }
+
+    void discard(uintmax_t n)
+    {
+        x = mul_mod(pow_mod(a, n, modulus), x, modulus);
+    }
+
 private:
     result_type     x;
 };
@@ -165,6 +183,22 @@ public:
         result_type m_u = mwc_upper();
         result_type m_l = mwc_lower();
         return (m_u << 16u) + (m_u >> 16u) + m_l;
+    }
+
+    result_type min()
+    {
+        return 0;
+    }
+
+    result_type max()
+    {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    void discard(uintmax_t n)
+    {
+        mwc_upper.discard(n);
+        mwc_lower.discard(n);
     }
 };
 
