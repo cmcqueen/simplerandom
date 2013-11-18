@@ -7,7 +7,7 @@
 
 int main()
 {
-    simplerandom::mwc2 rng(12345);
+    simplerandom::mwc1 rng(12345);
 
     std::cout << rng() << std::endl;
     std::cout << rng() << std::endl;

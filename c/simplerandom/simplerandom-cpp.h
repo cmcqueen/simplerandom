@@ -77,7 +77,7 @@
 
 #ifndef __cplusplus
 #error This header simplerandom-cpp.h is only suitable for C++ not C
-#endif
+#else
 
 #include <limits>
 
@@ -98,6 +98,7 @@ template<> struct StaticAssert<true> {};
 template<typename UIntType, unsigned word_bits, UIntType a>
 class mwc_engine
 {
+private:
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
     StaticAssert< ((word_bits % 2u) == 0) > _word_bits_must_be_multiple_2;
 
@@ -135,12 +136,18 @@ public:
         return x;
     }
 
+    result_type current()
+    {
+        return x;
+    }
+
 private:
     result_type     x;
 };
 
 class mwc2
 {
+protected:
     mwc_engine<uint32_t, 32u, 36969u> mwc_upper;
     mwc_engine<uint32_t, 32u, 18000u> mwc_lower;
 
@@ -162,14 +169,50 @@ public:
     /** Generation function */
     result_type operator()()
     {
-        result_type m_u = mwc_upper();
-        result_type m_l = mwc_lower();
+        mwc_upper();
+        mwc_lower();
+        return current();
+    }
+
+protected:
+    virtual result_type current()
+    {
+        result_type m_u = mwc_upper.current();
+        result_type m_l = mwc_lower.current();
+
         return (m_u << 16u) + (m_u >> 16u) + m_l;
     }
 };
 
-}
+class mwc1 : public mwc2
+{
+public:
+    /** Constructors */
+    mwc1(result_type seed_upper, result_type seed_lower)
+        : mwc2(seed_upper, seed_lower)
+    {}
+    mwc1(result_type s)
+        : mwc2(s)
+    {}
+    mwc1()
+        : mwc2()
+    {}
 
+protected:
+    result_type current()
+    {
+        result_type m_u = mwc_upper.current();
+        result_type m_l = mwc_lower.current();
+
+        return (m_u << 16u) + m_l;
+    }
+};
+
+
+} // namespace simplerandom
+
+
+#endif /* !defined(__cplusplus) */
 
 #endif /* !defined(_SIMPLERANDOM_CPP_H) */
 
