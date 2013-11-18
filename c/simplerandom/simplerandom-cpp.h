@@ -77,7 +77,7 @@
 
 #ifndef __cplusplus
 #error This header simplerandom-cpp.h is only suitable for C++ not C
-#endif
+#else
 
 #include <limits>
 
@@ -164,6 +164,7 @@ typedef shr3_engine<uint32_t, 13, -17, 5> shr3;
 template<typename UIntType, UIntType a, unsigned word_bits = 0>
 class mwc_engine
 {
+private:
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
     StaticAssert< (word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
     StaticAssert< ((word_bits % 2u) == 0) > _word_bits_must_be_multiple_2;
@@ -200,6 +201,10 @@ public:
         x = multiplier * (x & _lower_mask) + (x >> _half_word_bits);
         return x;
     }
+    result_type current()
+    {
+        return x;
+    }
 
     static result_type min()
     {
@@ -222,6 +227,7 @@ private:
 
 class mwc2
 {
+protected:
     mwc_engine<uint32_t, 36969u> mwc_upper;
     mwc_engine<uint32_t, 18000u> mwc_lower;
 
@@ -243,8 +249,17 @@ public:
     /** Generation function */
     result_type operator()()
     {
-        result_type m_u = mwc_upper();
-        result_type m_l = mwc_lower();
+        mwc_upper();
+        mwc_lower();
+        return current();
+    }
+
+protected:
+    virtual result_type current()
+    {
+        result_type m_u = mwc_upper.current();
+        result_type m_l = mwc_lower.current();
+
         return (m_u << 16u) + (m_u >> 16u) + m_l;
     }
 
@@ -265,8 +280,35 @@ public:
     }
 };
 
-}
+class mwc1 : public mwc2
+{
+public:
+    /** Constructors */
+    mwc1(result_type seed_upper, result_type seed_lower)
+        : mwc2(seed_upper, seed_lower)
+    {}
+    mwc1(result_type s)
+        : mwc2(s)
+    {}
+    mwc1()
+        : mwc2()
+    {}
 
+protected:
+    result_type current()
+    {
+        result_type m_u = mwc_upper.current();
+        result_type m_l = mwc_lower.current();
+
+        return (m_u << 16u) + m_l;
+    }
+};
+
+
+} // namespace simplerandom
+
+
+#endif /* !defined(__cplusplus) */
 
 #endif /* !defined(_SIMPLERANDOM_CPP_H) */
 
