@@ -1,5 +1,5 @@
 /*
- * bitcolumnmatrix.h
+ * bitcolumnmatrix.c
  *
  * 32-by-32 Galois-2 matrix, represented by 32 uint32_t integers, representing
  * the bits in each column of the matrix.
