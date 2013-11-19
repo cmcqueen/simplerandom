@@ -9,12 +9,15 @@
 
 int main()
 {
-#if 0
+#if 1
+    simplerandom::cong rng(12345);
+#elif 0
     simplerandom::mwc1 rng(12345);
 #elif 0
     simplerandom::mwc2 rng(12345);
-#else
+#elif 0
     simplerandom::shr3 rng(12345);
+#else
 #endif
 
 #if 1

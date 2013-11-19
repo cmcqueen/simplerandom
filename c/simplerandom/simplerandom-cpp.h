@@ -96,6 +96,109 @@
 namespace simplerandom
 {
 
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+template<typename UIntType, UIntType a, UIntType c, UIntType m = 0>
+class cong_engine
+{
+    StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
+    StaticAssert< (m == 0 || (m >= 2 && a < m && c < m)) > _a_c_or_m_parameter_values;
+
+public:
+    /** The type of the generated random value. */
+    typedef UIntType result_type;
+
+    static const result_type multiplier     = a;
+    static const result_type increment      = c;
+    static const result_type modulus        = m;
+    static const result_type default_seed   = (c != 0) ? 0 :
+                                                ((m == 0) ? (~(UIntType)0) : ((~(UIntType)0) % m));
+
+    /** Constructors */
+    cong_engine(result_type s = default_seed)
+    { seed(s); }
+
+    /** Seed functions */
+    void seed(result_type s = default_seed)
+    {
+        if (m != 0)
+        {
+            s %= m;
+        }
+        if (c == 0 && s == 0)
+        {
+            s = default_seed;
+        }
+        x = s;
+    }
+
+    /** Generation function */
+    result_type operator()()
+    {
+        if (m == 0)
+        {
+            x = a * x + c;
+        }
+        else
+        {
+            x = (mul_mod(a, x, m) + c) % m;
+        }
+        return x;
+    }
+    result_type current() const
+    {
+        return x;
+    }
+
+    static result_type min()
+    {
+        /* If c is zero, then min is 1.
+         * If c is non-zero, then min is 0.
+         */
+        return (c == 0);
+    }
+
+    static result_type max()
+    {
+        if (m == 0)
+            return std::numeric_limits<UIntType>::max();
+        else
+            return m - 1;
+    }
+
+    void discard(uintmax_t n)
+    {
+        result_type     mult_exp;
+        result_type     add_const;
+        result_type     cong;
+
+        if (m == 0)
+        {
+            mult_exp = pow(a, n);
+            add_const = geom_series(a, n) * c;
+            x = mult_exp * x + add_const;
+        }
+        else
+        {
+            mult_exp = pow_mod(a, n, m);
+            add_const = mul_mod(geom_series(a, n, m), c, m);
+            x = (mul_mod(mult_exp, x, m) + add_const) % m;
+        }
+    }
+
+private:
+    result_type     x;
+};
+
+typedef cong_engine<uint32_t, 69069u, 12345u> cong;
+
+
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
 /* SHR3 engine, aka XorShift, from Marsaglia
  *
  * The three shift values have to be carefully chosen so that the resulting
@@ -127,8 +230,8 @@ public:
     static const int shift2                 = sh2;
     static const int shift3                 = sh3;
     static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
-    static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu);
     static const result_type _word_mask     = (word_bits == 0) ? static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) : ((1u << _word_bits) - 1u);
+    static const result_type default_seed   = _word_mask;
 
     /** Constructors */
     shr3_engine(result_type s = default_seed)
@@ -206,6 +309,20 @@ private:
 typedef shr3_engine<uint32_t, 13, -17, 5> shr3;
 
 
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+/* If template parameter word_bits == 0, this is treated as if
+ * word_bits = std::numeric_limits<UIntType>::digits (that is, number of bits
+ * of the type). E.g., 32 for uint32_t.
+ *
+ * mwc_engine<UIntType, a, word_bits> is a special case of linear congruential
+ * generator. It is equivalent to
+ * cong_engine<UIntType, a, 0, a * (1 << (word_bits / 2)) - 1>
+ * The generator calculation uses a numeric trick which makes the calculation
+ * faster for this special case.
+ */
 template<typename UIntType, UIntType a, unsigned _word_bits = 0>
 class mwc_engine
 {
@@ -253,7 +370,7 @@ public:
 
     static result_type min()
     {
-        return 0;
+        return 1u;
     }
 
     static result_type max()
@@ -273,8 +390,15 @@ private:
 class mwc2
 {
 protected:
+#if 1
     mwc_engine<uint32_t, 36969u> mwc_upper;
     mwc_engine<uint32_t, 18000u> mwc_lower;
+#else
+    /* Just to demonstrate that mwc_engine is equivalent to cong_engine with
+     * certain parameters. */
+    cong_engine<uint32_t, 36969u, 0, 36969u * 65536u - 1> mwc_upper;
+    cong_engine<uint32_t, 18000u, 0, 18000u * 65536u - 1> mwc_lower;
+#endif
 
 public:
     /** The type of the generated random value. */

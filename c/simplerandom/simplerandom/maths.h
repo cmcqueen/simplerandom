@@ -36,7 +36,7 @@ namespace simplerandom {
  * mul_mod_uint64(), since a uint128_t is most likely not available.
  */
 template <typename UIntType>
-UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
+inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
 {
     UIntType    result = 0;
     UIntType    temp_b;
@@ -76,7 +76,7 @@ UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
  * straight-forward.
  */
 template <>
-UIntType mul_mod<uint32_t>(uint32_t a, uint32_t b, uint32_t mod)
+inline UIntType mul_mod<uint32_t>(uint32_t a, uint32_t b, uint32_t mod)
 {
     uint64_t    temp;
 
@@ -88,7 +88,7 @@ UIntType mul_mod<uint32_t>(uint32_t a, uint32_t b, uint32_t mod)
 
 /* Calculation of 'base' to the power of 'n', modulo (max + 1) of UIntType. */
 template <typename UIntType>
-UIntType pow(UIntType base, uintmax_t n)
+inline UIntType pow(UIntType base, uintmax_t n)
 {
     UIntType    result;
     UIntType    temp_exp;
@@ -110,7 +110,7 @@ UIntType pow(UIntType base, uintmax_t n)
 /* Calculation of 'base' to the power of an unsigned integer 'n',
  * modulo a value 'mod'. */
 template <typename UIntType>
-UIntType pow_mod(UIntType base, uintmax_t n, UIntType mod)
+inline UIntType pow_mod(UIntType base, uintmax_t n, UIntType mod)
 {
     UIntType    result;
     UIntType    temp_exp;
@@ -148,7 +148,7 @@ UIntType pow_mod(UIntType base, uintmax_t n, UIntType mod)
  * O(log n) and stack depth O(1).
  */
 template <typename UIntType>
-UIntType geom_series(UIntType r, uintmax_t n)
+inline UIntType geom_series(UIntType r, uintmax_t n)
 {
     UIntType    temp_r;
     UIntType    mult;
@@ -167,6 +167,48 @@ UIntType geom_series(UIntType r, uintmax_t n)
             result += mult * pow(temp_r, n - 1);
         mult *= (1 + temp_r);
         temp_r *= temp_r;
+        n >>= 1;
+    }
+    result += mult;
+    return result;
+}
+
+/* Calculate geometric series:
+ *     1 + r + r^2 + r^3 + ... r^(n-1)
+ * summed to n terms, modulo mod.
+ *
+ * This implementation fits all calculations within the UIntType.
+ *
+ * It makes use of the fact that the series can pair up terms:
+ *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
+ *     (1 + r) (1 + r^2 + r^4 + ... + (r^2)^(n/2-1)) + [ r^(n-1) if n is odd ]
+ *
+ * Which can easily be calculated by recursion, with time order O(log n), and
+ * also stack depth O(log n). However that stack depth isn't good, so a
+ * non-recursive implementation is preferable.
+ * This implementation is by a loop, not recursion, with time order
+ * O(log n) and stack depth O(1).
+ */
+template <typename UIntType>
+inline UIntType geom_series(UIntType r, uintmax_t n, UIntType mod)
+{
+    UIntType    temp_r;
+    UIntType    mult;
+    UIntType    result;
+
+    if (n == 0)
+        return 0;
+
+    temp_r = r;
+    mult = 1;
+    result = 0;
+
+    while (n > 1)
+    {
+        if (n & 1)
+            result += mul_mod(mult, pow_mod(temp_r, n - 1, mod), mod);
+        mult = mul_mod(mult, (1 + temp_r), mod);
+        temp_r = mul_mod(temp_r, temp_r, mod);
         n >>= 1;
     }
     result += mult;
