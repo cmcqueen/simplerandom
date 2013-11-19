@@ -84,7 +84,9 @@
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
+#include <simplerandom/tools.h>
 #include <simplerandom/maths.h>
+#include <simplerandom/bitcolumnmatrix.h>
 
 
 /*****************************************************************************
@@ -94,10 +96,23 @@
 namespace simplerandom
 {
 
-template<bool> struct StaticAssert;
-template<> struct StaticAssert<true> {};
-
-
+/* SHR3 engine, aka XorShift, from Marsaglia
+ *
+ * The three shift values have to be carefully chosen so that the resulting
+ * sequence has a period of 2^32-1, and has decent statistical properties.
+ *
+ * SHR3 is a 3-shift-register generator with period 2^32-1. It uses
+ *     y[n]=y[n-1](I+L^a)(I+L^b)(I+L^c)
+ * with the y's viewed as binary vectors, L the 32x32 binary matrix that
+ * shifts a vector left 1, and R its transpose. a, b and c are shift values,
+ * and may be negative meaning right-shift i.e. L^a == R^(-a).
+ *
+ * Assuming a, b and c are well chosen, SHR3 should pass all Marsaglia's
+ * Diehard tests except those related to the binary rank test, since
+ * 32 successive values, as binary vectors, must be linearly independent,
+ * while 32 successive truly random 32-bit integers, viewed as binary vectors
+ * will be linearly independent only about 29% of the time.
+ */
 template<typename UIntType, int sh1, int sh2, int sh3, unsigned word_bits = 0>
 class shr3_engine
 {
@@ -113,7 +128,7 @@ public:
     static const int shift3                 = sh3;
     static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
     static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu);
-    static const result_type _word_mask     = (word_bits == 0) ? static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) : (1u << _word_bits) - 1u;
+    static const result_type _word_mask     = (word_bits == 0) ? static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) : ((1u << _word_bits) - 1u);
 
     /** Constructors */
     shr3_engine(result_type s = default_seed)
@@ -132,10 +147,13 @@ public:
     /** Generation function */
     result_type operator()()
     {
-        x ^= (x << sh1);
-        x ^= (x << sh2);
-        x ^= (x << sh3);
-        x &= _word_mask;
+        x ^= signed_left_shift(x, sh1) & _word_mask;
+        x ^= signed_left_shift(x, sh2) & _word_mask;
+        x ^= signed_left_shift(x, sh3) & _word_mask;
+        return x;
+    }
+    result_type current() const
+    {
         return x;
     }
 
@@ -151,30 +169,57 @@ public:
 
     void discard(uintmax_t n)
     {
-        // TODO: implement this
+        typedef BitColumnMatrix<result_type> bcm;
+
+        bcm shr3_matrix_a = bcm::unity() + bcm::shift(sh1);
+        bcm shr3_matrix = shr3_matrix_a;
+        bcm shr3_matrix_b = bcm::unity() + bcm::shift(sh2);
+        shr3_matrix = shr3_matrix_b * shr3_matrix;
+        bcm shr3_matrix_c = bcm::unity() + bcm::shift(sh3);
+        shr3_matrix = shr3_matrix_c * shr3_matrix;
+
+        x = shr3_matrix.pow(n) * x;
     }
 
 private:
     result_type     x;
 };
 
+/* SHR3 from Marsaglia's 2003 post
+ *
+ * Reading between the lines, I believe the SHR3 defined in Marsaglia's 1999
+ * post actually has a typo: the shift values defined don't actually produce
+ * a period of 2^32-1, but have 64 possible cycles, some extremely short. But
+ * the swapped values from Marsaglia's 2003 post produce the full 2^32-1
+ * period. So we use that definition of SHR3.
+ *
+ * SHR3 is a 3-shift-register generator with period 2^32-1. It uses
+ *     y[n]=y[n-1](I+L^13)(I+R^17)(I+L^5)
+ * with the y's viewed as binary vectors, L the 32x32 binary matrix that
+ * shifts a vector left 1, and R its transpose.
+ *
+ * SHR3 seems to pass all except those related to the binary rank test, since
+ * 32 successive values, as binary vectors, must be linearly independent,
+ * while 32 successive truly random 32-bit integers, viewed as binary
+ * vectors, will be linearly independent only about 29% of the time.
+ */
 typedef shr3_engine<uint32_t, 13, -17, 5> shr3;
 
 
-template<typename UIntType, UIntType a, unsigned word_bits = 0>
+template<typename UIntType, UIntType a, unsigned _word_bits = 0>
 class mwc_engine
 {
 private:
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
-    StaticAssert< (word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
-    StaticAssert< ((word_bits % 2u) == 0) > _word_bits_must_be_multiple_2;
+    StaticAssert< (_word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
+    StaticAssert< ((_word_bits % 2u) == 0) > _word_bits_must_be_multiple_2;
 
 public:
     /** The type of the generated random value. */
     typedef UIntType result_type;
 
-    static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
-    static const unsigned _half_word_bits   = _word_bits / 2u;
+    static const unsigned word_bits        = (_word_bits == 0) ? std::numeric_limits<UIntType>::digits : _word_bits;
+    static const unsigned _half_word_bits   = word_bits / 2u;
     static const result_type multiplier     = a;
     static const result_type modulus        = (a * (1u << _half_word_bits)) - 1u;
     static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) % modulus;
@@ -201,7 +246,7 @@ public:
         x = multiplier * (x & _lower_mask) + (x >> _half_word_bits);
         return x;
     }
-    result_type current()
+    result_type current() const
     {
         return x;
     }
@@ -254,8 +299,7 @@ public:
         return current();
     }
 
-protected:
-    virtual result_type current()
+    virtual result_type current() const
     {
         result_type m_u = mwc_upper.current();
         result_type m_l = mwc_lower.current();
@@ -294,8 +338,7 @@ public:
         : mwc2()
     {}
 
-protected:
-    result_type current()
+    result_type current() const
     {
         result_type m_u = mwc_upper.current();
         result_type m_l = mwc_lower.current();

@@ -58,6 +58,9 @@
  * Includes
  ****************************************************************************/
 
+#include <simplerandom/tools.h>
+#include <ostream>
+
 
 /*****************************************************************************
  *
@@ -69,26 +72,28 @@ namespace simplerandom {
  * Types
  ****************************************************************************/
 
-template <typename UIntType, unsigned word_bits = 0>
+template <typename UIntType, unsigned _word_bits = 0>
 class BitColumnMatrix
 {
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
-    StaticAssert< (word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
+    StaticAssert< (_word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
 
 public:
     /** The type of the generated random value. */
     typedef UIntType result_type;
 
-    static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
+    static const unsigned word_bits        = (_word_bits == 0) ? (std::numeric_limits<UIntType>::digits) : (_word_bits);
 
     /* Constructors */
     BitColumnMatrix() { }
 
-    template<class InputIterator>
-    BitColumnMatrix(const InputIterator begin, const InputIterator end)
+    template<typename InputIterator>
+    BitColumnMatrix(InputIterator begin, InputIterator end)
     {
-        for (i = 0, const InputIterator p = begin;
-             p != end && i < _word_bits;
+        unsigned i;
+        InputIterator p;
+        for (i = 0, p = begin;
+             p != end && i < word_bits;
              ++i, ++p)
         {
             matrix[i] = static_cast<result_type>(*p);
@@ -97,32 +102,32 @@ public:
 
     static BitColumnMatrix unity()
     {
-        result_type     matrix[_word_bits];
-        size_t          i;
+        result_type     result_matrix[word_bits];
+        unsigned        i;
         uint32_t        value;
 
         value = 1u;
-        for (i = 0; i < _word_bits; i++)
+        for (i = 0; i < word_bits; i++)
         {
-            matrix[i] = value;
+            result_matrix[i] = value;
             value <<= 1u;
         }
-        return BitColumnMatrix(&matrix, &matrix[_word_bits]);
+        return BitColumnMatrix(&result_matrix[0], &result_matrix[word_bits]);
     }
 
     static BitColumnMatrix shift(int shift_value)
     {
-        result_type     matrix[_word_bits];
-        size_t          i;
+        result_type     result_matrix[word_bits];
+        unsigned        i;
         uint32_t        value;
 
         if (shift_value >= 0)
             value = 1u << shift_value;
         else
             value = 0;
-        for (i = 0; i < _word_bits; i++)
+        for (i = 0; i < word_bits; i++)
         {
-            matrix[i] = value;
+            result_matrix[i] = value;
             if (shift_value < 0)
             {
                 ++shift_value;
@@ -134,12 +139,109 @@ public:
                 value <<= 1u;
             }
         }
-        return BitColumnMatrix(&matrix, &matrix[_word_bits]);
+        return BitColumnMatrix(&result_matrix[0], &result_matrix[word_bits]);
+    }
+
+    result_type operator[](unsigned i) const
+    {
+        if (i < word_bits)
+            return matrix[i];
+        else
+            return 0;
+    }
+
+    /* Add matrices */
+    BitColumnMatrix operator+ (const BitColumnMatrix & bcm_b)
+    {
+        result_type         result_matrix[word_bits];
+        unsigned            i;
+
+        for (i = 0; i < word_bits; i++)
+        {
+            result_matrix[i] = matrix[i] ^ bcm_b[i];
+        }
+
+        return BitColumnMatrix(&result_matrix[0], &result_matrix[word_bits]);
+    }
+
+    /* Multiply matrix by integer */
+    result_type operator* (result_type right)
+    {
+        unsigned    i;
+        result_type result;
+
+        result = 0;
+        for (i = 0; i < word_bits; ++i)
+        {
+            if (right & 1u)
+                result ^= matrix[i];
+            right >>= 1u;
+        }
+        return result;
+    }
+
+    /* Multiply matrices */
+    BitColumnMatrix operator* (const BitColumnMatrix & bcm_b)
+    {
+        result_type         result_matrix[word_bits];
+        unsigned            i;
+
+        for (i = 0; i < word_bits; i++)
+        {
+            result_matrix[i] = (*this) * bcm_b[i];
+        }
+
+        return BitColumnMatrix(&result_matrix[0], &result_matrix[word_bits]);
+    }
+
+    /* Raise matrix to the power of 'n'.
+     * Algorithm is "exponentiation by squaring". Time complexity is O(log n).
+     */
+    BitColumnMatrix pow(uintmax_t n)
+    {
+        BitColumnMatrix     matrix_result;
+        BitColumnMatrix     matrix_exp;
+
+        matrix_result = BitColumnMatrix::unity();
+        matrix_exp = *this;
+
+        for (;;)
+        {
+            if (n & 1u)
+            {
+                matrix_result = matrix_result * matrix_exp;
+            }
+            n >>= 1;
+            if (n == 0)
+                break;
+            matrix_exp = matrix_exp * matrix_exp;
+        }
+        return matrix_result;
     }
 
 protected:
-    result_type     matrix[_word_bits];
+    result_type     matrix[word_bits];
 };
+
+template <typename charT, class traits, typename UIntType, unsigned _word_bits>
+std::basic_ostream<charT,traits>& operator<< (std::basic_ostream<charT,traits>& os,
+                                              const BitColumnMatrix<UIntType,_word_bits>& bcm)
+{
+    for (unsigned bit_mask = 1u;
+            bit_mask != 0 && bit_mask <= (1u << (bcm.word_bits - 1));
+            bit_mask <<= 1u)
+    {
+        for (unsigned j = 0; j < bcm.word_bits; ++j)
+        {
+            if (j > 0)
+                os << " ";
+            os << ((bcm[j] & bit_mask) ? "1" : "0");
+        }
+//        if (bit_mask > 1u)
+            os << std::endl;
+    }
+    return os;
+}
 
 
 } // namespace simplerandom
