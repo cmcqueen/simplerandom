@@ -17,13 +17,15 @@ int main()
     simplerandom::mwc1 rng(12345);
 #elif 0
     simplerandom::mwc2 rng(12345);
-#elif 1
+#elif 0
     simplerandom::shr3 rng(12345);
     std::cout << std::hex << rng._word_mask << std::dec << std::endl;
 #elif 0
     simplerandom::kiss rng(12345);
-#else
+#elif 0
     simplerandom::mwc64 rng(12345);
+#else
+    simplerandom::kiss2 rng(12345);
 #endif
 
 #if 1

@@ -478,7 +478,7 @@ public:
 class mwc64
 {
 protected:
-#if 0
+#if 1
     mwc_engine<uint64_t, 698769069u> _mwc;
 #else
     /* Just to demonstrate that mwc_engine is equivalent to cong_engine with
@@ -528,7 +528,7 @@ public:
     }
 };
 
-#endif
+#endif /* defined(UINT64_C) */
 
 
 /*****************************************************************************
@@ -604,6 +604,78 @@ public:
     }
 };
 
+
+#ifdef UINT64_C
+
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+class kiss2
+{
+protected:
+    mwc64                           _mwc;
+    cong                            _cong;
+    shr3                            _shr3;
+
+public:
+    /** The type of the generated random value. */
+    typedef uint32_t result_type;
+
+    /** Constructors */
+    kiss2(result_type s1, result_type s2, result_type s3, result_type s4)
+        : _mwc(s1, s2), _cong(s3), _shr3(s4)
+    {}
+    kiss2(result_type s1, result_type s2, result_type s3)
+        : _mwc(s1, s2), _cong(s3), _shr3(s3)
+    {}
+    kiss2(result_type s1, result_type s2)
+        : _mwc(s1, s2), _cong(s2), _shr3(s2)
+    {}
+    kiss2(result_type s)
+        : _mwc(s), _cong(s), _shr3(s)
+    {}
+    kiss2()
+        : _mwc(), _cong(), _shr3()
+    {}
+
+    /** Generation function */
+    result_type operator()()
+    {
+        _mwc();
+        _cong();
+        _shr3();
+        return current();
+    }
+
+    result_type current() const
+    {
+        result_type mwc64 = _mwc.current();
+        result_type m_cong = _cong.current();
+        result_type m_shr3 = _shr3.current();
+
+        return mwc64 + m_cong + m_shr3;
+    }
+
+    static result_type min()
+    {
+        return 0;
+    }
+
+    static result_type max()
+    {
+        return std::numeric_limits<result_type>::max();
+    }
+
+    void discard(uintmax_t n)
+    {
+        _mwc.discard(n);
+        _cong.discard(n);
+        _shr3.discard(n);
+    }
+};
+
+#endif /* defined(UINT64_C) */
 
 } // namespace simplerandom
 
