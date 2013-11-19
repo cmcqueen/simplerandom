@@ -169,6 +169,12 @@ public:
             return m - 1;
     }
 
+    /* Cong discard(n) = r^n * x mod m +
+     *                      c * (1 + r + r^2 + ... + r^(n-1)) mod m
+     * where r = 69069 and c = 12345.
+     *
+     * The part c * (1 + r + r^2 + ... + r^(n-1)) is a geometric series.
+     */
     void discard(uintmax_t n)
     {
         result_type     mult_exp;
@@ -203,19 +209,16 @@ typedef cong_engine<uint32_t, 69069u, 12345u> cong;
 /* SHR3 engine, aka XorShift, from Marsaglia
  *
  * The three shift values have to be carefully chosen so that the resulting
- * sequence has a period of 2^32-1, and has decent statistical properties.
+ * sequence has a maximal period, and has decent statistical properties. See
+ * Marsaglia's paper on XorShift generators for details. However, note that
+ * L'Ecuyer analysed Marsaglia's 3-shift XorShift generators, and found they
+ * do not have good statistical properties.
  *
- * SHR3 is a 3-shift-register generator with period 2^32-1. It uses
+ * SHR3 is a 3-shift-register generator with period 2^word_bits-1. It uses
  *     y[n]=y[n-1](I+L^a)(I+L^b)(I+L^c)
- * with the y's viewed as binary vectors, L the 32x32 binary matrix that
- * shifts a vector left 1, and R its transpose. a, b and c are shift values,
- * and may be negative meaning right-shift i.e. L^a == R^(-a).
- *
- * Assuming a, b and c are well chosen, SHR3 should pass all Marsaglia's
- * Diehard tests except those related to the binary rank test, since
- * 32 successive values, as binary vectors, must be linearly independent,
- * while 32 successive truly random 32-bit integers, viewed as binary vectors
- * will be linearly independent only about 29% of the time.
+ * with the y's viewed as binary vectors, L the word_bitsxword_bits binary
+ * matrix that shifts a vector left 1, and R its transpose. a, b and c are
+ * shift values, and may be negative meaning right-shift i.e. L^a == R^(-a).
  */
 template<typename UIntType, int sh1, int sh2, int sh3, unsigned _word_bits = 0>
 class shr3_engine
@@ -292,21 +295,22 @@ private:
 
 /* SHR3 from Marsaglia's 2003 post
  *
- * Reading between the lines, I believe the SHR3 defined in Marsaglia's 1999
- * post actually has a typo: the shift values defined don't actually produce
- * a period of 2^32-1, but have 64 possible cycles, some extremely short. But
- * the swapped values from Marsaglia's 2003 post produce the full 2^32-1
- * period. So we use that definition of SHR3.
+ * Marsaglia specified SHR3 in his 1999 newsgroup post. But it seems that the
+ * SHR3 defined in Marsaglia's 1999 post actually has a typo: the shift values
+ * defined don't actually produce a period of 2^32-1, but have 64 possible
+ * cycles, some extremely short. But the swapped values from Marsaglia's 2003
+ * post produce the full 2^32-1 period. So we use that definition of SHR3.
  *
  * SHR3 is a 3-shift-register generator with period 2^32-1. It uses
  *     y[n]=y[n-1](I+L^13)(I+R^17)(I+L^5)
  * with the y's viewed as binary vectors, L the 32x32 binary matrix that
  * shifts a vector left 1, and R its transpose.
  *
- * SHR3 seems to pass all except those related to the binary rank test, since
- * 32 successive values, as binary vectors, must be linearly independent,
- * while 32 successive truly random 32-bit integers, viewed as binary
- * vectors, will be linearly independent only about 29% of the time.
+ * SHR3 seems to pass all Marsaglia's Diehard tests except those related to
+ * the binary rank test, since 32 successive values, as binary vectors, must
+ * be linearly independent, while 32 successive truly random 32-bit integers,
+ * viewed as binary vectors, will be linearly independent only about 29% of
+ * the time.
  */
 typedef shr3_engine<uint32_t, 13, -17, 5> shr3;
 

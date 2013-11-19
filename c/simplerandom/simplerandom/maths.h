@@ -136,6 +136,9 @@ inline UIntType pow_mod(UIntType base, uintmax_t n, UIntType mod)
  *     1 + r + r^2 + r^3 + ... r^(n-1)
  * summed to n terms, modulo (max + 1) of UIntType.
  *
+ * For calculating geometric series mod m, see:
+ * http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
+ *
  * This implementation fits all calculations within the UIntType.
  *
  * It makes use of the fact that the series can pair up terms:
@@ -177,18 +180,6 @@ inline UIntType geom_series(UIntType r, uintmax_t n)
 /* Calculate geometric series:
  *     1 + r + r^2 + r^3 + ... r^(n-1)
  * summed to n terms, modulo mod.
- *
- * This implementation fits all calculations within the UIntType.
- *
- * It makes use of the fact that the series can pair up terms:
- *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
- *     (1 + r) (1 + r^2 + r^4 + ... + (r^2)^(n/2-1)) + [ r^(n-1) if n is odd ]
- *
- * Which can easily be calculated by recursion, with time order O(log n), and
- * also stack depth O(log n). However that stack depth isn't good, so a
- * non-recursive implementation is preferable.
- * This implementation is by a loop, not recursion, with time order
- * O(log n) and stack depth O(1).
  */
 template <typename UIntType>
 inline UIntType geom_series(UIntType r, uintmax_t n, UIntType mod)
