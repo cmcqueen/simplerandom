@@ -1,5 +1,4 @@
 
-#define __STDC_CONSTANT_MACROS
 #include "simplerandom-c.h"
 
 #include <time.h>

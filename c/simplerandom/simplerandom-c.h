@@ -96,6 +96,7 @@
 
 #ifdef __cplusplus
 #define __STDC_CONSTANT_MACROS
+#define __STDC_LIMIT_MACROS
 #endif
 
 #include <stdint.h>

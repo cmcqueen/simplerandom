@@ -1,4 +1,6 @@
 
+#define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
 #include "simplerandom.h"
 #include "simplerandom/bitcolumnmatrix.h"
 
@@ -15,10 +17,13 @@ int main()
     simplerandom::mwc1 rng(12345);
 #elif 0
     simplerandom::mwc2 rng(12345);
-#elif 0
+#elif 1
     simplerandom::shr3 rng(12345);
-#else
+    std::cout << std::hex << rng._word_mask << std::dec << std::endl;
+#elif 0
     simplerandom::kiss rng(12345);
+#else
+    simplerandom::mwc64 rng(12345);
 #endif
 
 #if 1

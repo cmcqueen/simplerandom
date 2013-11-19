@@ -16,6 +16,7 @@
 #error This header simplerandom-cpp.h is only suitable for C++ not C
 #else
 
+#define __STDC_CONSTANT_MACROS
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
@@ -76,7 +77,7 @@ inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
  * straight-forward.
  */
 template <>
-inline UIntType mul_mod<uint32_t>(uint32_t a, uint32_t b, uint32_t mod)
+inline uint32_t mul_mod<uint32_t>(uint32_t a, uint32_t b, uint32_t mod)
 {
     uint64_t    temp;
 

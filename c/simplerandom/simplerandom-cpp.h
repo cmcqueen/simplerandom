@@ -81,6 +81,7 @@
 
 #include <limits>
 
+#define __STDC_CONSTANT_MACROS
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
@@ -114,7 +115,7 @@ public:
     static const result_type increment      = c;
     static const result_type modulus        = m;
     static const result_type default_seed   = (c != 0) ? 0 :
-                                                ((m == 0) ? (~(UIntType)0) : ((~(UIntType)0) % m));
+                                                ((m == 0) ? (~(result_type)0) : ((~(result_type)0) % m));
 
     /** Constructors */
     cong_engine(result_type s = default_seed)
@@ -163,7 +164,7 @@ public:
     static result_type max()
     {
         if (m == 0)
-            return std::numeric_limits<UIntType>::max();
+            return std::numeric_limits<result_type>::max();
         else
             return m - 1;
     }
@@ -216,11 +217,11 @@ typedef cong_engine<uint32_t, 69069u, 12345u> cong;
  * while 32 successive truly random 32-bit integers, viewed as binary vectors
  * will be linearly independent only about 29% of the time.
  */
-template<typename UIntType, int sh1, int sh2, int sh3, unsigned word_bits = 0>
+template<typename UIntType, int sh1, int sh2, int sh3, unsigned _word_bits = 0>
 class shr3_engine
 {
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
-    StaticAssert< (word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
+    StaticAssert< (_word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
 
 public:
     /** The type of the generated random value. */
@@ -229,8 +230,9 @@ public:
     static const int shift1                 = sh1;
     static const int shift2                 = sh2;
     static const int shift3                 = sh3;
-    static const unsigned _word_bits        = (word_bits == 0) ? std::numeric_limits<UIntType>::digits : word_bits;
-    static const result_type _word_mask     = (word_bits == 0) ? static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) : ((1u << _word_bits) - 1u);
+    static const unsigned _type_bits        = std::numeric_limits<result_type>::digits;
+    static const unsigned word_bits         = (_word_bits == 0) ? _type_bits : _word_bits;
+    static const result_type _word_mask     = (word_bits >= _type_bits) ? (~(result_type)0) : (((result_type)1u << word_bits) - 1u);
     static const result_type default_seed   = _word_mask;
 
     /** Constructors */
@@ -335,11 +337,11 @@ public:
     /** The type of the generated random value. */
     typedef UIntType result_type;
 
-    static const unsigned word_bits        = (_word_bits == 0) ? std::numeric_limits<UIntType>::digits : _word_bits;
+    static const unsigned word_bits         = (_word_bits == 0) ? std::numeric_limits<result_type>::digits : _word_bits;
     static const unsigned _half_word_bits   = word_bits / 2u;
     static const result_type multiplier     = a;
-    static const result_type modulus        = (a * (1u << _half_word_bits)) - 1u;
-    static const result_type default_seed   = static_cast<result_type>(0xFFFFFFFFFFFFFFFFu) % modulus;
+    static const result_type modulus        = (a * ((result_type)1u << _half_word_bits)) - 1u;
+    static const result_type default_seed   = (~(result_type)0) % modulus;
     static const result_type _lower_mask    = (1u << _half_word_bits) - 1u;
 
     /** Constructors */
@@ -438,7 +440,7 @@ public:
 
     static result_type max()
     {
-        return std::numeric_limits<uint32_t>::max();
+        return std::numeric_limits<result_type>::max();
     }
 
     void discard(uintmax_t n)
@@ -470,6 +472,63 @@ public:
         return (m_u << 16u) + m_l;
     }
 };
+
+#ifdef UINT64_C
+
+class mwc64
+{
+protected:
+#if 0
+    mwc_engine<uint64_t, 698769069u> _mwc;
+#else
+    /* Just to demonstrate that mwc_engine is equivalent to cong_engine with
+     * certain parameters. */
+    cong_engine<uint64_t, 698769069u, 0, 698769069u * ((uint64_t)1u << 32u) - 1> _mwc;
+#endif
+
+public:
+    /** The type of the generated random value. */
+    typedef uint32_t result_type;
+
+    /** Constructors */
+    mwc64(result_type seed_upper, result_type seed_lower)
+        : _mwc(((uint64_t)seed_upper << 32u) | seed_lower)
+    {}
+    mwc64(result_type s)
+        : _mwc(((uint64_t)s << 32u) | s)
+    {}
+    mwc64()
+        : _mwc()
+    {}
+
+    /** Generation function */
+    result_type operator()()
+    {
+        return (uint32_t)_mwc();
+    }
+
+    result_type current() const
+    {
+        return (uint32_t)_mwc.current();
+    }
+
+    static result_type min()
+    {
+        return 0;
+    }
+
+    static result_type max()
+    {
+        return std::numeric_limits<result_type>::max();
+    }
+
+    void discard(uintmax_t n)
+    {
+        _mwc.discard(n);
+    }
+};
+
+#endif
 
 
 /*****************************************************************************
@@ -533,7 +592,7 @@ public:
 
     static result_type max()
     {
-        return std::numeric_limits<uint32_t>::max();
+        return std::numeric_limits<result_type>::max();
     }
 
     void discard(uintmax_t n)
