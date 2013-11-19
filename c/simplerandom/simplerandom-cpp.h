@@ -472,6 +472,80 @@ public:
 };
 
 
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+class kiss
+{
+protected:
+    mwc_engine<uint32_t, 36969u>    _mwc_upper;
+    mwc_engine<uint32_t, 18000u>    _mwc_lower;
+    cong                            _cong;
+    shr3                            _shr3;
+
+public:
+    /** The type of the generated random value. */
+    typedef uint32_t result_type;
+
+    /** Constructors */
+    kiss(result_type s1, result_type s2, result_type s3, result_type s4)
+        : _mwc_upper(s1), _mwc_lower(s2), _cong(s3), _shr3(s4)
+    {}
+    kiss(result_type s1, result_type s2, result_type s3)
+        : _mwc_upper(s1), _mwc_lower(s2), _cong(s3), _shr3(s3)
+    {}
+    kiss(result_type s1, result_type s2)
+        : _mwc_upper(s1), _mwc_lower(s2), _cong(s2), _shr3(s2)
+    {}
+    kiss(result_type s)
+        : _mwc_upper(s), _mwc_lower(s), _cong(s), _shr3(s)
+    {}
+    kiss()
+        : _mwc_upper(), _mwc_lower(), _cong(), _shr3()
+    {}
+
+    /** Generation function */
+    result_type operator()()
+    {
+        _mwc_upper();
+        _mwc_lower();
+        _cong();
+        _shr3();
+        return current();
+    }
+
+    result_type current() const
+    {
+        result_type m_upper = _mwc_upper.current();
+        result_type m_lower = _mwc_lower.current();
+        result_type mwc2 = (m_upper << 16u) + (m_upper >> 16u) + m_lower;
+        result_type m_cong = _cong.current();
+        result_type m_shr3 = _shr3.current();
+
+        return ((mwc2 ^ m_cong) + m_shr3);
+    }
+
+    static result_type min()
+    {
+        return 0;
+    }
+
+    static result_type max()
+    {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    void discard(uintmax_t n)
+    {
+        _mwc_upper.discard(n);
+        _mwc_lower.discard(n);
+        _cong.discard(n);
+        _shr3.discard(n);
+    }
+};
+
+
 } // namespace simplerandom
 
 

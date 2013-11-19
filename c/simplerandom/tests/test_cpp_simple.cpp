@@ -9,7 +9,7 @@
 
 int main()
 {
-#if 1
+#if 0
     simplerandom::cong rng(12345);
 #elif 0
     simplerandom::mwc1 rng(12345);
@@ -18,6 +18,7 @@ int main()
 #elif 0
     simplerandom::shr3 rng(12345);
 #else
+    simplerandom::kiss rng(12345);
 #endif
 
 #if 1
