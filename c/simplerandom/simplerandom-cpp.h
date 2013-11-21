@@ -681,6 +681,100 @@ public:
 
 #endif /* defined(UINT64_C) */
 
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+/*
+ * Tables of Maximally-Equidistributed Combined LFSR Generators
+ * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.3639
+ * Pierre L'Ecuyer
+ * Mathematics of Computation, 68, 225 (1999), 261–269.
+ *
+ * Maximally Equidistributed Combined Tausworthe Generators
+ * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.4155
+ * P. L'Ecuyer
+ * Mathematics of Computation, 65, 213 (1996), 203–213.
+ *
+ * LFSR113 C double implementation
+ * http://www.iro.umontreal.ca/~simardr/rng/lfsr113.c
+ * Pierre L'Ecuyer
+ */
+template<typename UIntType, int k, int q, int s, unsigned _word_bits = 0>
+class tausworthe_engine
+{
+    StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
+    StaticAssert< (_word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
+
+public:
+    /** The type of the generated random value. */
+    typedef UIntType result_type;
+
+    static const int exponent1              = k;
+    static const int exponent2              = q;
+    static const int step_size              = s;
+    static const unsigned _type_bits        = std::numeric_limits<UIntType>::digits;
+    static const unsigned word_bits         = (_word_bits == 0) ? _type_bits : _word_bits;
+    static const UIntType _word_mask        = (word_bits >= _type_bits) ? (~(UIntType)0) : (((UIntType)1u << word_bits) - 1u);
+    static const UIntType min_seed          = (UIntType(1) << (word_bits - k));
+    static const UIntType default_seed      = min_seed;
+
+    /** Constructors */
+    tausworthe_engine(UIntType s = default_seed)
+    { seed(s); }
+
+    /** Seed functions */
+    void seed(UIntType s = default_seed)
+    {
+        if (s < min_seed)
+        {
+            s = default_seed;
+        }
+        x = s;
+    }
+
+    /** Generation function */
+    result_type operator()()
+    {
+        x ^= signed_left_shift(x, sh1) & _word_mask;
+        x ^= signed_left_shift(x, sh2) & _word_mask;
+        x ^= signed_left_shift(x, sh3) & _word_mask;
+        return x;
+    }
+    result_type current() const
+    {
+        return x;
+    }
+
+    static result_type min()
+    {
+        return 1u;
+    }
+
+    static result_type max()
+    {
+        return _word_mask;
+    }
+
+    void discard(uintmax_t n)
+    {
+        typedef BitColumnMatrix<UIntType> bcm;
+
+        bcm shr3_matrix_a = bcm::unity() + bcm::shift(sh1);
+        bcm shr3_matrix = shr3_matrix_a;
+        bcm shr3_matrix_b = bcm::unity() + bcm::shift(sh2);
+        shr3_matrix = shr3_matrix_b * shr3_matrix;
+        bcm shr3_matrix_c = bcm::unity() + bcm::shift(sh3);
+        shr3_matrix = shr3_matrix_c * shr3_matrix;
+
+        x = shr3_matrix.pow(n) * x;
+    }
+
+private:
+    UIntType        x;
+};
+
+
 } // namespace simplerandom
 
 
