@@ -14,6 +14,9 @@ library_include_simplerandom_HEADERS = simplerandom.h simplerandom-c.h simpleran
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = simplerandom.c simplerandom-discard.c bitcolumnmatrix.c bitcolumnmatrix.h maths.c maths.h
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_LDFLAGS = -version-info @LIB_SO_VERSION@
 
+library_include_simplerandom_simplerandomdir=$(includedir)/@PACKAGE_NAME@-@PACKAGE_VERSION@/simplerandom
+library_include_simplerandom_simplerandom_HEADERS = simplerandom/bitcolumnmatrix.h simplerandom/maths.h simplerandom/tools.h
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = @PACKAGE_NAME@.pc
 
