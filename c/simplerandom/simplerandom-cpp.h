@@ -705,6 +705,7 @@ class tausworthe_engine
 {
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
     StaticAssert< (_word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
+    StaticAssert< (k >= s) > _k_and_s_params;
 
 public:
     /** The type of the generated random value. */
@@ -718,6 +719,7 @@ public:
     static const UIntType _word_mask        = (word_bits >= _type_bits) ? (~(UIntType)0) : (((UIntType)1u << word_bits) - 1u);
     static const UIntType min_seed          = (UIntType(1) << (word_bits - k));
     static const UIntType default_seed      = min_seed;
+    static const UIntType gen_mask          = _word_mask ^ (min_seed - 1u);
 
     /** Constructors */
     tausworthe_engine(UIntType s = default_seed)
@@ -736,9 +738,10 @@ public:
     /** Generation function */
     result_type operator()()
     {
-        x ^= signed_left_shift(x, sh1) & _word_mask;
-        x ^= signed_left_shift(x, sh2) & _word_mask;
-        x ^= signed_left_shift(x, sh3) & _word_mask;
+        UIntType    b;
+
+        b  = (((x << q) ^ x) & _word_mask) >> (k - s);
+        x = ((x & gen_mask) << s) ^ b;
         return x;
     }
     result_type current() const
@@ -748,7 +751,7 @@ public:
 
     static result_type min()
     {
-        return 1u;
+        return min_seed;
     }
 
     static result_type max()
