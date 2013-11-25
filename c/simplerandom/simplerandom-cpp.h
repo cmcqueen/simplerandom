@@ -701,8 +701,9 @@ public:
  * Pierre L'Ecuyer
  */
 template<typename UIntType, int k, int q, int s, unsigned _word_bits = 0>
-class tausworthe_engine
+class lfsr_engine
 {
+protected:
     StaticAssert< (std::numeric_limits<UIntType>::is_signed == 0) > _type_must_be_unsigned;
     StaticAssert< (_word_bits <= std::numeric_limits<UIntType>::digits) > _word_bits_must_fit_in_uinttype;
     StaticAssert< (k >= s) > _k_and_s_params;
@@ -717,22 +718,33 @@ public:
     static const unsigned _type_bits        = std::numeric_limits<UIntType>::digits;
     static const unsigned word_bits         = (_word_bits == 0) ? _type_bits : _word_bits;
     static const UIntType _word_mask        = (word_bits >= _type_bits) ? (~(UIntType)0) : (((UIntType)1u << word_bits) - 1u);
-    static const UIntType min_seed          = (UIntType(1) << (word_bits - k));
+    static const UIntType min_seed          = (k <= word_bits) ? (UIntType(1) << (word_bits - k)) : 1;
     static const UIntType default_seed      = min_seed;
     static const UIntType gen_mask          = _word_mask ^ (min_seed - 1u);
 
+protected:
+    StaticAssert< (k <= word_bits) > _k_and_word_bits_params;
+
+    typedef BitColumnMatrix<UIntType, word_bits> bcm;
+
+public:
     /** Constructors */
-    tausworthe_engine(UIntType s = default_seed)
-    { seed(s); }
+    lfsr_engine(UIntType s1 = default_seed)
+    { seed(s1); }
 
     /** Seed functions */
-    void seed(UIntType s = default_seed)
+    void seed(UIntType s1 = default_seed)
     {
-        if (s < min_seed)
+        UIntType working_seed = s1 ^ (s1 << (word_bits / 2)) & _word_mask;
+        if (working_seed < min_seed)
         {
-            s = default_seed;
+            working_seed = (s1 << (word_bits / 2 + word_bits / 4)) & _word_mask;
+            if (working_seed < min_seed)
+            {
+                working_seed ^= _word_mask;
+            }
         }
-        x = s;
+        x = working_seed;
     }
 
     /** Generation function */
@@ -761,20 +773,156 @@ public:
 
     void discard(uintmax_t n)
     {
-        typedef BitColumnMatrix<UIntType> bcm;
-
-        bcm shr3_matrix_a = bcm::unity() + bcm::shift(sh1);
+        bcm shr3_matrix_a = bcm::unity() + bcm::shift(q);
         bcm shr3_matrix = shr3_matrix_a;
-        bcm shr3_matrix_b = bcm::unity() + bcm::shift(sh2);
+        bcm shr3_matrix_b = bcm::shift(s - k);
         shr3_matrix = shr3_matrix_b * shr3_matrix;
-        bcm shr3_matrix_c = bcm::unity() + bcm::shift(sh3);
-        shr3_matrix = shr3_matrix_c * shr3_matrix;
+        bcm shr3_matrix_c = bcm::mask(word_bits - k, word_bits);
+        bcm shr3_matrix_d = bcm::shift(s);
+        shr3_matrix = (shr3_matrix_d * shr3_matrix_c) + shr3_matrix;
 
         x = shr3_matrix.pow(n) * x;
     }
 
 private:
     UIntType        x;
+};
+
+class lfsr113
+{
+protected:
+#if 1
+    lfsr_engine<uint32_t, 31, 6, 18> z1;
+    lfsr_engine<uint32_t, 29, 2, 2> z2;
+    lfsr_engine<uint32_t, 28, 13, 7> z3;
+    lfsr_engine<uint32_t, 25, 3, 13> z4;
+#else
+    // Check implementation using uint64_t
+    lfsr_engine<uint64_t, 31, 6, 18, 32> z1;
+    lfsr_engine<uint64_t, 29, 2, 2, 32> z2;
+    lfsr_engine<uint64_t, 28, 13, 7, 32> z3;
+    lfsr_engine<uint64_t, 25, 3, 13, 32> z4;
+#endif
+
+public:
+    /** The type of the generated random value. */
+    typedef uint32_t result_type;
+
+    /** Constructors */
+    lfsr113(result_type seed1, result_type seed2, result_type seed3, result_type seed4)
+        : z1(seed1), z2(seed2), z3(seed3), z4(seed4)
+    {}
+    lfsr113(result_type seed1, result_type seed2, result_type seed3)
+        : z1(seed1), z2(seed2), z3(seed3), z4(seed3)
+    {}
+    lfsr113(result_type seed1, result_type seed2)
+        : z1(seed1), z2(seed2), z3(seed2), z4(seed2)
+    {}
+    lfsr113(result_type seed1)
+        : z1(seed1), z2(seed1), z3(seed1), z4(seed1)
+    {}
+    lfsr113()
+        : z1(), z2(), z3(), z4()
+    {}
+
+    /** Generation function */
+    result_type operator()()
+    {
+        z1();
+        z2();
+        z3();
+        z4();
+        return current();
+    }
+
+    virtual result_type current() const
+    {
+        result_type r1 = z1.current();
+        result_type r2 = z2.current();
+        result_type r3 = z3.current();
+        result_type r4 = z4.current();
+
+        return r1 ^ r2 ^ r3 ^ r4;
+    }
+
+    static result_type min()
+    {
+        return 0;
+    }
+
+    static result_type max()
+    {
+        return std::numeric_limits<result_type>::max();
+    }
+
+    void discard(uintmax_t n)
+    {
+        z1.discard(n);
+        z2.discard(n);
+        z3.discard(n);
+        z4.discard(n);
+    }
+};
+
+class lfsr88
+{
+protected:
+    lfsr_engine<uint32_t, 31, 13, 12> z1;
+    lfsr_engine<uint32_t, 29, 2, 4> z2;
+    lfsr_engine<uint32_t, 28, 3, 17> z3;
+
+public:
+    /** The type of the generated random value. */
+    typedef uint32_t result_type;
+
+    /** Constructors */
+    lfsr88(result_type seed1, result_type seed2, result_type seed3)
+        : z1(seed1), z2(seed2), z3(seed3)
+    {}
+    lfsr88(result_type seed1, result_type seed2)
+        : z1(seed1), z2(seed2), z3(seed2)
+    {}
+    lfsr88(result_type seed1)
+        : z1(seed1), z2(seed1), z3(seed1)
+    {}
+    lfsr88()
+        : z1(), z2(), z3()
+    {}
+
+    /** Generation function */
+    result_type operator()()
+    {
+        z1();
+        z2();
+        z3();
+        return current();
+    }
+
+    virtual result_type current() const
+    {
+        result_type r1 = z1.current();
+        result_type r2 = z2.current();
+        result_type r3 = z3.current();
+
+        return r1 ^ r2 ^ r3;
+    }
+
+    static result_type min()
+    {
+        return 0;
+    }
+
+    static result_type max()
+    {
+        return std::numeric_limits<result_type>::max();
+    }
+
+    void discard(uintmax_t n)
+    {
+        z1.discard(n);
+        z2.discard(n);
+        z3.discard(n);
+    }
 };
 
 

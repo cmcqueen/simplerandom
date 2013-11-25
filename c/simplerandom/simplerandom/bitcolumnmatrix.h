@@ -142,12 +142,31 @@ public:
         return BitColumnMatrix(&result_matrix[0], &result_matrix[word_bits]);
     }
 
-    result_type operator[](unsigned i) const
+    static BitColumnMatrix mask(unsigned start, unsigned end)
     {
-        if (i < word_bits)
-            return matrix[i];
-        else
-            return 0;
+        result_type     result_matrix[word_bits];
+        unsigned        i;
+        uint32_t        value;
+
+        value = 1u;
+        for (i = 0; i < word_bits; i++)
+        {
+            if (start <= end)
+                result_matrix[i] = (start <= i && i < end) ? value : 0;
+            else
+                result_matrix[i] = (start <= i || i < end) ? value : 0;
+            value <<= 1u;
+        }
+        return BitColumnMatrix(&result_matrix[0], &result_matrix[word_bits]);
+    }
+
+    result_type & operator[](unsigned i)
+    {
+        return matrix[i];
+    }
+    const result_type & operator[](unsigned i) const
+    {
+        return matrix[i];
     }
 
     /* Add matrices */

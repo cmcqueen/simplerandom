@@ -24,8 +24,12 @@ int main()
     simplerandom::kiss rng(12345);
 #elif 0
     simplerandom::mwc64 rng(12345);
-#else
+#elif 0
     simplerandom::kiss2 rng(12345);
+#elif 0
+    simplerandom::lfsr88 rng(12345);
+#else
+    simplerandom::lfsr113 rng(12345);
 #endif
 
 #if 1
