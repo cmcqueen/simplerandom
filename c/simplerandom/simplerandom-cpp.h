@@ -158,7 +158,7 @@ public:
         /* If c is zero, then min is 1.
          * If c is non-zero, then min is 0.
          */
-        return (c == 0);
+        return (c == 0) ? 1 : 0;
     }
 
     static result_type max()
