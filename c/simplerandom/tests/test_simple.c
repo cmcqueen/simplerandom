@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "simplerandom.h"
+#include "bitcolumnmatrix.h"
 
 static int test_multi(void)
 {
@@ -101,9 +102,51 @@ static int test_multi(void)
     return 0;
 }
 
+static void print_matrix(const char * p_title, const BitColumnMatrix32_t * p_matrix)
+{
+    size_t      i;
+
+    printf("%s\n", p_title);
+    for (i = 0; i < 32u; ++i)
+    {
+        if (i && !(i % 8))
+            printf("\n");
+        if (!(i % 8))
+            printf("    ");
+        printf("%08"PRIX32" ", p_matrix->matrix[i]);
+    }
+    printf("\n");
+}
+
+static void calc_shr3_matrix(void)
+{
+    BitColumnMatrix32_t     unity, shr3_temp, shr3_a, shr3_b, shr3_c, shr3_matrix;
+
+    bitcolumnmatrix32_unity(&shr3_a);
+    bitcolumnmatrix32_shift(&shr3_temp, 13);
+    bitcolumnmatrix32_iadd(&shr3_a, &shr3_temp);
+
+    bitcolumnmatrix32_unity(&shr3_b);
+    bitcolumnmatrix32_shift(&shr3_temp, -17);
+    bitcolumnmatrix32_iadd(&shr3_b, &shr3_temp);
+
+    bitcolumnmatrix32_unity(&shr3_c);
+    bitcolumnmatrix32_shift(&shr3_temp, 5);
+    bitcolumnmatrix32_iadd(&shr3_c, &shr3_temp);
+
+    bitcolumnmatrix32_unity(&shr3_matrix);
+    bitcolumnmatrix32_imul(&shr3_matrix, &shr3_c);
+    bitcolumnmatrix32_imul(&shr3_matrix, &shr3_b);
+    bitcolumnmatrix32_imul(&shr3_matrix, &shr3_a);
+
+    print_matrix("SHR3 BitColumnMatrix32_t matrix", &shr3_matrix);
+}
+
 int main(void)
 {
     int ret_val;
+
+    calc_shr3_matrix();
 
     ret_val = test_multi();
     if (ret_val != 0)

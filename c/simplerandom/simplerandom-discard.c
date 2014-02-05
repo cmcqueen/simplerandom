@@ -31,6 +31,37 @@
  * Look-up tables
  ****************************************************************************/
 
+/* SHR3 'next' operation is defined by:
+ *     shr3 ^= (shr3 << 13);
+ *     shr3 ^= (shr3 >> 17);
+ *     shr3 ^= (shr3 << 5);
+ *
+ * The Galois matrix equivalent is:
+ *     shr3_a = unity + shift(13)
+ *     shr3_b = unity + shift(-17)
+ *     shr3_c = unity + shift(5)
+ *     shr3_matrix = shr3_c * shr3_b * shr3_a
+ *
+ * The BitColumnMatrix32_t equivalent 'shr3_matrix' is:
+ *     BitColumnMatrix32_t unity, shr3_temp, shr3_a, shr3_b, shr3_c, shr3_matrix;
+ *
+ *     bitcolumnmatrix32_unity(&shr3_a);
+ *     bitcolumnmatrix32_shift(&shr3_temp, 13);
+ *     bitcolumnmatrix32_iadd(&shr3_a, &shr3_temp);
+ *
+ *     bitcolumnmatrix32_unity(&shr3_b);
+ *     bitcolumnmatrix32_shift(&shr3_temp, -17);
+ *     bitcolumnmatrix32_iadd(&shr3_b, &shr3_temp);
+ *
+ *     bitcolumnmatrix32_unity(&shr3_c);
+ *     bitcolumnmatrix32_shift(&shr3_temp, 5);
+ *     bitcolumnmatrix32_iadd(&shr3_c, &shr3_temp);
+ *
+ *     bitcolumnmatrix32_unity(&shr3_matrix);
+ *     bitcolumnmatrix32_imul(&shr3_matrix, &shr3_c);
+ *     bitcolumnmatrix32_imul(&shr3_matrix, &shr3_b);
+ *     bitcolumnmatrix32_imul(&shr3_matrix, &shr3_a);
+ */
 static const BitColumnMatrix32_t shr3_matrix =
 {
     {

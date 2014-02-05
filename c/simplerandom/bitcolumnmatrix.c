@@ -46,6 +46,24 @@
  *
  * This representation allows for fast calculations of add, subtract, multiply
  * and power functions for a Galois-2 32-by-32 matrix.
+ *
+ * Bit manipulations (and, or, xor, shift) can thus be represented as matrix
+ * operations. A sequence of bit manipulations can be represented by a
+ * sequence of matrix calculations.
+ *
+ *     Bit operation        Matrix operation                Code
+ *
+ *     a ^= b               a += b                          bitcolumnmatrix32_iadd(a, b);
+ *
+ *     a &= 0x0000FF00      a = mask_matrix(8, 16) * a      bitcolumnmatrix32_mask(mask, 8, 16);
+ *                                                          bitcolumnmatrix32_imul(a, mask);
+ *
+ *     a <<= 5              a = shift_matrix(5) * a         bitcolumnmatrix32_shift(shift, 5);
+ *                                                          bitcolumnmatrix32_imul(a, shift);
+ *
+ *     Do ops n times       where matrix f represents ops--
+ *                          f * f * f * ... n times
+ *                          i.e. pow(f, n)                  bitcolumnmatrix32_pow(result, f, n);
  */
 
 /*****************************************************************************
@@ -111,6 +129,25 @@ void bitcolumnmatrix32_shift(BitColumnMatrix32_t * p_matrix, int_fast8_t shift_v
             {
                 value <<= 1u;
             }
+        }
+    }
+}
+
+void bitcolumnmatrix32_mask(BitColumnMatrix32_t * p_matrix, uint_fast8_t start, uint_fast8_t end)
+{
+    size_t      i;
+    uint32_t    value;
+
+    if (p_matrix != NULL)
+    {
+        value = 1u;
+        for (i = 0; i < 32u; i++)
+        {
+            if (start <= end)
+                p_matrix->matrix[i] = (start <= i && i < end) ? value : 0;
+            else
+                p_matrix->matrix[i] = (start <= i || i < end) ? value : 0;
+            value <<= 1u;
         }
     }
 }
