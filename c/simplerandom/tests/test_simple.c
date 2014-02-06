@@ -142,11 +142,28 @@ static void calc_shr3_matrix(void)
     print_matrix("SHR3 BitColumnMatrix32_t matrix", &shr3_matrix);
 }
 
+static void test_mask_matrix(void)
+{
+    BitColumnMatrix32_t mask_matrix;
+    uint32_t            a;
+
+    bitcolumnmatrix32_mask(&mask_matrix, 16, 8);
+    a = bitcolumnmatrix32_mul_uint32(&mask_matrix, 0xAAAAAAAA);
+
+    printf("mask matrix result %08"PRIX32"\n", a);
+}
+
 int main(void)
 {
     int ret_val;
 
+#if 0
     calc_shr3_matrix();
+#endif
+
+#if 0
+    test_mask_matrix();
+#endif
 
     ret_val = test_multi();
     if (ret_val != 0)

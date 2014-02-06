@@ -133,6 +133,31 @@ void bitcolumnmatrix32_shift(BitColumnMatrix32_t * p_matrix, int_fast8_t shift_v
     }
 }
 
+/* Create a mask matrix -- which if multiplied into a vector, would be
+ * equivalent to a mask of a range of bits.
+ * 'start' and 'end' are bit numbers in the range 0..32.
+ * 'start' value is inclusive, so indicates bits >= start.
+ * 'end' value is exclusive, so indicates bits < end.
+ * If start <= end:
+ *     Bits in the range [start, end) are preserved; other bits are cleared to
+ *     zero.
+ * If start > end:
+ *     Bits < end are preserved. Bits >= start are preserved. Bits in the range
+ *     [end, start) are cleared to zero.
+ * Examples:
+ *     BitColumnMatrix32_t mask_matrix;
+ *     uint32_t            a;
+ *     bitcolumnmatrix32_mask(&mask_matrix, 8, 16);
+ *     a = bitcolumnmatrix32_mul_uint32(&mask_matrix, 0xAAAAAAAA);
+ *         is equivalent to:
+ *     a = 0xAAAAAAAA & 0x0000FF00;
+ *
+ *     BitColumnMatrix32_t mask_matrix;
+ *     bitcolumnmatrix32_mask(&mask_matrix, 16, 8);
+ *     a = bitcolumnmatrix32_mul_uint32(&mask_matrix, 0xAAAAAAAA);
+ *         is equivalent to:
+ *     a = 0xAAAAAAAA & 0xFFFF00FF;
+ */
 void bitcolumnmatrix32_mask(BitColumnMatrix32_t * p_matrix, uint_fast8_t start, uint_fast8_t end)
 {
     size_t      i;
