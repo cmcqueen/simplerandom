@@ -72,6 +72,40 @@ static const BitColumnMatrix32_t shr3_matrix =
     },
 };
 
+/* LFSR113 z1 'next' operation is defined by:
+ *     b  = ((z1 << 6) ^ z1) >> 13;
+ *     z1 = ((z1 & UINT32_C(0xFFFFFFFE)) << 18) ^ b;
+ *
+ * The Galois matrix equivalent is:
+ *     lfsr_a = unity + shift(6)
+ *     lfsr_b = shift(-13)
+ *     lfsr_c = mask(1,32)
+ *     lfsr_d = shift(18)
+ *     lfsr_matrix = (lfsr_d * lfsr_c) + (lfsr_b * lfsr_a)
+ *
+ * The BitColumnMatrix32_t equivalent 'lfsr_matrix' is:
+ *     BitColumnMatrix32_t     temp_matrix, matrix_a, matrix_b, matrix_c, matrix_d, lfsr113_1_matrix;
+ *
+ *     bitcolumnmatrix32_unity(&matrix_a);
+ *     bitcolumnmatrix32_shift(&temp_matrix, 6);
+ *     bitcolumnmatrix32_iadd(&matrix_a, &temp_matrix);
+ *
+ *     bitcolumnmatrix32_shift(&matrix_b, -13);
+ *
+ *     bitcolumnmatrix32_mask(&matrix_c, 1, 32);
+ *
+ *     bitcolumnmatrix32_shift(&matrix_d, 18);
+ *
+ *     bitcolumnmatrix32_unity(&lfsr113_1_matrix);
+ *     bitcolumnmatrix32_imul(&lfsr113_1_matrix, &matrix_d);
+ *     bitcolumnmatrix32_imul(&lfsr113_1_matrix, &matrix_c);
+ *
+ *     bitcolumnmatrix32_unity(&temp_matrix);
+ *     bitcolumnmatrix32_imul(&temp_matrix, &matrix_b);
+ *     bitcolumnmatrix32_imul(&temp_matrix, &matrix_a);
+ *
+ *     bitcolumnmatrix32_iadd(&lfsr113_1_matrix, &temp_matrix);
+ */
 static const BitColumnMatrix32_t lfsr113_1_matrix =
 {
     {
@@ -82,6 +116,9 @@ static const BitColumnMatrix32_t lfsr113_1_matrix =
     },
 };
 
+/* See notes for lfsr113_1_matrix. Derivation is the same, except that shift
+ * and mask values change.
+ */
 static const BitColumnMatrix32_t lfsr113_2_matrix =
 {
     {
@@ -92,6 +129,9 @@ static const BitColumnMatrix32_t lfsr113_2_matrix =
     },
 };
 
+/* See notes for lfsr113_1_matrix. Derivation is the same, except that shift
+ * and mask values change.
+ */
 static const BitColumnMatrix32_t lfsr113_3_matrix =
 {
     {
@@ -102,6 +142,9 @@ static const BitColumnMatrix32_t lfsr113_3_matrix =
     },
 };
 
+/* See notes for lfsr113_1_matrix. Derivation is the same, except that shift
+ * and mask values change.
+ */
 static const BitColumnMatrix32_t lfsr113_4_matrix =
 {
     {
@@ -112,6 +155,9 @@ static const BitColumnMatrix32_t lfsr113_4_matrix =
     },
 };
 
+/* See notes for lfsr113_1_matrix. Derivation is the same, except that shift
+ * and mask values change.
+ */
 static const BitColumnMatrix32_t lfsr88_1_matrix =
 {
     {
@@ -122,6 +168,9 @@ static const BitColumnMatrix32_t lfsr88_1_matrix =
     },
 };
 
+/* See notes for lfsr113_1_matrix. Derivation is the same, except that shift
+ * and mask values change.
+ */
 static const BitColumnMatrix32_t lfsr88_2_matrix =
 {
     {
@@ -132,6 +181,9 @@ static const BitColumnMatrix32_t lfsr88_2_matrix =
     },
 };
 
+/* See notes for lfsr113_1_matrix. Derivation is the same, except that shift
+ * and mask values change.
+ */
 static const BitColumnMatrix32_t lfsr88_3_matrix =
 {
     {
