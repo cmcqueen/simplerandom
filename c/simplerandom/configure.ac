@@ -20,7 +20,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_SUBST([LIB_SO_VERSION], [8:0:0])
 
 # Enable "automake" to simplify creating makefiles:
-AM_INIT_AUTOMAKE([foreign -Wall -Werror])
+AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror -Wno-portability])
 AC_CONFIG_FILES([Makefile
 		simplerandom.pc])
 

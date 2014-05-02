@@ -37,7 +37,7 @@ TESTS += test_runner
 check_PROGRAMS += test_runner
 
 dist_noinst_DATA = tests/test_runner.h
-nodist_test_runner_SOURCES = $(builddir)/runner.cpp
+nodist_test_runner_SOURCES = @builddir@/runner.cpp
 test_runner_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
 endif
