@@ -244,7 +244,7 @@ cdef class SHR3(object):
                                 values into the state.
         '''
         seed_iter = _traverse_iter(args)
-        self.shr3 = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFFu)
+        self.shr3 = _next_seed_int32_or_default(seed_iter, 0x7FFFFFFFu)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -256,8 +256,8 @@ cdef class SHR3(object):
 
     def sanitise(self):
         if self.shr3 == 0:
-            # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFFu
+            # 0 is a bad seed. Halve word mask to get a good seed.
+            self.shr3 = 0x7FFFFFFFu
 
     def __next__(self):
         cdef uint32_t shr3

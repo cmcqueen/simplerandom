@@ -122,10 +122,10 @@ void simplerandom_shr3_seed(SimpleRandomSHR3_t * p_shr3, uint32_t seed)
 
 void simplerandom_shr3_sanitize(SimpleRandomSHR3_t * p_shr3)
 {
-    /* Zero is a bad state value for SHR3. */
+    /* Zero is a bad state value for SHR3. Set it to half of max value instead. */
     if (p_shr3->shr3 == 0)
     {
-        p_shr3->shr3 = UINT32_C(0xFFFFFFFF);
+        p_shr3->shr3 = UINT32_C(0x7FFFFFFF);
     }
 }
 

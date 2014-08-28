@@ -101,6 +101,15 @@ namespace simplerandom
  *
  ****************************************************************************/
 
+/**
+ * Cong RNG of the form x[n] = x[n-1] * a + c
+ * a is the multiplier.
+ * c is the added constant.
+ * m is the modulus of the calculations.
+ * m == 0 is a special case, to mean the modulus is the implicit modulus of
+ * the integer type UIntType due to integer overflow.
+ * That is to say, numeric_limits<UIntType>::max() + 1.
+ */
 template<typename UIntType, UIntType a, UIntType c, UIntType m = 0>
 class cong_engine
 {
@@ -115,7 +124,7 @@ public:
     static const result_type increment      = c;
     static const result_type modulus        = m;
     static const result_type default_seed   = (c != 0) ? 0 :
-                                                ((m == 0) ? (~(result_type)0) : ((~(result_type)0) % m));
+                                                ((m == 0) ? (((result_type)-1) / 2u) : ((m - 1u) / 2u));
 
     /** Constructors */
     cong_engine(result_type s = default_seed)
@@ -236,7 +245,7 @@ public:
     static const unsigned _type_bits        = std::numeric_limits<result_type>::digits;
     static const unsigned word_bits         = (_word_bits == 0) ? _type_bits : _word_bits;
     static const result_type _word_mask     = (word_bits >= _type_bits) ? (~(result_type)0) : (((result_type)1u << word_bits) - 1u);
-    static const result_type default_seed   = _word_mask;
+    static const result_type default_seed   = (_word_mask / 2u == 0) ? 1u : (_word_mask / 2u);
 
     /** Constructors */
     shr3_engine(result_type s = default_seed)

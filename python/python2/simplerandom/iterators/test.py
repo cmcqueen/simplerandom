@@ -155,8 +155,8 @@ class CongTest(unittest.TestCase):
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
     RNG_CYCLE_LEN = 2**32 - 1
-    MIX_MILLION_STATE = (3398451483,)
-    MIX_MILLION_RESULT = 2497398786
+    MIX_MILLION_STATE = (2279987301,)
+    MIX_MILLION_RESULT = 2714084401
 
 
 class MWC1Test(CongTest):

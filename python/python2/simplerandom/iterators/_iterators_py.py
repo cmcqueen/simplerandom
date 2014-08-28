@@ -221,7 +221,7 @@ class SHR3(object):
                                 values into the state.
         '''
         seed_iter = _traverse_iter(args)
-        self.shr3 = _next_seed_int32_or_default(seed_iter, 0xFFFFFFFF)
+        self.shr3 = _next_seed_int32_or_default(seed_iter, 0x7FFFFFFF)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -233,8 +233,8 @@ class SHR3(object):
 
     def sanitise(self):
         if self.shr3 == 0:
-            # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFF
+            # 0 is a bad seed. Halve word mask to get a good seed.
+            self.shr3 = 0x7FFFFFFF
 
     def next(self):
         shr3 = self.shr3

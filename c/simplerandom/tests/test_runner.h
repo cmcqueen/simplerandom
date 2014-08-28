@@ -135,7 +135,7 @@ public:
         return new SimpleRandomWrapperSHR3(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 1153302609u; }
-    uint32_t get_mix_million_result() { return 2497398786u; }
+    uint32_t get_mix_million_result() { return 2714084401u; }
 };
 
 class SimplerandomMWC1Test : public SimplerandomCongTest
