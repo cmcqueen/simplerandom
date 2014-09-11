@@ -107,14 +107,24 @@ cdef class BitColumnMatrix(object):
 
     def __richcmp__(BitColumnMatrix x, BitColumnMatrix y, int op):
         cdef BitColumnMatrix result
-        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix) or op != 2:
-            return NotImplemented
-        if len(x) != len(y):
-            return False
-        for i in range(len(x)):
-            if x.columns[i] != y.columns[i]:
+        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
+            raise NotImplementedError
+        if op == 2:                 # ==
+            if len(x) != len(y):
                 return False
-        return True
+            for i in range(len(x)):
+                if x.columns[i] != y.columns[i]:
+                    return False
+            return True
+        elif op == 3:               # !=
+            if len(x) != len(y):
+                return True
+            for i in range(len(x)):
+                if x.columns[i] != y.columns[i]:
+                    return True
+            return False
+        else:
+            raise NotImplementedError
 
     def __add__(BitColumnMatrix x, BitColumnMatrix y):
         cdef BitColumnMatrix result
