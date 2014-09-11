@@ -72,9 +72,10 @@ cdef class BitColumnMatrix(object):
                 if shift_value == 0:
                     value = 1
             else:
-                value <<= 1
-                if (1 << n) != 0 and value >= (1 << n):
+                if n == 0 or value >= (1 << (n-1)):
                     value = 0
+                else:
+                    value <<= 1
         return result
 
     def __init__(self, columns=None, do_copy=True):
