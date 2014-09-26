@@ -19,6 +19,7 @@
 #define __STDC_CONSTANT_MACROS
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
+#include <limits>
 
 
 /*****************************************************************************
@@ -138,8 +139,6 @@ inline UIntType pow_mod(UIntType base, uintmax_t n, UIntType mod)
  *
  * For calculating geometric series mod m, see:
  * http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
- *
- * This implementation fits all calculations within the UIntType.
  *
  * It makes use of the fact that the series can pair up terms:
  *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
