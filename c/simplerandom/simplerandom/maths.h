@@ -41,6 +41,7 @@ inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
     UIntType    result = 0;
     UIntType    temp_b;
 
+    /* Only needed if b may be >= mod */
     if (b >= mod)
     {
         if (mod > std::numeric_limits<UIntType>::max() / 2u)
@@ -53,14 +54,15 @@ inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
     {
         if (a & 1u)
         {
-            if (b >= mod - result)
+            if (b >= mod - result)  /* Equiv to if (result + b >= mod), without overflow */
                 result -= mod;
             result += b;
         }
         a >>= 1u;
 
+        /* Double b, modulo mod */
         temp_b = b;
-        if (b >= mod - temp_b)
+        if (b >= mod - temp_b)      /* Equiv to if (temp_b + b >= mod), without overflow */
             temp_b -= mod;
         b += temp_b;
     }
