@@ -105,70 +105,9 @@ uint32_t pow_uint32(uint32_t base, uintmax_t n)
     return result;
 }
 
-#ifdef UINT64_C
-
 /* Calculate geometric series:
  *     1 + r + r^2 + r^3 + ... r^(n-1)
  * summed to n terms, modulo 2^32.
- *
- * This implementation is by the formula for sum of geometric series:
- *     (r^n - 1) / (r - 1)
- * For calculating geometric series mod 2^32, see:
- * http://www.codechef.com/wiki/tutorial-just-simple-sum#Back_to_the_geometric_series
- *
- * It is tricky to do this calculation mod 2^32.
- * Split the denominator into:
- *     - common factors with the modulo 2^32 (that is, all factors of 2)
- *     - other factors (which are then coprime with the modulo 2^32)
- * Calculate the numerator mod (common_factors * 2^32) (which requires 64-bit
- * calculations).
- * Then divide by the common factor.
- * Then multiply by the inverse mod 2^32 of the other factors.
- *
- * This is a simple implementation that uses 64-bit intermediate results.
- * Given the complexity of this calculation, it is questionable whether it is
- * faster than the alternative 32-bit-only implementation.
- * The calculation of 'other_factors_inverse' is one of the slower parts. Given
- * that this is used for the simplerandom Cong discard function, and so 'r' is
- * a fixed constant, then a faster implementation would special-case the 'r'
- * constant used for Cong.
- */
-uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
-{
-    uint64_t    numerator;
-    uint32_t    common_factor;
-    uint32_t    other_factors;
-    uint32_t    other_factors_inverse;
-
-    if (n == 0)
-        return 0;
-    if (n == 1u || r == 0)
-        return 1u;
-    /* Split (r - 1) into common factors with the modulo 2**32 -- i.e. all
-     * factors of 2; and other factors which are coprime with the modulo 2**32.
-     */
-    other_factors = r - 1u;
-    common_factor = 1u;
-    while ((other_factors & 1u) == 0)
-    {
-        /* Trailing zero -- it's a multiple of 2 */
-        other_factors >>= 1u;
-        common_factor <<= 1u;
-    }
-    other_factors_inverse = pow_uint32(other_factors, 0xFFFFFFFFu);
-    numerator = pow_mod_uint64(r, n, common_factor * UINT64_C(0x100000000)) - 1u;
-    return (numerator / common_factor * other_factors_inverse);
-}
-
-#else /* !defined(UINT64_C) */
-
-/* Calculate geometric series:
- *     1 + r + r^2 + r^3 + ... r^(n-1)
- * summed to n terms, modulo 2^32.
- *
- * This is an implementation that fits all calculations within 32 bits.
- * It is useful for limited platforms that don't have 64-bit types
- * available (smaller embedded systems).
  *
  * It makes use of the fact that the series can pair up terms:
  *     (1 + r) + (1 + r) r^2 + (1 + r) r^4 + ... + (1 + r) (r^2)^(n/2-1) + [ r^(n-1) if n is odd ]
@@ -204,8 +143,6 @@ uint32_t geom_series_uint32(uint32_t r, uintmax_t n)
     result += mult;
     return result;
 }
-
-#endif /* defined(UINT64_C) */
 
 /* 32-bit calculation of 'base' to the power of an unsigned integer 'n',
  * modulo a uint32_t value 'mod'. */

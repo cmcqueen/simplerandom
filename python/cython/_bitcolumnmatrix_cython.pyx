@@ -23,6 +23,9 @@ cdef class BitColumnMatrix(object):
     def unity(uint32_t n):
         cdef uint32_t value
         cdef BitColumnMatrix result = BitColumnMatrix(int(n))
+        if n > 32:
+            raise NotImplementedError
+        result.columns_len = n
         value = 1
         for i in range(n):
             result.columns[i] = value
@@ -39,6 +42,9 @@ cdef class BitColumnMatrix(object):
         """
         cdef uint32_t value
         cdef BitColumnMatrix result = BitColumnMatrix(int(n))
+        if n > 32:
+            raise NotImplementedError
+        result.columns_len = n
         value = 1
         for i in range(n):
             if start <= end:
@@ -52,6 +58,9 @@ cdef class BitColumnMatrix(object):
     def shift(uint32_t n, int shift_value):
         cdef uint32_t value
         cdef BitColumnMatrix result = BitColumnMatrix(int(n))
+        if n > 32:
+            raise NotImplementedError
+        result.columns_len = n
         if shift_value >= 0:
             value = 1 << shift_value
         else:
@@ -63,35 +72,59 @@ cdef class BitColumnMatrix(object):
                 if shift_value == 0:
                     value = 1
             else:
-                value <<= 1
-                if (1 << n) != 0 and value >= (1 << n):
+                if n == 0 or value >= (1 << (n-1)):
                     value = 0
+                else:
+                    value <<= 1
         return result
 
     def __init__(self, columns=None, do_copy=True):
         if isinstance(columns, BitColumnMatrix):
+            self.columns_len = (<BitColumnMatrix>columns).columns_len
             for i in range(32):
                 self.columns[i] = (<BitColumnMatrix>columns).columns[i]
         elif isint(columns):
             if columns > 32:
                 raise NotImplementedError
+            self.columns_len = columns
             #self.columns = view.array(shape=(columns,), itemsize=sizeof(unsigned int), format="I")
             for i in range(32):
                 self.columns[i] = 0
         else:
-            columns_len = len(columns)
-            if columns_len > 32:
+            self.columns_len = len(columns)
+            if self.columns_len > 32:
                 raise NotImplementedError
-            #self.columns = view.array(shape=(columns_len,), itemsize=sizeof(unsigned int), format="I")
+            #self.columns = view.array(shape=(self.columns_len,), itemsize=sizeof(unsigned int), format="I")
             for i, column in enumerate(columns):
                 self.columns[i] = int(column)
 
     def __len__(self):
         #return self.columns.shape[0]
-        return 32
+        return self.columns_len
 
 #     def __iter__(self):
 #         return iter(self.columns)
+
+    def __richcmp__(BitColumnMatrix x, BitColumnMatrix y, int op):
+        cdef BitColumnMatrix result
+        if not isinstance(x, BitColumnMatrix) or not isinstance(y, BitColumnMatrix):
+            raise NotImplementedError
+        if op == 2:                 # ==
+            if len(x) != len(y):
+                return False
+            for i in range(len(x)):
+                if x.columns[i] != y.columns[i]:
+                    return False
+            return True
+        elif op == 3:               # !=
+            if len(x) != len(y):
+                return True
+            for i in range(len(x)):
+                if x.columns[i] != y.columns[i]:
+                    return True
+            return False
+        else:
+            raise NotImplementedError
 
     def __add__(BitColumnMatrix x, BitColumnMatrix y):
         cdef BitColumnMatrix result

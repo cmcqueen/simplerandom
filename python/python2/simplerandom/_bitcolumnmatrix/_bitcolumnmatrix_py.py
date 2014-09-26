@@ -63,6 +63,12 @@ class BitColumnMatrix(object):
     def __len__(self):
         return len(self.columns)
 
+    def __eq__(self, other):
+        return self.columns == other.columns
+
+    def __ne__(self, other):
+        return self.columns != other.columns
+
     def __iter__(self):
         return iter(self.columns)
 

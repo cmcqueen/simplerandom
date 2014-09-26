@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "simplerandom.h"
+#include "bitcolumnmatrix.h"
 
 static int test_multi(void)
 {
@@ -101,9 +102,102 @@ static int test_multi(void)
     return 0;
 }
 
+static void print_matrix(const char * p_title, const BitColumnMatrix32_t * p_matrix)
+{
+    size_t      i;
+
+    printf("%s\n", p_title);
+    for (i = 0; i < 32u; ++i)
+    {
+        if (i && !(i % 8))
+            printf("\n");
+        if (!(i % 8))
+            printf("    ");
+        printf("%08"PRIX32" ", p_matrix->matrix[i]);
+    }
+    printf("\n");
+}
+
+static void calc_shr3_matrix(void)
+{
+    BitColumnMatrix32_t     temp_matrix, matrix_a, matrix_b, matrix_c, shr3_matrix;
+
+    bitcolumnmatrix32_unity(&matrix_a);
+    bitcolumnmatrix32_shift(&temp_matrix, 13);
+    bitcolumnmatrix32_iadd(&matrix_a, &temp_matrix);
+
+    bitcolumnmatrix32_unity(&matrix_b);
+    bitcolumnmatrix32_shift(&temp_matrix, -17);
+    bitcolumnmatrix32_iadd(&matrix_b, &temp_matrix);
+
+    bitcolumnmatrix32_unity(&matrix_c);
+    bitcolumnmatrix32_shift(&temp_matrix, 5);
+    bitcolumnmatrix32_iadd(&matrix_c, &temp_matrix);
+
+    bitcolumnmatrix32_unity(&shr3_matrix);
+    bitcolumnmatrix32_imul(&shr3_matrix, &matrix_c);
+    bitcolumnmatrix32_imul(&shr3_matrix, &matrix_b);
+    bitcolumnmatrix32_imul(&shr3_matrix, &matrix_a);
+
+    print_matrix("SHR3 BitColumnMatrix32_t matrix", &shr3_matrix);
+}
+
+static void calc_lfsr_matrix(const char * p_title, signed shift_1, signed shift_2, unsigned low_mask, signed shift_3)
+{
+    BitColumnMatrix32_t     temp_matrix, matrix_a, matrix_b, matrix_c, matrix_d, lfsr_matrix;
+
+    bitcolumnmatrix32_unity(&matrix_a);
+    bitcolumnmatrix32_shift(&temp_matrix, shift_1);
+    bitcolumnmatrix32_iadd(&matrix_a, &temp_matrix);
+
+    bitcolumnmatrix32_shift(&matrix_b, shift_2);
+
+    bitcolumnmatrix32_mask(&matrix_c, low_mask, 32);
+
+    bitcolumnmatrix32_shift(&matrix_d, shift_3);
+
+    bitcolumnmatrix32_unity(&lfsr_matrix);
+    bitcolumnmatrix32_imul(&lfsr_matrix, &matrix_d);
+    bitcolumnmatrix32_imul(&lfsr_matrix, &matrix_c);
+
+    bitcolumnmatrix32_unity(&temp_matrix);
+    bitcolumnmatrix32_imul(&temp_matrix, &matrix_b);
+    bitcolumnmatrix32_imul(&temp_matrix, &matrix_a);
+
+    bitcolumnmatrix32_iadd(&lfsr_matrix, &temp_matrix);
+
+    print_matrix(p_title, &lfsr_matrix);
+}
+
+static void calc_lfsr113_matrices(void)
+{
+    calc_lfsr_matrix("LFSR113-1 BitColumnMatrix32_t matrix", 6, -13, 1, 18);
+    calc_lfsr_matrix("LFSR113-2 BitColumnMatrix32_t matrix", 2, -27, 3, 2);
+    calc_lfsr_matrix("LFSR113-3 BitColumnMatrix32_t matrix", 13, -21, 4, 7);
+    calc_lfsr_matrix("LFSR113-4 BitColumnMatrix32_t matrix", 3, -12, 7, 13);
+}
+
+static void calc_lfsr88_matrices(void)
+{
+    calc_lfsr_matrix("LFSR88-1 BitColumnMatrix32_t matrix", 13, -19, 1, 12);
+    calc_lfsr_matrix("LFSR88-2 BitColumnMatrix32_t matrix", 2, -25, 3, 4);
+    calc_lfsr_matrix("LFSR88-3 BitColumnMatrix32_t matrix", 3, -11, 4, 17);
+}
+
 int main(void)
 {
     int ret_val;
+
+#if 0
+    calc_shr3_matrix();
+#endif
+
+#if 0
+    calc_lfsr113_matrices();
+#endif
+#if 0
+    calc_lfsr88_matrices();
+#endif
 
     ret_val = test_multi();
     if (ret_val != 0)

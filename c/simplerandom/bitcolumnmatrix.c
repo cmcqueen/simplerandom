@@ -1,5 +1,5 @@
 /*
- * bitcolumnmatrix.h
+ * bitcolumnmatrix.c
  *
  * 32-by-32 Galois-2 matrix, represented by 32 uint32_t integers, representing
  * the bits in each column of the matrix.
@@ -46,6 +46,24 @@
  *
  * This representation allows for fast calculations of add, subtract, multiply
  * and power functions for a Galois-2 32-by-32 matrix.
+ *
+ * Bit manipulations (and, or, xor, shift) can thus be represented as matrix
+ * operations. A sequence of bit manipulations can be represented by a
+ * sequence of matrix calculations.
+ *
+ *     Bit operation        Matrix operation                Code
+ *
+ *     a ^= b               a += b                          bitcolumnmatrix32_iadd(a, b);
+ *
+ *     a &= 0x0000FF00      a = mask_matrix(8, 16) * a      bitcolumnmatrix32_mask(mask, 8, 16);
+ *                                                          bitcolumnmatrix32_imul(a, mask);
+ *
+ *     a <<= 5              a = shift_matrix(5) * a         bitcolumnmatrix32_shift(shift, 5);
+ *                                                          bitcolumnmatrix32_imul(a, shift);
+ *
+ *     Do ops n times       where matrix f represents ops--
+ *                          f * f * f * ... n times
+ *                          i.e. pow(f, n)                  bitcolumnmatrix32_pow(result, f, n);
  */
 
 /*****************************************************************************
@@ -111,6 +129,50 @@ void bitcolumnmatrix32_shift(BitColumnMatrix32_t * p_matrix, int_fast8_t shift_v
             {
                 value <<= 1u;
             }
+        }
+    }
+}
+
+/* Create a mask matrix -- which if multiplied into a vector, would be
+ * equivalent to a mask of a range of bits.
+ * 'start' and 'end' are bit numbers in the range 0..32.
+ * 'start' value is inclusive, so indicates bits >= start.
+ * 'end' value is exclusive, so indicates bits < end.
+ * If start <= end:
+ *     Bits in the range [start, end) are preserved; other bits are cleared to
+ *     zero.
+ * If start > end:
+ *     Bits < end are preserved. Bits >= start are preserved. Bits in the range
+ *     [end, start) are cleared to zero.
+ * Examples:
+ *     BitColumnMatrix32_t mask_matrix;
+ *     uint32_t            a;
+ *     bitcolumnmatrix32_mask(&mask_matrix, 8, 16);
+ *     a = bitcolumnmatrix32_mul_uint32(&mask_matrix, 0xAAAAAAAA);
+ *         is equivalent to:
+ *     a = 0xAAAAAAAA & 0x0000FF00;
+ *
+ *     BitColumnMatrix32_t mask_matrix;
+ *     bitcolumnmatrix32_mask(&mask_matrix, 16, 8);
+ *     a = bitcolumnmatrix32_mul_uint32(&mask_matrix, 0xAAAAAAAA);
+ *         is equivalent to:
+ *     a = 0xAAAAAAAA & 0xFFFF00FF;
+ */
+void bitcolumnmatrix32_mask(BitColumnMatrix32_t * p_matrix, uint_fast8_t start, uint_fast8_t end)
+{
+    size_t      i;
+    uint32_t    value;
+
+    if (p_matrix != NULL)
+    {
+        value = 1u;
+        for (i = 0; i < 32u; i++)
+        {
+            if (start <= end)
+                p_matrix->matrix[i] = (start <= i && i < end) ? value : 0;
+            else
+                p_matrix->matrix[i] = (start <= i || i < end) ? value : 0;
+            value <<= 1u;
         }
     }
 }
