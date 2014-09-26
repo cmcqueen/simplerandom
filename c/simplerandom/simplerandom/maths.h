@@ -28,14 +28,12 @@
 
 namespace simplerandom {
 
-/* Multiplication of uint32_t values, modulo some uint32_t value.
+/* Multiplication of unsigned integer values, modulo some value.
  *
- * This is an implementation that fits all calculations within 32 bits.
- * It is useful for limited platforms that don't have 64-bit types
- * available (smaller embedded systems).
- *
- * This same essential algorithm is used in the implementation of
- * mul_mod_uint64(), since a uint128_t is most likely not available.
+ * This is an implementation that fits all calculations within the one
+ * unsigned integer type.
+ * It is useful for limited platforms that don't have a corresponding larger
+ * type available (smaller embedded systems).
  */
 template <typename UIntType>
 inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
@@ -69,24 +67,43 @@ inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
     return result;
 }
 
+/* Multiplication of unsigned integer values, modulo some value.
+ *
+ * This is an implementation that uses a bigger unsigned integer type to
+ * handle the intermediate calculation.
+ */
+template <typename UIntType, typename BiggerUIntType>
+inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
+{
+    BiggerUIntType    temp;
+
+    temp = (BiggerUIntType)a * b;
+    return (UIntType)(temp % mod);
+}
+
+
+template <>
+inline uint8_t mul_mod<uint8_t>(uint8_t a, uint8_t b, uint8_t mod)
+{
+    return mul_mod<uint8_t, uint_fast16_t>(a, b, mod);
+}
+
+template <>
+inline uint16_t mul_mod<uint16_t>(uint16_t a, uint16_t b, uint16_t mod)
+{
+    return mul_mod<uint16_t, uint_fast32_t>(a, b, mod);
+}
+
 #ifdef UINT64_C
 
-/* Multiplication of uint32_t values, modulo some uint32_t value.
- *
- * This specialisation is a simple implementation that uses 64-bit intermediate
- * results. As long as uint64_t capability is available, this is
- * straight-forward.
- */
 template <>
 inline uint32_t mul_mod<uint32_t>(uint32_t a, uint32_t b, uint32_t mod)
 {
-    uint64_t    temp;
-
-    temp = (uint64_t)a * b;
-    return (uint32_t)(temp % mod);
+    return mul_mod<uint32_t, uint_fast64_t>(a, b, mod);
 }
 
 #endif /* defined(UINT64_C) */
+
 
 /* Calculation of 'base' to the power of 'n', modulo (max + 1) of UIntType. */
 template <typename UIntType>
