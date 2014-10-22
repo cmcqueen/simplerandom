@@ -178,11 +178,10 @@ public:
             return m - 1;
     }
 
-    /* Cong discard(n) = r^n * x mod m +
-     *                      c * (1 + r + r^2 + ... + r^(n-1)) mod m
-     * where r = 69069 and c = 12345.
+    /* Cong discard(n) = a^n * x mod m +
+     *                      c * (1 + a + a^2 + ... + a^(n-1)) mod m
      *
-     * The part c * (1 + r + r^2 + ... + r^(n-1)) is a geometric series.
+     * The part c * (1 + a + a^2 + ... + a^(n-1)) is a geometric series.
      */
     void discard(uintmax_t n)
     {
