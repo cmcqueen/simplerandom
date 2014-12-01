@@ -79,8 +79,8 @@ inline UIntType mul_mod(UIntType a, UIntType b, UIntType mod)
 {
     BiggerUIntType    temp;
 
-    temp = (BiggerUIntType)a * b;
-    return (UIntType)(temp % mod);
+    temp = static_cast<BiggerUIntType>(a) * b;
+    return static_cast<UIntType>(temp % mod);
 }
 
 
