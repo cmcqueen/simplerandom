@@ -123,8 +123,9 @@ public:
     static const result_type multiplier     = a;
     static const result_type increment      = c;
     static const result_type modulus        = m;
+    static const result_type _half_modulus_minus_1  = ((m == 0) ? (((result_type)-1) / 2u) : ((m - 1u) / 2u));
     static const result_type default_seed   = (c != 0) ? 0 :
-                                                ((m == 0) ? (((result_type)-1) / 2u) : ((m - 1u) / 2u));
+                                                ((_half_modulus_minus_1 != 0) ? _half_modulus_minus_1 : 1u);
 
     /** Constructors */
     cong_engine(result_type s = default_seed)
@@ -244,7 +245,8 @@ public:
     static const unsigned _type_bits        = std::numeric_limits<result_type>::digits;
     static const unsigned word_bits         = (_word_bits == 0) ? _type_bits : _word_bits;
     static const result_type _word_mask     = (word_bits >= _type_bits) ? (~(result_type)0) : (((result_type)1u << word_bits) - 1u);
-    static const result_type default_seed   = (_word_mask / 2u == 0) ? 1u : (_word_mask / 2u);
+    static const result_type _half_word_mask    = _word_mask / 2u;
+    static const result_type default_seed   = (_half_word_mask != 0) ? _half_word_mask : 1u;
 
     /** Constructors */
     shr3_engine(result_type s = default_seed)
@@ -353,7 +355,8 @@ public:
     static const unsigned _half_word_bits   = word_bits / 2u;
     static const result_type multiplier     = a;
     static const result_type modulus        = (a * ((result_type)1u << _half_word_bits)) - 1u;
-    static const result_type default_seed   = (~(result_type)0) % modulus;
+    static const result_type _half_modulus_minus_1  = (modulus - 1u) / 2u;
+    static const result_type default_seed   = (_half_modulus_minus_1 != 0) ? _half_modulus_minus_1 : 1u;
     static const result_type _lower_mask    = (1u << _half_word_bits) - 1u;
 
     /** Constructors */
