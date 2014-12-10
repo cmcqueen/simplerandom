@@ -466,11 +466,9 @@ void simplerandom_kiss_seed(SimpleRandomKISS_t * p_kiss, uint32_t seed_mwc_upper
  */
 static inline void kiss_sanitize_mwc_upper(SimpleRandomKISS_t * p_kiss)
 {
-    uint32_t    state_orig;
     uint32_t    temp;
 
-    state_orig = p_kiss->mwc_upper;
-    temp = state_orig;
+    temp = p_kiss->mwc_upper;
     /* The following is equivalent to % 0x9068FFFF, without using modulo
      * operation which may be expensive on embedded targets. For
      * uint32_t and this divisor, we only need 'if' rather than 'while'. */
@@ -479,10 +477,8 @@ static inline void kiss_sanitize_mwc_upper(SimpleRandomKISS_t * p_kiss)
     if (temp == 0)
     {
         /* Any integer multiple of 0x9068FFFF, including 0, is a bad state.
-         * Use an alternate state value by inverting the original value. */
-        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
-        if (temp >= UINT32_C(0x9068FFFF))
-            temp -= UINT32_C(0x9068FFFF);
+         * Use an alternate state value of half the max value. */
+        temp = (UINT32_C(0x9068FFFF) - 1u) / 2u;
     }
     p_kiss->mwc_upper = temp;
 }
@@ -493,11 +489,9 @@ static inline void kiss_sanitize_mwc_upper(SimpleRandomKISS_t * p_kiss)
  */
 static inline void kiss_sanitize_mwc_lower(SimpleRandomKISS_t * p_kiss)
 {
-    uint32_t    state_orig;
     uint32_t    temp;
 
-    state_orig = p_kiss->mwc_lower;
-    temp = state_orig;
+    temp = p_kiss->mwc_lower;
     /* The following is equivalent to % 0x464FFFFF, without using modulo
      * operation which may be expensive on embedded targets. For
      * uint32_t and this divisor, it may loop up to 3 times. */
@@ -506,10 +500,8 @@ static inline void kiss_sanitize_mwc_lower(SimpleRandomKISS_t * p_kiss)
     if (temp == 0)
     {
         /* Any integer multiple of 0x464FFFFF, including 0, is a bad state.
-         * Use an alternate state value by inverting the original value. */
-        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
-        while (temp >= UINT32_C(0x464FFFFF))
-            temp -= UINT32_C(0x464FFFFF);
+         * Use an alternate state value of half the max value. */
+        temp = (UINT32_C(0x464FFFFF) - 1u) / 2u;
     }
 
     p_kiss->mwc_lower = temp;
@@ -520,7 +512,7 @@ static inline void kiss_sanitize_shr3(SimpleRandomKISS_t * p_kiss)
     /* Zero is a bad state value for SHR3. */
     if (p_kiss->shr3 == 0)
     {
-        p_kiss->shr3 = UINT32_C(0xFFFFFFFF);
+        p_kiss->shr3 = UINT32_C(0x7FFFFFFF);
     }
 }
 
@@ -810,7 +802,7 @@ static inline void kiss2_sanitize_shr3(SimpleRandomKISS2_t * p_kiss2)
     /* Zero is a bad state value for SHR3. */
     if (p_kiss2->shr3 == 0)
     {
-        p_kiss2->shr3 = UINT32_C(0xFFFFFFFF);
+        p_kiss2->shr3 = UINT32_C(0x7FFFFFFF);
     }
 }
 

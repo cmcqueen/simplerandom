@@ -716,10 +716,10 @@ cdef class KISS(object):
         '''
         seed_iter = _traverse_iter(args)
         repeat_seed_iter = _repeat_iter(seed_iter)
-        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
-        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0)
         self.cong = _next_seed_int32_or_default(repeat_seed_iter, 0)
-        self.shr3 = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.shr3 = _next_seed_int32_or_default(repeat_seed_iter, 0x7FFFFFFFu)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -741,8 +741,8 @@ cdef class KISS(object):
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
-            # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
+            # Set to half of max value to get a good seed.
+            sanitised_value = (0x9068FFFFu - 1u) // 2u
         self.mwc_upper = sanitised_value
     def _sanitise_mwc_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -750,14 +750,14 @@ cdef class KISS(object):
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
         sanitised_value = mwc_lower_orig % 0x464FFFFFu
         if sanitised_value == 0:
-            # Invert to get a good seed.
-            sanitised_value = (mwc_lower_orig ^ 0xFFFFFFFFu) % 0x464FFFFFu
+            # Set to half of max value to get a good seed.
+            sanitised_value = (0x464FFFFFu - 1u) // 2u
         self.mwc_lower = sanitised_value
 
     def _sanitise_shr3(self):
         if self.shr3 == 0:
-            # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFFu
+            # 0 is a bad seed. Halve word mask to get a good seed.
+            self.shr3 = 0x7FFFFFFFu
 
     def _next_mwc_upper(self):
         self.mwc_upper = 36969u * (self.mwc_upper & 0xFFFFu) + (self.mwc_upper >> 16u)
@@ -914,7 +914,7 @@ cdef class KISS2(object):
         self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
         self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
         self.cong = _next_seed_int32_or_default(repeat_seed_iter, 0)
-        self.shr3 = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.shr3 = _next_seed_int32_or_default(repeat_seed_iter, 0x7FFFFFFFu)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -952,8 +952,8 @@ cdef class KISS2(object):
 
     def _sanitise_shr3(self):
         if self.shr3 == 0:
-            # 0 is a bad seed. Invert to get a good seed.
-            self.shr3 = 0xFFFFFFFFu
+            # 0 is a bad seed. Halve word mask to get a good seed.
+            self.shr3 = 0x7FFFFFFFu
 
     def _next_mwc64(self):
         cdef uint64_t temp64

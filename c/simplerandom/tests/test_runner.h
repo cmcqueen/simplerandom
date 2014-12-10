@@ -195,7 +195,7 @@ public:
         return new SimpleRandomWrapperKISS(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 2100752872u; }
-    uint32_t get_mix_million_result() { return 3522308965u; }
+    uint32_t get_mix_million_result() { return 3033435879u; }
 };
 
 #ifdef UINT64_C
@@ -236,8 +236,8 @@ public:
     {
         return new SimpleRandomWrapperKISS2(p_seeds, num_seeds, mix_extras);
     }
-    uint32_t get_million_result() { return 4044786495u; }
-    uint32_t get_mix_million_result() { return 73179452u; }
+    uint32_t get_million_result() { return 1034560637u; }
+    uint32_t get_mix_million_result() { return 2037441463u; }
 };
 
 #endif
