@@ -155,7 +155,7 @@ public:
         return new SimpleRandomWrapperMWC1(p_seeds, num_seeds, mix_extras);
     }
     uint32_t get_million_result() { return 904977562u; }
-    uint32_t get_mix_million_result() { return 850045851u; }
+    uint32_t get_mix_million_result() { return 560871203u; }
 };
 
 class SimplerandomMWC2Test : public SimplerandomCongTest
@@ -174,8 +174,8 @@ public:
     {
         return new SimpleRandomWrapperMWC2(p_seeds, num_seeds, mix_extras);
     }
-    uint32_t get_million_result() { return 767834450u; }
-    uint32_t get_mix_million_result() { return 2513067739u; }
+    uint32_t get_million_result() { return 847931684u; }
+    uint32_t get_mix_million_result() { return 2704875715u; }
 };
 
 class SimplerandomKISSTest : public SimplerandomCongTest

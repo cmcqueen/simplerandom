@@ -221,11 +221,9 @@ void simplerandom_mwc2_seed(SimpleRandomMWC2_t * p_mwc, uint32_t seed_upper, uin
  */
 static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc)
 {
-    uint32_t    state_orig;
     uint32_t    temp;
 
-    state_orig = p_mwc->mwc_upper;
-    temp = state_orig;
+    temp = p_mwc->mwc_upper;
     /* The following is equivalent to % 0x9068FFFF, without using modulo
      * operation which may be expensive on embedded targets. For
      * uint32_t and this divisor, we only need 'if' rather than 'while'. */
@@ -234,10 +232,8 @@ static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc)
     if (temp == 0)
     {
         /* Any integer multiple of 0x9068FFFF, including 0, is a bad state.
-         * Use an alternate state value by inverting the original value. */
-        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
-        if (temp >= UINT32_C(0x9068FFFF))
-            temp -= UINT32_C(0x9068FFFF);
+         * Use an alternate state value of half the max value. */
+        temp = (UINT32_C(0x9068FFFF) - 1u) / 2u;
     }
     p_mwc->mwc_upper = temp;
 }
@@ -248,11 +244,9 @@ static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc)
  */
 static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc)
 {
-    uint32_t    state_orig;
     uint32_t    temp;
 
-    state_orig = p_mwc->mwc_lower;
-    temp = state_orig;
+    temp = p_mwc->mwc_lower;
     /* The following is equivalent to % 0x464FFFFF, without using modulo
      * operation which may be expensive on embedded targets. For
      * uint32_t and this divisor, it may loop up to 3 times. */
@@ -261,10 +255,8 @@ static inline void mwc2_sanitize_lower(SimpleRandomMWC2_t * p_mwc)
     if (temp == 0)
     {
         /* Any integer multiple of 0x464FFFFF, including 0, is a bad state.
-         * Use an alternate state value by inverting the original value. */
-        temp = state_orig ^ UINT32_C(0xFFFFFFFF);
-        while (temp >= UINT32_C(0x464FFFFF))
-            temp -= UINT32_C(0x464FFFFF);
+         * Use an alternate state value of half the max value. */
+        temp = (UINT32_C(0x464FFFFF) - 1u) / 2u;
     }
 
     p_mwc->mwc_lower = temp;
