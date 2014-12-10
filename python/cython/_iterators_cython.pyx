@@ -346,8 +346,8 @@ cdef class MWC1(object):
         '''
         seed_iter = _traverse_iter(args)
         repeat_seed_iter = _repeat_iter(seed_iter)
-        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
-        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -367,8 +367,8 @@ cdef class MWC1(object):
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
-            # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
+            # Set to half of max value to get a good seed.
+            sanitised_value = (0x9068FFFFu - 1u) // 2u
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -376,8 +376,8 @@ cdef class MWC1(object):
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
         sanitised_value = mwc_lower_orig % 0x464FFFFFu
         if sanitised_value == 0:
-            # Invert to get a good seed.
-            sanitised_value = (mwc_lower_orig ^ 0xFFFFFFFFu) % 0x464FFFFFu
+            # Set to half of max value to get a good seed.
+            sanitised_value = (0x464FFFFFu - 1u) // 2u
         self.mwc_lower = sanitised_value
 
     def _next_upper(self):
@@ -472,8 +472,8 @@ cdef class MWC2(object):
         '''
         seed_iter = _traverse_iter(args)
         repeat_seed_iter = _repeat_iter(seed_iter)
-        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
-        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0xFFFFFFFFu)
+        self.mwc_upper = _next_seed_int32_or_default(repeat_seed_iter, 0)
+        self.mwc_lower = _next_seed_int32_or_default(repeat_seed_iter, 0)
         self.sanitise()
         if kwargs.pop('mix_extras', False):
             self.mix(seed_iter)
@@ -493,8 +493,8 @@ cdef class MWC2(object):
         # 0x9068FFFF (which is 36969 * 2**16 - 1).
         sanitised_value = mwc_upper_orig % 0x9068FFFFu
         if sanitised_value == 0:
-            # Invert to get a good seed.
-            sanitised_value = (mwc_upper_orig ^ 0xFFFFFFFFu) % 0x9068FFFFu
+            # Set to half of max value to get a good seed.
+            sanitised_value = (0x9068FFFFu - 1u) // 2u
         self.mwc_upper = sanitised_value
     def _sanitise_lower(self):
         mwc_lower_orig = self.mwc_lower
@@ -502,8 +502,8 @@ cdef class MWC2(object):
         # 0x464FFFFF (which is 18000 * 2**16 - 1).
         sanitised_value = mwc_lower_orig % 0x464FFFFFu
         if sanitised_value == 0:
-            # Invert to get a good seed.
-            sanitised_value = (mwc_lower_orig ^ 0xFFFFFFFFu) % 0x464FFFFFu
+            # Set to half of max value to get a good seed.
+            sanitised_value = (0x464FFFFFu - 1u) // 2u
         self.mwc_lower = sanitised_value
 
     def _next_upper(self):
