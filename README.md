@@ -51,10 +51,10 @@ Most algorithms were obtained from two newsgroup posts by George
 Marsaglia [[mars1]](#mars1) [[mars2]](#mars2). However, some
 modifications have been made. From [[rose1]](#rose1), it seems that the
 SHR3 algorithm defined in [[mars1]](#mars1) is flawed and should not be
-used. It doesn't actually have a period of 2**32-1 as expected, but has
+used. It doesn't actually have a period of 2<sup>32</sup>-1 as expected, but has
 64 different cycles, some with very short periods. The SHR3 in the 2003
 post is very similar, but with two shift values swapped. It has a
-period of 2**32-1 as expected.
+period of 2<sup>32</sup>-1 as expected.
 
 We still find KISS from [[mars1]](#mars1) useful mainly because it uses
 32-bit calculations for MWC, which can be more suitable for small
