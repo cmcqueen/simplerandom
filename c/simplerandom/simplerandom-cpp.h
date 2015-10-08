@@ -404,6 +404,15 @@ private:
     result_type     x;
 };
 
+/* mwc2 is a specific instantiation of two 32-bit mwc_engine.
+ * The two generator's outputs are added after one is rotated by 16 bits.
+ * The resulting RNG has quite good statistical properties, according to
+ * TestU01 testing results.
+ * It is a variation of the MWC (mwc1 below) specified by Marsaglia.
+ * It is very similar to that, except the 2nd MWC component is rotated instead
+ * of shifted, preserving more random bits and thus improving statistical
+ * properties.
+ */
 class mwc2
 {
 protected:
@@ -465,6 +474,13 @@ public:
     }
 };
 
+/* mwc1 is a specific instantiation of two 32-bit mwc_engine, as specified by
+ * Marsaglia.
+ * The two generator's outputs are added after one is shifted by 16 bits.
+ * It is very similar to mwc2, except the 2nd MWC component is shifted instead
+ * of rotated. mwc2 (with better statistical properties) is to be preferred
+ * over this one, except if the exact Marsaglia MWC algorithm is wanted.
+ */
 class mwc1 : public mwc2
 {
 public:
@@ -490,6 +506,11 @@ public:
 
 #ifdef UINT64_C
 
+/* mwc64 is a specific instantiation of one 64-bit mwc_engine, as specified by
+ * Marsaglia.
+ * It may have the advantage of being fast on a 64-bit processor. But its
+ * statistical properties are not as good as the mwc2 generator.
+ */
 class mwc64
 {
 protected:
