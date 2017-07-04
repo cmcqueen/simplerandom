@@ -22,7 +22,7 @@
 
 size_t simplerandom_cong_num_seeds(const SimpleRandomCong_t * p_cong)
 {
-    (const void *)p_cong;   /* We only use this parameter for type checking. */
+    (void)p_cong;   /* We only use this parameter for type checking. */
 
     return 1u;
 }
@@ -56,7 +56,7 @@ void simplerandom_cong_seed(SimpleRandomCong_t * p_cong, uint32_t seed)
 void simplerandom_cong_sanitize(SimpleRandomCong_t * p_cong)
 {
     /* All state values are valid for Cong. No sanitizing needed. */
-    (const void *) p_cong;
+    (void) p_cong;
 }
 
 uint32_t simplerandom_cong_next(SimpleRandomCong_t * p_cong)
@@ -89,7 +89,7 @@ void simplerandom_cong_mix(SimpleRandomCong_t * p_cong, const uint32_t * p_data,
 
 size_t simplerandom_shr3_num_seeds(const SimpleRandomSHR3_t * p_shr3)
 {
-    (const void *)p_shr3;   /* We only use this parameter for type checking. */
+    (void)p_shr3;   /* We only use this parameter for type checking. */
 
     return 1u;
 }
@@ -167,7 +167,7 @@ void simplerandom_shr3_mix(SimpleRandomSHR3_t * p_shr3, const uint32_t * p_data,
 
 size_t simplerandom_mwc2_num_seeds(const SimpleRandomMWC2_t * p_mwc)
 {
-    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+    (void)p_mwc;    /* We only use this parameter for type checking. */
 
     return 2u;
 }
@@ -334,7 +334,7 @@ void simplerandom_mwc2_mix(SimpleRandomMWC2_t * p_mwc, const uint32_t * p_data, 
 
 size_t simplerandom_mwc1_num_seeds(const SimpleRandomMWC1_t * p_mwc)
 {
-    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+    (void)p_mwc;    /* We only use this parameter for type checking. */
 
     return 2u;
 }
@@ -425,7 +425,7 @@ void simplerandom_mwc1_mix(SimpleRandomMWC1_t * p_mwc, const uint32_t * p_data, 
 
 size_t simplerandom_kiss_num_seeds(const SimpleRandomKISS_t * p_kiss)
 {
-    (const void *)p_kiss;   /* We only use this parameter for type checking. */
+    (void)p_kiss;   /* We only use this parameter for type checking. */
 
     return 4u;
 }
@@ -621,7 +621,7 @@ void simplerandom_kiss_mix(SimpleRandomKISS_t * p_kiss, const uint32_t * p_data,
 
 size_t simplerandom_mwc64_num_seeds(const SimpleRandomMWC64_t * p_mwc)
 {
-    (const void *)p_mwc;    /* We only use this parameter for type checking. */
+    (void)p_mwc;    /* We only use this parameter for type checking. */
 
     return 2u;
 }
@@ -742,7 +742,7 @@ void simplerandom_mwc64_mix(SimpleRandomMWC64_t * p_mwc, const uint32_t * p_data
 
 size_t simplerandom_kiss2_num_seeds(const SimpleRandomKISS2_t * p_kiss2)
 {
-    (const void *)p_kiss2;  /* We only use this parameter for type checking. */
+    (void)p_kiss2;  /* We only use this parameter for type checking. */
 
     return 4u;
 }
@@ -919,7 +919,7 @@ void simplerandom_kiss2_mix(SimpleRandomKISS2_t * p_kiss2, const uint32_t * p_da
 
 size_t simplerandom_lfsr113_num_seeds(const SimpleRandomLFSR113_t * p_lfsr113)
 {
-    (const void *)p_lfsr113;    /* We only use this parameter for type checking. */
+    (void)p_lfsr113;    /* We only use this parameter for type checking. */
 
     return 4u;
 }
@@ -1172,7 +1172,7 @@ void simplerandom_lfsr113_mix(SimpleRandomLFSR113_t * p_lfsr113, const uint32_t 
 
 size_t simplerandom_lfsr88_num_seeds(const SimpleRandomLFSR88_t * p_lfsr88)
 {
-    (const void *)p_lfsr88; /* We only use this parameter for type checking. */
+    (void)p_lfsr88; /* We only use this parameter for type checking. */
 
     return 3u;
 }
