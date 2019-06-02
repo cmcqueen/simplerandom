@@ -48,29 +48,39 @@ class BitColumnMatrix(object):
 
     def __init__(self, columns, do_copy=True):
         if do_copy:
-            self.columns = list(columns)
+            self._columns = list(columns)
         else:
-            self.columns = columns
+            self._columns = columns
+
+    def __str__(self):
+        lines = []
+        for i in range(len(self._columns), 0, -1):
+            lines.append(' '.join(str(self._columns[j-1] >> (i - 1) & 1) for j in range(len(self._columns), 0, -1)))
+        return '\n'.join(lines)
+
+    def print(self):
+        for i in range(len(self._columns), 0, -1):
+            print(' '.join(str(self._columns[j-1] >> (i - 1) & 1) for j in range(len(self._columns), 0, -1)))
 
     def __add__(self, other):
-        if len(self.columns) != len(other):
+        if len(self._columns) != len(other):
             raise IndexError("Matrices are not of same width")
         result_columns = []
         for i, column in enumerate(other):
-            result_columns.append(self.columns[i] ^ int(column))
+            result_columns.append(self._columns[i] ^ int(column))
         return BitColumnMatrix(result_columns, do_copy=False)
 
     def __len__(self):
-        return len(self.columns)
+        return len(self._columns)
 
     def __eq__(self, other):
-        return self.columns == other.columns
+        return self._columns == other._columns
 
     def __ne__(self, other):
-        return self.columns != other.columns
+        return self._columns != other._columns
 
     def __iter__(self):
-        return iter(self.columns)
+        return iter(self._columns)
 
     def __sub__(self, other):
         return self.__add__(other)
@@ -82,20 +92,20 @@ class BitColumnMatrix(object):
             # Single value
             x = int(other)
             value = 0
-            for column in self.columns:
+            for column in self._columns:
                 if (x & 1):
                     value ^= column
                 x >>= 1
             return value
         else:
             # Matrix multiplication
-            if len(self.columns) != other_len:
+            if len(self._columns) != other_len:
                 raise IndexError("Matrices are not of same width")
             result_columns = []
             for other_column in other:
                 x = int(other_column)
                 value = 0
-                for column in self.columns:
+                for column in self._columns:
                     if (x & 1):
                         value ^= column
                     x >>= 1
@@ -110,24 +120,24 @@ class BitColumnMatrix(object):
             return NotImplemented
         else:
             # Matrix multiplication
-            if len(self.columns) != other_len:
+            if len(self._columns) != other_len:
                 raise IndexError("Matrices are not of same width")
             result_columns = []
             for other_column in other:
                 x = int(other_column)
                 value = 0
-                for column in self.columns:
+                for column in self._columns:
                     if (x & 1):
                         value ^= column
                     x >>= 1
                 result_columns.append(value)
-            self.columns = result_columns
+            self._columns = result_columns
             return self
 
     def __pow__(self, other):
         n = int(other)
         result = BitColumnMatrix.unity(len(self))
-        self_exp = BitColumnMatrix(self.columns)
+        self_exp = BitColumnMatrix(self._columns)
         while True:
             if n & 1:
                 result = self_exp * result
