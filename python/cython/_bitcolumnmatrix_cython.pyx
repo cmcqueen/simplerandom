@@ -17,7 +17,7 @@ cdef extern from "types.h":
 cdef class BitColumnMatrix(object):
 
     cdef uint32_t columns[32]
-    cdef uint32_t columns_len
+    cdef size_t columns_len
     
     @staticmethod
     def unity(uint32_t n):
@@ -72,7 +72,7 @@ cdef class BitColumnMatrix(object):
                 if shift_value == 0:
                     value = 1
             else:
-                if n == 0 or value >= (1 << (n-1)):
+                if n == 0 or value >= (1u << (n-1)):
                     value = 0
                 else:
                     value <<= 1
@@ -152,8 +152,8 @@ cdef class BitColumnMatrix(object):
         cdef BitColumnMatrix result
         cdef uint32_t yy
         cdef uint32_t value
-        cdef uint32_t x_len
-        cdef uint32_t y_len
+        cdef size_t x_len
+        cdef size_t y_len
         if not isinstance(x, BitColumnMatrix):
             return NotImplemented
         if isint(y):
@@ -188,8 +188,8 @@ cdef class BitColumnMatrix(object):
         cdef BitColumnMatrix result
         cdef uint32_t yy
         cdef uint32_t value
-        cdef uint32_t self_len
-        cdef uint32_t other_len
+        cdef size_t self_len
+        cdef size_t other_len
         if not isinstance(other, BitColumnMatrix):
             # Single int value, or some other object. Not suitable for __imul__.
             return NotImplemented
