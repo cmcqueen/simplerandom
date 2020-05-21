@@ -1127,10 +1127,16 @@ def lfsr_validate_one_seed(seed, uint32_t min_value_shift):
     return seed
 
 def lfsr_state_z(uint32_t z):
-    return int(z ^ (z << 16))
+    cdef uint32_t work
+
+    work = z ^ (z << 16)
+    return int(work)
 
 def lfsr_repr_z(uint32_t z):
-    return repr(int(z ^ (z << 16)))
+    cdef uint32_t work
+
+    work = z ^ (z << 16)
+    return repr(int(work))
 
 _LFSR113_1_MATRIX = BitColumnMatrix([
     0x00000000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000001,
