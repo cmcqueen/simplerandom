@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Set this to True to enable building extensions using Cython.
 # Set it to False to build extensions from the C file (that
