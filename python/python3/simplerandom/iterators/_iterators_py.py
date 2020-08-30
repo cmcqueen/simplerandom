@@ -60,7 +60,7 @@ def _repeat_iter(input_iter):
 
 def _next_seed_int32_or_default(seed_iter, default_value):
     try:
-        seed_item = seed_iter.next()
+        seed_item = next(seed_iter)
     except StopIteration:
         return default_value
     else:
@@ -141,7 +141,7 @@ class Cong(object):
     def sanitise(self):
         pass
 
-    def next(self):
+    def __next__(self):
         self.cong = (69069 * self.cong + 12345) & 0xFFFFFFFF
         return self.cong
 
@@ -152,7 +152,7 @@ class Cong(object):
         for value in _traverse_iter(args):
             value_int = int(value) & 0xFFFFFFFF
             self.cong ^= value_int
-            self.next()
+            next(self)
         return self.cong
 
     def __iter__(self):
@@ -236,7 +236,7 @@ class SHR3(object):
             # 0 is a bad seed. Invert to get a good seed.
             self.shr3 = 0xFFFFFFFF
 
-    def next(self):
+    def __next__(self):
         shr3 = self.shr3
         shr3 ^= (shr3 & 0x7FFFF) << 13
         shr3 ^= shr3 >> 17
@@ -252,7 +252,7 @@ class SHR3(object):
             value_int = int(value) & 0xFFFFFFFF
             self.shr3 ^= value_int
             self.sanitise()
-            self.next()
+            next(self)
         return self.shr3
 
     def __iter__(self):
@@ -348,7 +348,7 @@ class MWC2(object):
     def _next_lower(self):
         self.mwc_lower = 18000 * (self.mwc_lower & 0xFFFF) + (self.mwc_lower >> 16)
 
-    def next(self):
+    def __next__(self):
         # Note: this is apparently equivalent to:
         # self.mwc_upper = (36969 * self.mwc_upper) % 0x9068FFFF
         # self.mwc_lower = (18000 * self.mwc_lower) % 0x464FFFFF
@@ -486,7 +486,7 @@ class MWC64(object):
             self.mwc_upper = temp >> 32
             self.mwc_lower = temp & 0xFFFFFFFF
 
-    def next(self):
+    def __next__(self):
         # Note: this is apparently equivalent to:
         # temp64 = (self.mwc_upper << 32) + self.mwc_lower
         # temp64 = (698769069 * temp64) % 0x29A65EACFFFFFFFF
@@ -511,7 +511,7 @@ class MWC64(object):
             else:
                 self.mwc_lower ^= value_int
             self.sanitise()
-            self.next()
+            next(self)
         return self.current()
 
     def __iter__(self):
@@ -578,10 +578,10 @@ class KISS(object):
     def seed(self, *args, **kwargs):
         self.__init__(*args, **kwargs)
 
-    def next(self):
-        mwc_val = self.random_mwc.next()
-        cong_val = self.random_cong.next()
-        shr3_val = self.random_shr3.next()
+    def __next__(self):
+        mwc_val = next(self.random_mwc)
+        cong_val = next(self.random_cong)
+        shr3_val = next(self.random_shr3)
         return ((mwc_val ^ cong_val) + shr3_val) & 0xFFFFFFFF
 
     def current(self):
@@ -603,11 +603,11 @@ class KISS(object):
             elif selector == 2:
                 self.random_cong.cong ^= value_int
                 # Cong doesn't need any sanitising
-                self.random_cong.next()
+                next(self.random_cong)
             else:   # selector == 3
                 self.random_shr3.shr3 ^= value_int
                 self.random_shr3.sanitise()
-                self.random_shr3.next()
+                next(self.random_shr3)
         return self.current()
 
     def __iter__(self):
@@ -704,10 +704,10 @@ class KISS2(object):
     def seed(self, *args, **kwargs):
         self.__init__(*args, **kwargs)
 
-    def next(self):
-        mwc_val = self.random_mwc.next()
-        cong_val = self.random_cong.next()
-        shr3_val = self.random_shr3.next()
+    def __next__(self):
+        mwc_val = next(self.random_mwc)
+        cong_val = next(self.random_cong)
+        shr3_val = next(self.random_shr3)
         return (mwc_val + cong_val + shr3_val) & 0xFFFFFFFF
 
     def current(self):
@@ -721,19 +721,19 @@ class KISS2(object):
             if selector == 0:
                 self.random_mwc.mwc_upper ^= value_int
                 self.random_mwc.sanitise()
-                self.random_mwc.next()
+                next(self.random_mwc)
             elif selector == 1:
                 self.random_mwc.mwc_lower ^= value_int
                 self.random_mwc.sanitise()
-                self.random_mwc.next()
+                next(self.random_mwc)
             elif selector == 2:
                 self.random_cong.cong ^= value_int
                 # Cong doesn't need any sanitising
-                self.random_cong.next()
+                next(self.random_cong)
             else:   # selector == 3
                 self.random_shr3.shr3 ^= value_int
                 self.random_shr3.sanitise()
-                self.random_shr3.next()
+                next(self.random_shr3)
         return self.current()
 
     def __iter__(self):
@@ -802,7 +802,7 @@ def lfsr_next_one_seed(seed_iter, min_value_shift):
     ensure that all bits of the seed input affect the initial state.
     """
     try:
-        seed = seed_iter.next()
+        seed = next(seed_iter)
     except StopIteration:
         return 0xFFFFFFFF
     else:
@@ -927,7 +927,7 @@ class LFSR113(object):
         b       = (((self.z4 & 0x1FFFFFFF) << 3) ^ self.z4) >> 12
         self.z4 = ((self.z4 & 0x0007FF80) << 13) ^ b
 
-    def next(self):
+    def __next__(self):
         b       = (((self.z1 & 0x03FFFFFF) << 6) ^ self.z1) >> 13
         self.z1 = ((self.z1 & 0x00003FFE) << 18) ^ b
 
@@ -1071,7 +1071,7 @@ class LFSR88(object):
         b       = (((self.z3 & 0x1FFFFFFF) << 3) ^ self.z3) >> 11
         self.z3 = ((self.z3 & 0x00007FF0) << 17) ^ b
 
-    def next(self):
+    def __next__(self):
         b       = (((self.z1 & 0x0007FFFF) << 13) ^ self.z1) >> 19
         self.z1 = ((self.z1 & 0x000FFFFE) << 12) ^ b
 

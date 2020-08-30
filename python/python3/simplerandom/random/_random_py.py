@@ -47,10 +47,10 @@ class _StandardRandomTemplate(random.Random):
         if x is None:
             # Use same random seed code copied from Python's random.Random
             try:
-                x = long(_hexlify(_urandom(16)), 16)
+                x = int(_hexlify(_urandom(16)), 16)
             except NotImplementedError:
                 import time
-                x = long(time.time() * 256) # use fractional seconds
+                x = int(time.time() * 256) # use fractional seconds
         elif not isinstance(x, _Integral):
             # Use the hash of the input seed object. Note this does not give
             # consistent results cross-platform--between Python versions or
@@ -76,9 +76,9 @@ class _StandardRandomTemplate(random.Random):
         k_div, k_remainder = divmod(k, rng_bits)
         if k_remainder:
             accum_bits = k_remainder
-            accum = self.rng_iterator.next() >> (rng_bits - k_remainder)
+            accum = next(self.rng_iterator) >> (rng_bits - k_remainder)
         while k_div > 0:
-            accum |= self.rng_iterator.next() << accum_bits
+            accum |= next(self.rng_iterator) << accum_bits
             accum_bits += rng_bits
             k_div -= rng_bits
         return accum
@@ -87,7 +87,7 @@ class _StandardRandomTemplate(random.Random):
         accum = 0.0
         accum_range = 1.0
         for _ in range(self._rng_n):
-            accum += (self.rng_iterator.next() - self.RNG_MIN) * accum_range
+            accum += (next(self.rng_iterator) - self.RNG_MIN) * accum_range
             accum_range *= self.RNG_RANGE
         return accum / accum_range
 

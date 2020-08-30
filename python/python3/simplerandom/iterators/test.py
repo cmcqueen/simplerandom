@@ -24,25 +24,25 @@ class Marsaglia1999Tests(unittest.TestCase):
     def test_kiss_million(self):
         random_kiss = sri.KISS(2247183469, 99545079, 3269400377, 3950144837)
         for i in range(1000000):
-            k = random_kiss.next()
+            k = next(random_kiss)
         self.assertEqual(k, 2100752872)
 
     def test_cong_million(self):
         cong = sri.Cong(2051391225)
         for i in range(1000000):
-            k = cong.next()
+            k = next(cong)
         self.assertEqual(k, 2416584377)
 
     def test_shr3_million(self):
         shr3 = sri.SHR3(3360276411)
         for i in range(1000000):
-            k = shr3.next()
+            k = next(shr3)
         self.assertEqual(k, 1153302609)
 
     def test_mwc1_million(self):
         mwc = sri.MWC1(2374144069, 1046675282)
         for i in range(1000000):
-            k = mwc.next()
+            k = next(mwc)
         self.assertEqual(k, 904977562)
 
 
@@ -67,7 +67,7 @@ class CongTest(unittest.TestCase):
         state_from_init = self.rng.getstate()
         # Use the RNG to make some random numbers
         num_next_calls = random.randrange(3, 10)
-        data_from_init = tuple([ self.rng.next() for _i in range(num_next_calls) ])
+        data_from_init = tuple([ next(self.rng) for _i in range(num_next_calls) ])
         # Get its state again
         state_after_data_from_init = self.rng.getstate()
 
@@ -77,7 +77,7 @@ class CongTest(unittest.TestCase):
         state_from_seed = self.rng.getstate()
         self.assertEqual(state_from_init, state_from_seed)
         # Get random numbers again. They should be the same as before.
-        data_from_seed = tuple([ self.rng.next() for _i in range(num_next_calls) ])
+        data_from_seed = tuple([ next(self.rng) for _i in range(num_next_calls) ])
         self.assertEqual(data_from_init, data_from_seed)
         # Get its state again. It should be the same as before.
         state_after_data_from_seed = self.rng.getstate()
@@ -87,19 +87,19 @@ class CongTest(unittest.TestCase):
         # Run it for some random count
         count1 = random.randrange(100,1000)
         for _i in range(count1):
-            self.rng.next()
+            next(self.rng)
 
         # Get the state
         rng_state = self.rng.getstate()
 
         # Run it again for a while
         count2 = 1000
-        rng_data = [ self.rng.next() for _i in range(count2) ]
+        rng_data = [ next(self.rng) for _i in range(count2) ]
 
         # Now reset to the previous state, and re-run the data
         self.rng.setstate(rng_state)
         for i in range(count2):
-            self.assertEqual(self.rng.next(), rng_data[i])
+            self.assertEqual(next(self.rng), rng_data[i])
 
     def test_iter(self):
         """Test that __iter__ member function is present"""
@@ -123,13 +123,13 @@ class CongTest(unittest.TestCase):
 
     def test_mix_million(self):
         rng = self.RNG_CLASS()
-        rng.mix(xrange(1000000))
+        rng.mix(range(1000000))
         self.assertEqual(rng.getstate(), self.MIX_MILLION_STATE)
         self.assertEqual(next(rng), self.MIX_MILLION_RESULT)
 
     def test_jumpahead(self):
         # Do one 'next', to get past any unusual initial state.
-        self.rng.next()
+        next(self.rng)
         # Get the state
         rng_state = self.rng.getstate()
         # Jump ahead by cycle len
@@ -150,7 +150,7 @@ class CongTest(unittest.TestCase):
         for i in range(10000):
             jumpahead_rng.setstate(jumpahead_rng_start_state)
             jumpahead_rng.jumpahead(i)
-            self.assertEqual(self.rng.next(), jumpahead_rng.next())
+            self.assertEqual(next(self.rng), next(jumpahead_rng))
 
 class SHR3Test(CongTest):
     RNG_CLASS = sri.SHR3
@@ -179,7 +179,7 @@ class KISS2Test(CongTest):
     def test_million(self):
         rng = self.RNG_CLASS()
         for i in range(1000000):
-            k = rng.next()
+            k = next(rng)
         self.assertEqual(k, self.MILLION_RESULT)
 
 
@@ -206,7 +206,7 @@ class MWC64Test(KISS2Test):
         (0.7.0) when built with Cython 0.14.
         """
         mwc64 = sri.MWC64(2**31, 1)
-        mwc64.next()
+        next(mwc64)
 
 
 class KISSTest(CongTest):

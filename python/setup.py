@@ -28,12 +28,7 @@ cmdclass = { }
 ext_modules = [ ]
 
 if sys.version_info[0] == 2:
-    base_dir = 'python2'
-elif sys.version_info[0] == 3:
-    # Still build from python2 code, but use build_py_2to3 to translate.
-    base_dir = 'python2'
-    from distutils.command.build_py import build_py_2to3 as build_py
-    cmdclass.update({ 'build_py': build_py })
+    raise Exception('Python 2.x is no longer supported')
 
 if USE_CYTHON:
     ext_modules += [
@@ -56,7 +51,7 @@ setup(
     url='http://github.com/cmcqueen/simplerandom',
     packages=[ 'simplerandom', 'simplerandom.iterators', 'simplerandom.random', 'simplerandom._bitcolumnmatrix', 'simplerandom._version', ],
     package_dir={
-        'simplerandom' : base_dir + '/simplerandom',
+        'simplerandom' : 'python3/simplerandom',
         'simplerandom._version' : '_version',
     },
     cmdclass = cmdclass,
@@ -70,9 +65,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.1',
         'Programming Language :: Python :: 3.2',
