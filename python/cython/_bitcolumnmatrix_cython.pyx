@@ -1,4 +1,6 @@
 
+#cython: language_level=3
+
 from cython cimport view
 
 try:
@@ -156,11 +158,12 @@ cdef class BitColumnMatrix(object):
         cdef size_t y_len
         if not isinstance(x, BitColumnMatrix):
             return NotImplemented
+        x_len = len(x)
         if isint(y):
             # Single value
             yy = int(y)
             value = 0
-            for i in range(len(x)):
+            for i in range(x_len):
                 if (yy & 1):
                     value ^= (<BitColumnMatrix>x).columns[i]
                 yy >>= 1
@@ -169,7 +172,6 @@ cdef class BitColumnMatrix(object):
             return NotImplemented
         else:
             # Matrix multiplication
-            x_len = len(x)
             y_len = len(y)
             if x_len != y_len:
                 raise IndexError("Matrices are not of same width")

@@ -1,4 +1,6 @@
 
+#cython: language_level=3
+
 cdef extern from "types.h":
     ctypedef unsigned long uint64_t
     ctypedef unsigned int uint32_t
