@@ -140,10 +140,9 @@ Generator                   Notes
 ==========================  ===========================================================================
 
 These generators are Python iterators, of infinite length (they never raise
-``StopIteration``). They implement the ``next()`` method (``__next__()`` in
-Python 3.x) to generate the next random integer. All the generators output
-32-bit unsigned values, and take one or more 32-bit seed values during
-initialisation/seeding.
+``StopIteration``). They implement the ``__next__()`` function to generate the
+next random integer. All the generators output 32-bit unsigned values, and
+take one or more 32-bit seed values during initialisation/seeding.
 
 
 In ``simplerandom.random``, pseudo-random number generators are provided which
@@ -151,9 +150,8 @@ have the same names as those in ``simplerandom.iterators``, but these
 generators implement the standard Python ``random.Random`` API. Each generator
 uses the iterator of the same name in ``simplerandom.iterators`` to generate
 the random bits used to produce the random floats. The ``jumpahead()`` function
-(Python 2.x) is implemented in all cases, and is also supported in Python 3.x,
-even though ``jumpahead()`` has officially been removed from the Python 3.x
-``random`` API. 
+(in the style of the Python 2.x API) is implemented in all cases, even though
+``jumpahead()`` has officially been removed from the Python 3.x ``random`` API. 
 
 
 -----
@@ -166,11 +164,11 @@ Iterators
     >>> import simplerandom.iterators as sri
     >>> rng = sri.KISS(123958, 34987243, 3495825239, 2398172431)
     >>> next(rng)
-    702862187L
+    702862187
     >>> next(rng)
-    13888114L
+    13888114
     >>> next(rng)
-    699722976L
+    699722976
 
 Random class API
 ````````````````
@@ -189,15 +187,8 @@ Random class API
 Supported Python Versions
 -------------------------
 
-Currently this has had basic testing on Ubuntu 13.04 64-bit and
-Windows XP 32-bit. It passes the ``simplerandom.iterators.test`` unit
-tests, as well as basic manual testing of ``simplerandom.random``. A more
-thorough unit test suite is needed.
-
-In Ubuntu, it has been tested on Python 2.7 and 3.3, and passes.
-
-In Windows, it has been tested on Python 2.6, 2.7, 3.1, 3.2 and 3.3. It
-passes under these versions.
+Python 3.6 through 3.9 is supported. It may or may not run on earlier Python
+3.x versions, but these versions are no longer being tested.
 
 
 -------------

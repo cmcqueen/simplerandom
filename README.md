@@ -260,31 +260,29 @@ class `Random` in the `random` module of the standard Python library.
 
 In `simplerandom.iterators`, the generators are provided as Python
 iterators, of infinite length (they never raise `StopIteration`). They
-implement the `next()` method (`__next__()` in Python 3.x) to generate
-the next random integer. All the generators output 32-bit unsigned
-values, and take one or more 32-bit seed values during initialisation/
-seeding.
+implement the `__next__()` function to generate the next random integer.
+All the generators output 32-bit unsigned values, and take one or more
+32-bit seed values during initialisation/seeding.
 
 In `simplerandom.random`, pseudo-random number generators are provided
 which have the same names as those in `simplerandom.iterators`, but
 these generators implement the standard Python `random.Random` API.
-The `jumpahead()` function (Python 2.x) is implemented for all the
-generators, and is also supported in Python 3.x, even though
-`jumpahead()` has officially been removed from the Python 3.x random
-API. Each generator uses the iterator of the same name in
-`simplerandom.iterators` to generate the random bits used to produce
-the random floats.
+The `jumpahead()` function (in the style of the Python 2.x API) is
+implemented for all the generators, even though `jumpahead()` has
+officially been removed from the Python 3.x random API. Each generator
+uses the iterator of the same name in `simplerandom.iterators` to
+generate the random bits used to produce the random floats.
 
 ### Iterators Usage
 
     >>> import simplerandom.iterators as sri
     >>> rng = sri.KISS(123958, 34987243, 3495825239, 2398172431)
     >>> next(rng)
-    702862187L
+    702862187
     >>> next(rng)
-    13888114L
+    13888114
     >>> next(rng)
-    699722976L
+    699722976
 
 It is possible to "jump ahead" by _n_ values at any time. The
 calculation is done with time complexity O(log n), so _n_ can be very
@@ -314,15 +312,8 @@ Python 2.x and 3.x.
 
 ### Supported Python Versions
 
-Currently this has had basic testing on Ubuntu 13.04 64-bit and Windows
-XP 32-bit. It passes the `simplerandom.iterators.test` unit tests, as
-well as well as basic manual testing of `simplerandom.random`. A more
-thorough unit test suite is needed.
-
-In Ubuntu, it has been tested on Python 2.7 and 3.3, and passes.
-
-In Windows, it has been tested on Python 2.6, 2.7, 3.1, 3.2 and 3.3. It
-passes under these versions.
+Python 3.6 through 3.9 is supported. It may or may not run on earlier
+Python 3.x versions, but these versions are no longer being tested.
 
 ### Use of Cython
 
