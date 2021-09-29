@@ -2,6 +2,6 @@ include *.txt
 recursive-include cython *.pyx
 recursive-include cython *.c
 recursive-include cython *.h
-recursive-include python2 *.py
+recursive-include python3 *.py
 recursive-include test *.py
 
