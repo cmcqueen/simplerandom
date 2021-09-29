@@ -57,7 +57,7 @@ setup(
     cmdclass = cmdclass,
     ext_modules=ext_modules,
 
-    long_description=open('README.txt').read(),
+    long_description=open('README.rst').read(),
 
     license="MIT",
     classifiers=[
