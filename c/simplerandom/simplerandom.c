@@ -242,7 +242,7 @@ static inline void mwc2_sanitize_upper(SimpleRandomMWC2_t * p_mwc)
     p_mwc->mwc_upper = temp;
 }
 
-/* The good state values are all modulo 0x9068FFFF. Values above that would
+/* The good state values are all modulo 0x464FFFFF. Values above that would
  * jump to a corresponding good state value on the first "next" operation.
  * Any integer multiple of 0x464FFFFF, including 0, is a bad state.
  */
@@ -495,7 +495,7 @@ static inline void kiss_sanitize_mwc_upper(SimpleRandomKISS_t * p_kiss)
     p_kiss->mwc_upper = temp;
 }
 
-/* The good state values are all modulo 0x9068FFFF. Values above that would
+/* The good state values are all modulo 0x464FFFFF. Values above that would
  * jump to a corresponding good state value on the first "next" operation.
  * Any integer multiple of 0x464FFFFF, including 0, is a bad state.
  */
