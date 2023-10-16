@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0", "Cython>=3.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simplerandom"
+version = "0.13.5"
+authors = [
+  { name = "Craig McQueen", email = "python@craig.mcqueen.id.au" },
+]
+description = "Simple random number generators"
+keywords = [ "simple", "random", "pseudorandom", "RNG", "PRNG" ]
+readme = "README.rst"
+requires-python = ">=3.6"
+license = { file = "LICENSE.txt" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Cython",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/cmcqueen/simplerandom"
+"Bug Tracker" = "https://github.com/cmcqueen/simplerandom/issues"
