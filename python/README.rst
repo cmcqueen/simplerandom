@@ -187,8 +187,9 @@ Random class API
 Supported Python Versions
 -------------------------
 
-Python 3.6 through 3.9 is supported. It may or may not run on earlier Python
-3.x versions, but these versions are no longer being tested.
+Python >= 3.10 are supported.
+
+Python versions < 3.10 might work, but have not been tested.
 
 
 -------------
