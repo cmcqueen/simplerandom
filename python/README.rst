@@ -101,7 +101,7 @@ References
 
 .. [#lecuyer1996]   | `Maximally Equidistributed Combined Tausworthe Generators`__
                     | P. L'Ecuyer
-                    | Mathematics of Computation, 65, 213 (1996), 203–213. 
+                    | Mathematics of Computation, 65, 213 (1996), 203–213.
 
 .. __:
 .. _Maximally Equidistributed Combined Tausworthe Generators:
@@ -151,7 +151,7 @@ generators implement the standard Python ``random.Random`` API. Each generator
 uses the iterator of the same name in ``simplerandom.iterators`` to generate
 the random bits used to produce the random floats. The ``jumpahead()`` function
 (in the style of the Python 2.x API) is implemented in all cases, even though
-``jumpahead()`` has officially been removed from the Python 3.x ``random`` API. 
+``jumpahead()`` has officially been removed from the Python 3.x ``random`` API.
 
 
 -----

@@ -20,7 +20,7 @@ cdef class BitColumnMatrix(object):
 
     cdef uint32_t columns[32]
     cdef size_t columns_len
-    
+
     @staticmethod
     def unity(uint32_t n):
         cdef uint32_t value

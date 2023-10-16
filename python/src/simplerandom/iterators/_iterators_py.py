@@ -98,7 +98,7 @@ class Cong(object):
     This is a congruential generator with the widely used
     69069 multiplier: x[n]=69069x[n-1]+12345. It has
     period 2**32.
-    
+
     The leading half of its 32 bits seem to pass tests,
     but bits in the last half are too regular. It fails
     tests for which those bits play a significant role.
@@ -664,7 +664,7 @@ class KISS(object):
 
 class KISS2(object):
     '''"Keep It Simple Stupid" random number generator
-    
+
     It combines the MWC64, Cong, SHR3 generators. Period
     is about 2**123.
 
@@ -790,11 +790,11 @@ class KISS2(object):
 
 def lfsr_next_one_seed(seed_iter, min_value_shift):
     """High-quality seeding for LFSR generators.
-    
+
     The LFSR generator components discard a certain number of their lower bits
     when generating each output. The significant bits of their state must not
     all be zero. We must ensure that when seeding the generator.
-    
+
     In case generators are seeded from an incrementing input (such as a system
     timer), and between increments only the lower bits may change, we would
     also like the lower bits of the input to change the initial state, and not
@@ -821,11 +821,11 @@ def lfsr_next_one_seed(seed_iter, min_value_shift):
 
 def lfsr_validate_one_seed(seed, min_value_shift):
     '''Validate seeds for LFSR generators
-    
+
     The LFSR generator components discard a certain number of their lower bits
     when generating each output. The significant bits of their state must not
     all be zero. We must ensure that when seeding the generator.
-    
+
     This is a light-weight validation of state, used from setstate().
     '''
     min_value = 1 << min_value_shift
@@ -1005,7 +1005,7 @@ class LFSR88(object):
 
     "Maximally Equidistributed Combined Tausworthe Generators"
     P. L'Ecuyer
-    Mathematics of Computation, 65, 213 (1996), 203-213. 
+    Mathematics of Computation, 65, 213 (1996), 203-213.
     '''
     SIMPLERANDOM_MAX = 2**32 - 1
 

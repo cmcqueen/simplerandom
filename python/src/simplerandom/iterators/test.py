@@ -13,7 +13,7 @@ import simplerandom.iterators as sri
 
 class Marsaglia1999Tests(unittest.TestCase):
     """Tests as in Marsaglia 1999 post
-    
+
     The Marsaglia 1999 post didn't explicitly set seed values for each RNG,
     but relied on the seed values that were side-effects of previous RNG
     executions. But we want to run each test as a stand-alone unit. So we
@@ -136,7 +136,7 @@ class CongTest(unittest.TestCase):
         self.rng.jumpahead(self.RNG_CYCLE_LEN)
         # See that state hasn't changed
         self.assertEqual(rng_state, self.rng.getstate())
-    
+
         # Jump ahead 1, then back 1
         self.rng.jumpahead(1)
         # See that state HAS changed
@@ -144,7 +144,7 @@ class CongTest(unittest.TestCase):
         self.rng.jumpahead(-1)
         # See that state hasn't changed from original
         self.assertEqual(rng_state, self.rng.getstate())
-    
+
         jumpahead_rng = self.RNG_CLASS()
         jumpahead_rng_start_state = self.rng.getstate()
         for i in range(10000):
@@ -201,7 +201,7 @@ class MWC64Test(KISS2Test):
 
     def test_seed_with_MSbit_set(self):
         """Test MWC64 with MS-bit of mwc_c seed set.
-        
+
         This caused an exception in an earlier version of the Cython code
         (0.7.0) when built with Cython 0.14.
         """
