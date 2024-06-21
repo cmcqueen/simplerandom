@@ -7,7 +7,7 @@ Contact
 Copyright
 :   2010 Craig McQueen
 
-Simple pseudo-random number generators for C and Python.
+Simple pseudo-random number generators for C, Python, Rust.
 
 Intro
 -----
@@ -28,9 +28,11 @@ Features:
   be avoided. The seed functions for all generators ensure that any
   "bad" state values are avoided, and replaced by a suitable
   alternative initial state.
-* Currently supported languages are:
+* These random number generators have been implemented in the following
+  languages:
     * C
     * Python
+    * Rust
 * Same numeric output in each supported language. It can be useful
   to be able to implement the identical algorithm on muliple
   platforms and/or languages.
