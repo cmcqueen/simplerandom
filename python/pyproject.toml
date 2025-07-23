@@ -6,17 +6,17 @@ build-backend = "setuptools.build_meta"
 name = "simplerandom"
 version = "0.13.7"
 authors = [
-  { name = "Craig McQueen", email = "python@craig.mcqueen.id.au" },
+  { name = "Craig McQueen", email = "craig@mcqueen.au" },
 ]
 description = "Simple random number generators"
 keywords = [ "simple", "random", "pseudorandom", "RNG", "PRNG" ]
 readme = "README.rst"
 requires-python = ">=3.6"
-license = { file = "LICENSE.txt" }
+license = "MIT"
+license-files = [ "LICENSE.txt" ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Cython",
     "Topic :: Scientific/Engineering :: Mathematics",
