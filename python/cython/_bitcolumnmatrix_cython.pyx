@@ -1,16 +1,9 @@
 
 #cython: language_level=3
 
-from cython cimport view
+import numbers
 
-try:
-    import numbers
-except ImportError:
-    def isint(value):
-        return isinstance(value, int) or isinstance(value, long)
-else:
-    def isint(value):
-        return isinstance(value, numbers.Integral)
+from cython cimport view
 
 
 cdef extern from "types.h":
@@ -85,7 +78,7 @@ cdef class BitColumnMatrix(object):
             self.columns_len = (<BitColumnMatrix>columns).columns_len
             for i in range(32):
                 self.columns[i] = (<BitColumnMatrix>columns).columns[i]
-        elif isint(columns):
+        elif isinstance(columns, numbers.Integral):
             if columns > 32:
                 raise NotImplementedError
             self.columns_len = columns
@@ -159,7 +152,7 @@ cdef class BitColumnMatrix(object):
         if not isinstance(x, BitColumnMatrix):
             return NotImplemented
         x_len = len(x)
-        if isint(y):
+        if isinstance(y, numbers.Integral):
             # Single value
             yy = int(y)
             value = 0
